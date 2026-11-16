@@ -24,3 +24,8 @@ data/
 /docs/hantar/
 /dalaman/
 /state/
+
+# host values and deploy state
+/deploy/hos.env
+/deploy/CURRENT_TAG
+/deploy/PREVIOUS_TAG

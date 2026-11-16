@@ -1,0 +1,34 @@
+# Route for the public host name to the tambat container, on its own router so a certificate problem here cannot
+# affect any other name. deploy/deploy.sh fills the @...@ values from deploy/hos.env and copies the result into the
+# proxy's dynamic configuration folder.
+# HTML is sent with `Cache-Control: no-transform`, so a CDN in front does not compress it: the `compress` middleware
+# does, with its 1024-byte floor lowered so the small index page is compressed too.
+http:
+  routers:
+    tambat:
+      entryPoints: [https]
+      rule: Host(`@DOMAIN@`)
+      service: tambat-svc
+      middlewares: [tambat-compress]
+      tls:
+        certResolver: @CERT_RESOLVER@
+      priority: 100
+    tambat-http:
+      entryPoints: [http]
+      rule: Host(`@DOMAIN@`)
+      service: tambat-svc
+      middlewares: [tambat-https]
+      priority: 100
+  middlewares:
+    tambat-compress:
+      compress:
+        minResponseBodyBytes: 256
+    tambat-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+  services:
+    tambat-svc:
+      loadBalancer:
+        servers:
+          - url: http://tambat:8080

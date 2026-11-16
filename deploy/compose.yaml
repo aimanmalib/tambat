@@ -1,0 +1,20 @@
+# tambat: one container (API + built web app) behind the host's reverse proxy. No published port, no volume, no keys
+# (the server never signs). Run through deploy/deploy.sh, which sources deploy/hos.env (host values, not tracked).
+name: tambat
+services:
+  tambat:
+    image: tambat:${TAMBAT_TAG:-latest}
+    container_name: tambat
+    restart: unless-stopped
+    environment:
+      TZ: UTC
+    read_only: true
+    tmpfs: [/tmp]
+    cpus: 0.5
+    mem_limit: 256m
+    networks: [proxy]
+
+networks:
+  proxy:
+    name: ${TAMBAT_NETWORK:?set TAMBAT_NETWORK in deploy/hos.env}
+    external: true

@@ -4,6 +4,7 @@ const address = vectors.bch.address.bitcoincash;
 const exact = (name: string) => ({ name, exact: true });
 
 test('link with an extension and a pasted wallet signature, then look up, pay and sign in', async ({ page }) => {
+  test.slow(); // the whole journey with four accessibility scans; WebKit on a busy machine needs more than 60 s
   await fakeExtension(page);
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.app.headline);

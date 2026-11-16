@@ -75,6 +75,15 @@ End-to-end tests run the real server against an in-memory relay (`e2e/fake-relay
 to it, and a NIP-07 extension is faked with the key from the public test phrase. They check accessibility (axe, WCAG 2.1 AA),
 console errors and horizontal overflow at 320 px.
 
+## Deployment
+
+One container behind a reverse proxy: see [docs/decisions/0004-deploy-and-headers.md](docs/decisions/0004-deploy-and-headers.md).
+Copy `deploy/hos.env.example` to `deploy/hos.env`, then `deploy/deploy.sh` (build from a clean `git archive`, run, check the
+public `/healthz` and run `e2e/live.spec.ts` against the public URL), `deploy/deploy.sh --rollback` or `deploy/deploy.sh --status`.
+The read-only live checks also run by hand: `E2E_BASE_URL=https://your.host npx playwright test`.
+
+`scripts/demo-binding.ts` makes a demo identity, publishes its binding and signs in to a deployed demo app through the API.
+
 ## Third-party licenses
 
 - `nostr-tools`: Unlicense.
