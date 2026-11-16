@@ -8,7 +8,7 @@ import { config, type Network } from '../config.js';
 import { recoverSigner } from './bchmsg.js';
 import { claimsOf, type StepName } from './binding.js';
 import { parseP2pkhAddress } from './cashaddr.js';
-import { eventShapeError, idMatches, signatureValid, toNpub, verificationText, type Event } from './nostr.js';
+import { eventShapeError, idMatches, plainEvent, signatureValid, toNpub, verificationText, type Event } from './nostr.js';
 
 export type { StepName };
 
@@ -35,6 +35,8 @@ export interface BindingResult {
   createdAt: number;
   steps: Step[];
   claims: ClaimResult[];
+  /** The checked event (NIP-01 fields only), so callers can show it or keep its other tags. */
+  event?: Event;
 }
 
 export interface VerifyOptions {
@@ -64,7 +66,8 @@ function newestStep(event: Event, others: Event[] | undefined): Step {
   return newer ? fail('newest', `replaced by newer event ${newer.id} (created_at ${newer.created_at})`) : pass('newest');
 }
 
-function verifyClaim(address: string, signature: string, npub: string, nostrPubkey: string, network: Network): ClaimResult {
+/** Checks one BCH claim (address and signature) against the Nostr key that carries it. */
+export function verifyClaim(address: string, signature: string, npub: string, nostrPubkey: string, network: Network): ClaimResult {
   const steps: Step[] = [];
   const parsed = parseP2pkhAddress(address);
   const recovered = recoverSigner(verificationText(npub), signature);
@@ -122,5 +125,5 @@ export function verifyBinding(input: unknown, options: VerifyOptions = {}): Bind
   steps.push(newestStep(event, options.sameAuthorEvents));
   const claims = claimsOf(event).map((c) => verifyClaim(c.address, c.signature, npub, event.pubkey, network));
   const ok = allPass(steps) && claims.length > 0 && claims.every((c) => c.ok);
-  return { ok, eventId: event.id, pubkey: event.pubkey, npub, createdAt: event.created_at, steps, claims };
+  return { ok, eventId: event.id, pubkey: event.pubkey, npub, createdAt: event.created_at, steps, claims, event: plainEvent(event) };
 }
