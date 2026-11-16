@@ -3,7 +3,8 @@
  * claim found by address only counts if it is still in the author's newest kind 10011 event.
  */
 import type { Filter } from 'nostr-tools/filter';
-import { SimplePool } from 'nostr-tools/pool';
+import { AbstractSimplePool } from 'nostr-tools/abstract-pool';
+import { verifyEvent } from 'nostr-tools/pure';
 import { config } from '../config.js';
 import { claimIdentity } from './binding.js';
 import { parseP2pkhAddress } from './cashaddr.js';
@@ -15,16 +16,31 @@ export type { Filter };
 /** Queries relays and resolves with whatever events arrived before the timeout. Must not reject. */
 export type QueryFn = (relays: string[], filter: Filter, timeoutMs: number) => Promise<unknown[]>;
 
-export const relayQuery: QueryFn = async (relays, filter, timeoutMs) => {
-  const pool = new SimplePool();
-  try {
-    return await pool.querySync(relays, filter, { maxWait: timeoutMs });
-  } catch {
-    return [];
-  } finally {
-    pool.close(relays);
-  }
-};
+/**
+ * Builds a relay query on a fresh pool. `websocketImplementation` is the WebSocket class to use; browsers pass
+ * nothing and get the global one. Node must pass the `ws` package (see src/node/relay.ts): Node's built-in
+ * WebSocket re-enters its error handler when a relay fails during the handshake and the process dies.
+ */
+export function createRelayQuery(websocketImplementation?: typeof WebSocket): QueryFn {
+  return async (relays, filter, timeoutMs) => {
+    const pool = new AbstractSimplePool({
+      verifyEvent,
+      // A relay that accepts the TCP connection but never answers must not hold the query past its timeout.
+      maxWaitForConnection: timeoutMs,
+      websocketImplementation: websocketImplementation ?? globalThis.WebSocket,
+    });
+    try {
+      return await pool.querySync(relays, filter, { maxWait: timeoutMs });
+    } catch {
+      return [];
+    } finally {
+      pool.close(relays);
+    }
+  };
+}
+
+/** Relay query using the global WebSocket. For browsers; Node code uses the query from src/node/relay.ts. */
+export const relayQuery: QueryFn = createRelayQuery();
 
 export interface DiscoverOptions extends Pick<VerifyOptions, 'network'> {
   relays?: string[];

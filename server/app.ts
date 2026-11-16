@@ -12,12 +12,15 @@ import { bchAnswerValid, ChallengeStore, LOGIN_METHOD, LOGIN_PATH, bchChallengeT
 import { didDocument } from '../src/core/did.js';
 import { lookupByPubkey, type QueryFn } from '../src/core/discover.js';
 import { parsePubkey, toNpub } from '../src/core/nostr.js';
+import { nodeRelayQuery } from '../src/node/relay.js';
 import { SessionStore, type Session } from './sessions.js';
 
 export interface AppOptions {
-  /** Relay query; tests pass an in-process fake. */
+  /** Relay query; defaults to the Node relay query (the `ws` package). Tests pass an in-process fake. */
   query?: QueryFn;
   relays?: string[];
+  /** Relay query timeout; defaults to config nostr.queryTimeoutMs. */
+  timeoutMs?: number;
   now?: () => number;
   allowedOrigins?: string[];
   /** Directory with the built web app; skipped when it does not exist. */
@@ -35,7 +38,11 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
   const allowed = options.allowedOrigins ?? config.auth.allowedOrigins;
   const challenges = new ChallengeStore();
   const sessions = new SessionStore();
-  const lookupOptions = { ...(options.query ? { query: options.query } : {}), ...(options.relays ? { relays: options.relays } : {}) };
+  const lookupOptions = {
+    query: options.query ?? nodeRelayQuery,
+    ...(options.relays ? { relays: options.relays } : {}),
+    ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
+  };
   const app = Fastify({ logger: options.logger ?? false, bodyLimit: config.server.bodyLimitBytes });
   void app.register(cookie);
 

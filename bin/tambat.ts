@@ -8,6 +8,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { lookupByAddress, lookupByPubkey } from '../src/core/discover.js';
+import { nodeRelayQuery } from '../src/node/relay.js';
 import { parsePubkey, toNpub, verificationText } from '../src/core/nostr.js';
 import { verifyBinding, type BindingResult } from '../src/core/verify.js';
 
@@ -55,14 +56,14 @@ export async function main(argv: string[]): Promise<number> {
   if (command === 'lookup') {
     if (arg.includes(':')) {
       try {
-        return out(json, await lookupByAddress(arg), `no verified binding found for ${arg}`);
+        return out(json, await lookupByAddress(arg, { query: nodeRelayQuery }), `no verified binding found for ${arg}`);
       } catch (err) {
         return usageError((err as Error).message);
       }
     }
     const key = parsePubkey(arg);
     if ('error' in key) return usageError(key.error);
-    const result = await lookupByPubkey(key.hex);
+    const result = await lookupByPubkey(key.hex, { query: nodeRelayQuery });
     return out(json, result ? [result] : [], `no binding event found for ${toNpub(key.hex)}`);
   }
   return usageError(`unknown command ${command}`);
