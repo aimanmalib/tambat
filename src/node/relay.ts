@@ -5,11 +5,12 @@
  * socket that is still connecting), and an 'error' event with no listener is thrown. The subclass below keeps
  * one listener for the lifetime of the socket so such late errors are dropped; the pool still sees every error
  * that arrives while it is listening.
+ * Also used to publish from the command line.
  */
 import WebSocket from 'ws';
 import { createRelayQuery, type QueryFn } from '../core/discover.js';
 
-class RelaySocket extends WebSocket {
+export class RelaySocket extends WebSocket {
   constructor(address: string | URL, protocols?: string | string[]) {
     super(address, protocols);
     this.on('error', () => undefined);
