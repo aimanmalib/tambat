@@ -1,0 +1,51 @@
+{
+  "name": "tambat",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bind a Bitcoin Cash key and a Nostr key with NIP-39, publish the binding to relays, and verify it independently.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "tambat": "bin/tambat.ts"
+  },
+  "scripts": {
+    "dev:web": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "gate": "bash scripts/gerbang-ujian.sh"
+  },
+  "dependencies": {
+    "@bitauth/libauth": "3.0.0",
+    "@fastify/cookie": "11.1.5",
+    "@fastify/static": "10.1.11",
+    "@walletconnect/sign-client": "2.21.8",
+    "fastify": "5.12.8",
+    "nostr-tools": "2.26.1",
+    "qrcode-generator": "2.0.4",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.1",
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "eslint": "10.15.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.14.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  }
+}
