@@ -79,5 +79,5 @@ licences in the README.
 
 - Any NIP-39 aware client can read our claims; we add the `bch` platform with a documented proof format.
 - Pinning an older WalletConnect client means we do not get later relay fixes. If Paytaca changes its relay protocol in a way
-  2.21.8 cannot follow, the paste-a-signature path still works with any wallet.
+  2.21.8 cannot follow, pasting a signature from the wallet still works with any wallet.
 - Key rotation, recovery, credentials and reputation are out of scope and listed under known limits.
