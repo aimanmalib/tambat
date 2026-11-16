@@ -7,7 +7,8 @@ import type { BindingResult } from '../../src/core/verify';
 import { useText } from '../i18n';
 import { navigate, queryParam } from '../router';
 import { Checklist } from '../ui/Checklist';
-import { errorText, Notice } from '../ui/Notice';
+import { errorText } from '../../src/errors';
+import { Notice } from '../ui/Notice';
 
 type State = { kind: 'idle' } | { kind: 'busy' } | { kind: 'done'; results: BindingResult[] } | { kind: 'error'; message: string };
 
@@ -63,7 +64,7 @@ export function LookupPage() {
   const settle = (value: string): Promise<State> =>
     lookUp(value.trim()).then(
       (results): State => (results === 'bad_input' ? { kind: 'error', message: t('lookup.inputError') } : { kind: 'done', results }),
-      (e: unknown): State => ({ kind: 'error', message: errorText(e) }),
+      (e: unknown): State => ({ kind: 'error', message: errorText(e, t) }),
     );
   const run = (value: string) => {
     setState({ kind: 'busy' });

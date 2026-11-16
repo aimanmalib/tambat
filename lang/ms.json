@@ -87,7 +87,9 @@
     "refused": "tidak diterima",
     "lookUp": "Cari semula",
     "signIn": "Log masuk ke aplikasi demo",
-    "again": "Mula semula"
+    "again": "Mula semula",
+    "relaySaid": "Mesej relay: {reason}",
+    "noAnswer": "tiada jawapan dalam masa"
   },
   "lookup": {
     "title": "Cari identiti",
@@ -119,7 +121,21 @@
     "key_separation": "Kunci berasingan",
     "pass": "lulus",
     "fail": "gagal",
-    "skip": "dilangkau"
+    "skip": "dilangkau",
+    "reasons": {
+      "event_malformed": "Ini bukan event Nostr yang berformat betul.",
+      "wrong_kind": "Event ini jenis {kind}; ikatan ialah jenis {expected}.",
+      "id_mismatch": "Id event tidak sepadan dengan kandungannya, jadi ia diubah selepas ditandatangani.",
+      "nostr_sig_invalid": "Tandatangan Nostr tidak sepadan dengan kunci ini.",
+      "no_relay_results": "Belum disemak; cari kunci ini untuk membandingkan dengan relay.",
+      "replaced": "Event yang lebih baharu daripada kunci yang sama menggantikan event ini.",
+      "signature_unreadable": "Tandatangan BCH tidak dapat dibaca. Salin keseluruhan mesej bertandatangan dari dompet anda.",
+      "address_invalid": "Alamat ini bukan CashAddr P2PKH yang sah bersama awalan rangkaiannya.",
+      "no_public_key": "Dilangkau kerana tiada kunci dapat dibaca dari tandatangan BCH.",
+      "wrong_signer": "Tandatangan ini tidak dibuat oleh kunci {address} untuk {npub}.",
+      "wrong_network": "Alamat ini di rangkaian {prefix}; laman ini menjangka {network}.",
+      "same_key": "Kunci BCH dan kunci Nostr ialah kunci yang sama. Guna kunci berasingan."
+    }
   },
   "demo": {
     "title": "Aplikasi demo: log masuk dengan Nostr",
@@ -144,11 +160,38 @@
     "none": "Kunci ini tiada alamat BCH disahkan.",
     "uri": "Pautan bayaran",
     "open": "Buka dalam dompet",
-    "qr": "Kod QR bayaran"
+    "qr": "Kod QR bayaran",
+    "amountFormat": "Masukkan amaun dalam BCH dengan paling banyak 8 tempat perpuluhan, contohnya 0.001.",
+    "amountZero": "Amaun mesti lebih daripada sifar."
   },
   "footer": {
     "built": "Dibina untuk BCH BLAZE 2026.",
     "license": "Sumber terbuka, MIT.",
     "trust": "Kunci kekal dalam pelayar dan dompet anda. Pelayan hanya mengeluarkan cabaran log masuk."
+  },
+  "errors": {
+    "unexpected": "Ada masalah. Butiran: {reason}",
+    "noExtension": "Tiada sambungan pelayar Nostr ditemui.",
+    "notBunker": "Ini bukan alamat bunker. Ia bermula dengan bunker://",
+    "noPairing": "WalletConnect tidak memberi pautan berpasangan. Cuba lagi.",
+    "wrongNetwork": "Dompet menawarkan {account}, yang berada di rangkaian lain.",
+    "noAccount": "Dompet tidak menawarkan akaun BCH.",
+    "noSignature": "Dompet tidak memulangkan tandatangan.",
+    "api": {
+      "event_shape": "Event log masuk tidak berformat betul.",
+      "kind": "Event log masuk mempunyai jenis yang salah.",
+      "event_id": "Event log masuk diubah selepas ditandatangani.",
+      "nostr_sig": "Tandatangan log masuk tidak sepadan dengan kunci.",
+      "url": "Event log masuk dibuat untuk halaman lain.",
+      "method": "Event log masuk dibuat untuk kaedah permintaan lain.",
+      "created_at": "Jam peranti anda terlalu jauh daripada jam pelayan.",
+      "challenge_unknown": "Cabaran ini sudah digunakan atau tidak pernah dikeluarkan. Cuba lagi.",
+      "challenge_expired": "Cabaran sudah tamat tempoh. Cuba lagi.",
+      "origin": "Permintaan ini datang dari laman yang tidak dibenarkan.",
+      "bch_sig": "Tandatangan BCH pada cabaran tidak sepadan dengan alamat anda yang disahkan.",
+      "no_session": "Anda belum log masuk.",
+      "pubkey": "Itu bukan kunci Nostr yang sah.",
+      "not_found": "Tiada apa-apa ditemui."
+    }
   }
 }

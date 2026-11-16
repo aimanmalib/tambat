@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { toNpub } from '../../src/core/nostr';
 import { useText } from '../i18n';
 import { KeyBadge } from '../ui/KeyBadge';
-import { errorText, Notice } from '../ui/Notice';
+import { errorText } from '../../src/errors';
+import { Notice } from '../ui/Notice';
 import { useKeys } from './KeysContext';
 import { bunkerSigner, demoNostrSigner, extensionSigner, hasExtension, type NostrSigner } from './nostr';
 
@@ -27,7 +28,7 @@ export function NostrConnect({ headingLevel = 3 }: { headingLevel?: 2 | 3 }) {
     try {
       setNostr(await make());
     } catch (e) {
-      setError(errorText(e));
+      setError(errorText(e, t));
     } finally {
       setBusy(false);
     }

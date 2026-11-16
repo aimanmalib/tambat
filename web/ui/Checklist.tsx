@@ -1,14 +1,16 @@
 import type { BindingResult, Step } from '../../src/core/verify';
+import { stepReason } from '../../src/errors';
 import { useText } from '../i18n';
 
 function StepRow({ step }: { step: Step }) {
   const { t } = useText();
+  const reason = stepReason(step, t);
   return (
     <li className={`check check--${step.status}`} data-step={step.name} data-status={step.status}>
       <span className="check__mark" aria-hidden="true">{step.status === 'pass' ? '✓' : step.status === 'fail' ? '✕' : '–'}</span>
       <span className="check__name">{t(`steps.${step.name}`)}</span>
       <span className="check__status">{t(`steps.${step.status}`)}</span>
-      {step.reason ? <span className="check__reason">{step.reason}</span> : null}
+      {reason ? <span className="check__reason">{reason}</span> : null}
     </li>
   );
 }

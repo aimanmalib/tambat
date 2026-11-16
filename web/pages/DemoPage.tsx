@@ -4,7 +4,8 @@ import { getChallenge, getSession, login, logout, type SessionView } from '../ap
 import { useText } from '../i18n';
 import { useKeys } from '../keys/KeysContext';
 import { NostrConnect } from '../keys/NostrConnect';
-import { errorText, Notice } from '../ui/Notice';
+import { errorText } from '../../src/errors';
+import { Notice } from '../ui/Notice';
 
 /** The relying app: it only talks to /api/rp/*, and its server decides what the session shows. */
 export function DemoPage() {
@@ -29,7 +30,7 @@ export function DemoPage() {
       const bchSignature = alsoBch && bch ? await bch.signMessage(challenge.bchText) : undefined;
       setSession((await login(event, bchSignature)).session);
     } catch (e) {
-      setError(`${t('demo.failed')}: ${errorText(e)}`);
+      setError(`${t('demo.failed')}: ${errorText(e, t)}`);
     } finally {
       setBusy(false);
     }

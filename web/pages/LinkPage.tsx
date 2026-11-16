@@ -11,7 +11,8 @@ import { useKeys } from '../keys/KeysContext';
 import { NostrConnect } from '../keys/NostrConnect';
 import { navigate } from '../router';
 import { Checklist } from '../ui/Checklist';
-import { errorText, Notice } from '../ui/Notice';
+import { errorText } from '../../src/errors';
+import { Notice } from '../ui/Notice';
 import { RelayList } from '../ui/RelayList';
 
 /** The three steps: connect Nostr, get a BCH signature, sign and publish the NIP-39 event. */
@@ -61,7 +62,7 @@ export function LinkPage() {
       setResult(checked);
       if (checked.ok) setOutcomes(await publishEvent(event, config.nostr.relays, config.nostr.publishTimeoutMs));
     } catch (e) {
-      setError(errorText(e));
+      setError(errorText(e, t));
     } finally {
       setBusy(false);
     }

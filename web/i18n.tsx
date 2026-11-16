@@ -2,12 +2,12 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import en from '../lang/en.json';
 import ms from '../lang/ms.json';
 import { config } from '../src/config';
-import { translate, type Dictionary } from '../src/i18n';
+import { translator, type Dictionary, type Translate } from '../src/i18n';
 
 const dictionaries: Record<string, Dictionary> = { en, ms };
 const STORAGE_KEY = 'tambat.lang';
 
-export type Translate = (key: string, vars?: Record<string, string | number>) => string;
+export type { Translate };
 
 interface TextState {
   lang: string;
@@ -30,9 +30,7 @@ export function TextProvider({ children }: { children: ReactNode }) {
   }, [lang]);
   const value = useMemo<TextState>(() => {
     const dict = dictionaries[lang] ?? en;
-    const t: Translate = (key, vars) =>
-      translate(dict, key).replace(/\{(\w+)\}/g, (whole, name: string) => (vars && name in vars ? String(vars[name]) : whole));
-    return { lang, setLang, t };
+    return { lang, setLang, t: translator(dict) };
   }, [lang]);
   return <TextContext.Provider value={value}>{children}</TextContext.Provider>;
 }

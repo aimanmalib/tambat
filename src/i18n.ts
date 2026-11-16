@@ -1,6 +1,8 @@
 /** Looks up UI text by dotted key. Text lives in lang/*.json; a missing key returns the key so gaps are visible. */
 export type Dictionary = { [key: string]: string | Dictionary };
 
+export type Translate = (key: string, vars?: Record<string, string | number>) => string;
+
 export function translate(dict: Dictionary, key: string): string {
   let node: string | Dictionary | undefined = dict;
   for (const part of key.split('.')) {
@@ -19,4 +21,10 @@ export function leafKeys(dict: Dictionary, prefix = ''): string[] {
     else out.push(...leafKeys(v, path + '.'));
   }
   return out.sort();
+}
+
+/** A text function over one dictionary: `{name}` placeholders are filled from `vars`, unknown ones are left as is. */
+export function translator(dict: Dictionary): Translate {
+  return (key, vars) =>
+    translate(dict, key).replace(/\{(\w+)\}/g, (whole, name: string) => (vars && name in vars ? String(vars[name]) : whole));
 }

@@ -2,6 +2,7 @@
 import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';
 import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import type { Event, EventTemplate } from '../../src/core/nostr';
+import { TextError } from '../../src/errors';
 
 export type NostrSignerKind = 'extension' | 'bunker' | 'demo';
 
@@ -27,7 +28,7 @@ export const hasExtension = (): boolean => typeof window !== 'undefined' && type
 /** NIP-07 browser extension. */
 export async function extensionSigner(): Promise<NostrSigner> {
   const ext = window.nostr;
-  if (!ext) throw new Error('no NIP-07 extension');
+  if (!ext) throw new TextError('errors.noExtension');
   const pubkey = await ext.getPublicKey();
   return { kind: 'extension', pubkey, sign: (t) => ext.signEvent(t) };
 }
@@ -35,7 +36,7 @@ export async function extensionSigner(): Promise<NostrSigner> {
 /** NIP-46 remote signer from a bunker:// address (or a NIP-05 name that points to one). */
 export async function bunkerSigner(input: string): Promise<NostrSigner> {
   const pointer = await parseBunkerInput(input.trim());
-  if (!pointer) throw new Error('not a bunker address');
+  if (!pointer) throw new TextError('errors.notBunker');
   const signer = BunkerSigner.fromBunker(generateSecretKey(), pointer);
   await signer.connect();
   const pubkey = await signer.getPublicKey();

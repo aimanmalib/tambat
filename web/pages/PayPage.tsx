@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { lookupByPubkey } from '../../src/core/discover';
 import { parsePubkey } from '../../src/core/nostr';
-import { amountError, paymentUri } from '../../src/core/pay';
+import { amountProblem, paymentUri } from '../../src/core/pay';
 import { useText } from '../i18n';
 import { queryParam } from '../router';
 import { CopyValue } from '../ui/Copy';
-import { errorText, Notice } from '../ui/Notice';
+import { errorText } from '../../src/errors';
+import { Notice } from '../ui/Notice';
 import { Qr } from '../ui/Qr';
 
 type Found = { address: string; npub: string } | 'none' | null;
@@ -27,7 +28,7 @@ export function PayPage() {
       const claim = r?.ok ? r.claims.find((c) => c.ok) : undefined;
       return { found: claim && r ? { address: claim.address, npub: r.npub } : 'none', error: '' };
     } catch (e) {
-      return { found: null, error: errorText(e) };
+      return { found: null, error: errorText(e, t) };
     }
   };
   const apply = (r: { found: Found; error: string }) => {
@@ -49,7 +50,7 @@ export function PayPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const badAmount = amountError(amount);
+  const badAmount = amountProblem(amount);
   const uri = found && found !== 'none' && !badAmount ? paymentUri({ address: found.address, amount }) : '';
 
   return (
@@ -73,7 +74,7 @@ export function PayPage() {
             <span className="field__label">{t('pay.amount')}</span>
             <input className="input" name="amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} aria-invalid={badAmount ? true : undefined} />
           </label>
-          {badAmount ? <Notice tone="error">{badAmount}</Notice> : null}
+          {badAmount ? <Notice tone="error">{t(badAmount === 'zero' ? 'pay.amountZero' : 'pay.amountFormat')}</Notice> : null}
           {uri ? (
             <div className="pairing">
               <Qr value={uri} label={t('pay.qr')} />

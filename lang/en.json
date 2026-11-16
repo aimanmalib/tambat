@@ -87,7 +87,9 @@
     "refused": "not accepted",
     "lookUp": "Look it up",
     "signIn": "Sign in to the demo app",
-    "again": "Start again"
+    "again": "Start again",
+    "relaySaid": "Relay message: {reason}",
+    "noAnswer": "no answer in time"
   },
   "lookup": {
     "title": "Look up an identity",
@@ -119,7 +121,21 @@
     "key_separation": "Separate keys",
     "pass": "passed",
     "fail": "failed",
-    "skip": "skipped"
+    "skip": "skipped",
+    "reasons": {
+      "event_malformed": "This is not a well-formed Nostr event.",
+      "wrong_kind": "The event is kind {kind}; a binding is kind {expected}.",
+      "id_mismatch": "The event id does not match its contents, so it was changed after signing.",
+      "nostr_sig_invalid": "The Nostr signature does not match this key.",
+      "no_relay_results": "Not checked yet; look the key up to compare with the relays.",
+      "replaced": "A newer event from the same key replaces this one.",
+      "signature_unreadable": "The BCH signature cannot be read. Copy the whole signed message from your wallet.",
+      "address_invalid": "The address is not a valid P2PKH CashAddr with its network prefix.",
+      "no_public_key": "Skipped because no key could be read from the BCH signature.",
+      "wrong_signer": "The signature was not made by the key of {address} for {npub}.",
+      "wrong_network": "The address is on {prefix}; this site expects {network}.",
+      "same_key": "The BCH key and the Nostr key are the same key. Use separate keys."
+    }
   },
   "demo": {
     "title": "Demo app: sign in with Nostr",
@@ -144,11 +160,38 @@
     "none": "This key has no verified BCH address.",
     "uri": "Payment link",
     "open": "Open in wallet",
-    "qr": "Payment QR code"
+    "qr": "Payment QR code",
+    "amountFormat": "Enter the amount in BCH with at most 8 decimals, for example 0.001.",
+    "amountZero": "The amount must be more than zero."
   },
   "footer": {
     "built": "Built for BCH BLAZE 2026.",
     "license": "Open source, MIT.",
     "trust": "Keys stay in your browser and wallet. The server only issues sign-in challenges."
+  },
+  "errors": {
+    "unexpected": "Something went wrong. Details: {reason}",
+    "noExtension": "No Nostr browser extension was found.",
+    "notBunker": "This is not a bunker address. It starts with bunker://",
+    "noPairing": "WalletConnect gave no pairing link. Try again.",
+    "wrongNetwork": "The wallet offered {account}, which is on another network.",
+    "noAccount": "The wallet offered no BCH account.",
+    "noSignature": "The wallet returned no signature.",
+    "api": {
+      "event_shape": "The sign-in event is not well formed.",
+      "kind": "The sign-in event has the wrong kind.",
+      "event_id": "The sign-in event was changed after signing.",
+      "nostr_sig": "The sign-in signature does not match the key.",
+      "url": "The sign-in event was made for another page.",
+      "method": "The sign-in event was made for another request method.",
+      "created_at": "Your device clock is too far from the server clock.",
+      "challenge_unknown": "This challenge was already used or never issued. Try again.",
+      "challenge_expired": "The challenge expired. Try again.",
+      "origin": "This request came from a site that is not allowed.",
+      "bch_sig": "The BCH signature on the challenge does not match your verified address.",
+      "no_session": "You are not signed in.",
+      "pubkey": "That is not a valid Nostr key.",
+      "not_found": "Nothing was found."
+    }
   }
 }

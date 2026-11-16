@@ -3,10 +3,11 @@ import { config } from '../../src/config';
 import type { BchClaim } from '../../src/core/binding';
 import { toNpub, verificationText } from '../../src/core/nostr';
 import { verifyClaim, type ClaimResult } from '../../src/core/verify';
-import { useText } from '../i18n';
+import { useText, type Translate } from '../i18n';
 import { CopyValue } from '../ui/Copy';
 import { KeyBadge } from '../ui/KeyBadge';
-import { errorText, Notice } from '../ui/Notice';
+import { errorText, stepReason } from '../../src/errors';
+import { Notice } from '../ui/Notice';
 import { demoBchSigner, type BchSigner } from './bch';
 import { useKeys } from './KeysContext';
 import { WalletConnectOption } from './WalletConnectOption';
@@ -18,8 +19,11 @@ interface Props {
   onClaim: (claim: BchClaim) => void;
 }
 
-function failedSteps(result: ClaimResult): string {
-  return result.steps.filter((s) => s.status === 'fail').map((s) => s.reason ?? s.name).join('; ');
+function failedSteps(result: ClaimResult, t: Translate): string {
+  return result.steps
+    .filter((s) => s.status === 'fail')
+    .map((s) => stepReason(s, t) ?? t(`steps.${s.name}`))
+    .join(' ');
 }
 
 /** Gets a BCH signature over the NIP-39 text for this npub, from a wallet, a pasted signature or a demo key. */
@@ -36,7 +40,7 @@ export function BchSign({ pubkey, onClaim }: Props) {
   const accept = (claim: BchClaim) => {
     const result = verifyClaim(claim.address, claim.signature, npub, pubkey, config.network);
     if (result.ok) onClaim({ address: result.address, signature: claim.signature.trim() });
-    else setError(failedSteps(result));
+    else setError(failedSteps(result, t));
   };
 
   const signWith = async (signer: BchSigner) => {
@@ -45,7 +49,7 @@ export function BchSign({ pubkey, onClaim }: Props) {
     try {
       accept({ address: signer.address, signature: await signer.signMessage(text) });
     } catch (e) {
-      setError(errorText(e));
+      setError(errorText(e, t));
     } finally {
       setBusy(false);
     }

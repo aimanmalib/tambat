@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { amountError, paymentUri } from '../src/core/pay.js';
+import { amountError, amountProblem, paymentUri } from '../src/core/pay.js';
 import { vectors } from './helpers.js';
 
 const address = vectors.bch.address.bitcoincash;
@@ -28,4 +28,13 @@ describe('amountError', () => {
   it.each(['0', '0.0', '-1', '1e3', '01', '1.', 'abc'])('rejects %j', (v) => {
     expect(amountError(v)).not.toBeNull();
   });
+});
+
+describe('amountProblem', () => {
+  it.each([['', null], ['0.001', null], ['0', 'zero'], ['0.00000000', 'zero'], ['1.123456789', 'format'], ['abc', 'format']])(
+    'classifies %j',
+    (v, want) => {
+      expect(amountProblem(v)).toBe(want);
+    },
+  );
 });

@@ -8,7 +8,7 @@ export function RelayList({ outcomes }: { outcomes: RelayOutcome[] }) {
       {outcomes.map((o) => (
         <li key={o.relay} data-ok={o.ok}>
           <code>{o.relay.replace(/^wss:\/\//, '')}</code> <span>{o.ok ? t('link.accepted') : t('link.refused')}</span>
-          {o.reason ? <span className="relays__reason">{o.reason}</span> : null}
+          {o.ok ? null : <span className="relays__reason">{o.noAnswer ? t('link.noAnswer') : t('link.relaySaid', { reason: o.reason ?? '' })}</span>}
         </li>
       ))}
     </ul>

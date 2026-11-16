@@ -12,10 +12,34 @@ import { eventShapeError, idMatches, plainEvent, signatureValid, toNpub, verific
 
 export type { StepName };
 
+/** Stable code for why a step failed or was skipped, so a user interface can show the reason in its own language. */
+export const REASON_CODES = [
+  'event_malformed',
+  'wrong_kind',
+  'id_mismatch',
+  'nostr_sig_invalid',
+  'no_relay_results',
+  'replaced',
+  'signature_unreadable',
+  'address_invalid',
+  'no_public_key',
+  'wrong_signer',
+  'wrong_network',
+  'same_key',
+] as const;
+
+export type ReasonCode = (typeof REASON_CODES)[number];
+
+export type ReasonVars = Record<string, string | number>;
+
 export interface Step {
   name: StepName;
   status: 'pass' | 'fail' | 'skip';
+  /** English reason for logs, the CLI and the JSON API. */
   reason?: string;
+  /** Present whenever `reason` is: the same reason as a code plus the values it mentions. */
+  code?: ReasonCode;
+  vars?: ReasonVars;
 }
 
 export interface ClaimResult {
@@ -49,8 +73,11 @@ export interface VerifyOptions {
 }
 
 const pass = (name: StepName): Step => ({ name, status: 'pass' });
-const fail = (name: StepName, reason: string): Step => ({ name, status: 'fail', reason });
-const skip = (name: StepName, reason: string): Step => ({ name, status: 'skip', reason });
+const explained = (name: StepName, status: 'fail' | 'skip', code: ReasonCode, reason: string, vars?: ReasonVars): Step =>
+  vars ? { name, status, reason, code, vars } : { name, status, reason, code };
+const fail = (name: StepName, code: ReasonCode, reason: string, vars?: ReasonVars): Step =>
+  explained(name, 'fail', code, reason, vars);
+const skip = (name: StepName, code: ReasonCode, reason: string): Step => explained(name, 'skip', code, reason);
 const allPass = (steps: Step[]) => steps.every((s) => s.status !== 'fail');
 
 /** NIP-01 replaceable ordering: newer created_at wins, ties go to the lower id. */
@@ -59,11 +86,14 @@ export function isNewer(a: Pick<Event, 'created_at' | 'id'>, b: Pick<Event, 'cre
 }
 
 function newestStep(event: Event, others: Event[] | undefined): Step {
-  if (!others) return skip('newest', 'no relay results given; run lookup to check for a newer event');
+  if (!others) return skip('newest', 'no_relay_results', 'no relay results given; run lookup to check for a newer event');
   const newer = others.find(
     (o) => o.pubkey === event.pubkey && o.kind === event.kind && o.id !== event.id && isNewer(o, event) && signatureValid(o),
   );
-  return newer ? fail('newest', `replaced by newer event ${newer.id} (created_at ${newer.created_at})`) : pass('newest');
+  return newer ? fail('newest', 'replaced', `replaced by newer event ${newer.id} (created_at ${newer.created_at})`, {
+        id: newer.id,
+        createdAt: newer.created_at,
+      }) : pass('newest');
 }
 
 /** Checks one BCH claim (address and signature) against the Nostr key that carries it. */
@@ -73,30 +103,36 @@ export function verifyClaim(address: string, signature: string, npub: string, no
   const recovered = recoverSigner(verificationText(npub), signature);
   let bchPublicKey: string | undefined;
   if (typeof recovered === 'string') {
-    steps.push(fail('bch_sig', recovered));
+    steps.push(fail('bch_sig', 'signature_unreadable', recovered));
   } else {
     bchPublicKey = binToHex(recovered.publicKey);
     steps.push(pass('bch_sig'));
   }
   if (typeof parsed === 'string') {
-    steps.push(fail('address_match', parsed), fail('network', parsed));
+    steps.push(fail('address_match', 'address_invalid', parsed), fail('network', 'address_invalid', parsed));
   } else {
-    if (typeof recovered === 'string') steps.push(skip('address_match', 'no public key recovered'));
+    if (typeof recovered === 'string') steps.push(skip('address_match', 'no_public_key', 'no public key recovered'));
     else if (binToHex(hash160(recovered.publicKey)) === binToHex(parsed.payload)) steps.push(pass('address_match'));
-    else steps.push(fail('address_match', `signature was not made by the key of ${parsed.address} for ${npub}`));
+    else steps.push(fail('address_match', 'wrong_signer', `signature was not made by the key of ${parsed.address} for ${npub}`, {
+          address: parsed.address,
+          npub,
+        }));
     steps.push(
       parsed.prefix === network
         ? pass('network')
-        : fail('network', `address is on ${parsed.prefix}, this verifier expects ${network}`),
+        : fail('network', 'wrong_network', `address is on ${parsed.prefix}, this verifier expects ${network}`, {
+            prefix: parsed.prefix,
+            network,
+          }),
     );
   }
   if (typeof recovered === 'string') {
-    steps.push(skip('key_separation', 'no public key recovered'));
+    steps.push(skip('key_separation', 'no_public_key', 'no public key recovered'));
   } else {
     const x = binToHex(recovered.publicKey.slice(1, 33));
     steps.push(
       x === nostrPubkey
-        ? fail('key_separation', 'the BCH key and the Nostr key are the same key; use separate keys')
+        ? fail('key_separation', 'same_key', 'the BCH key and the Nostr key are the same key; use separate keys')
         : pass('key_separation'),
     );
   }
@@ -111,17 +147,20 @@ export function verifyBinding(input: unknown, options: VerifyOptions = {}): Bind
   const shape = eventShapeError(input);
   const event = input as Event;
   if (shape) {
-    return { ok: false, eventId: '', pubkey: '', npub: '', createdAt: 0, steps: [fail('event_shape', shape)], claims: [] };
+    return { ok: false, eventId: '', pubkey: '', npub: '', createdAt: 0, steps: [fail('event_shape', 'event_malformed', shape)], claims: [] };
   }
   const npub = toNpub(event.pubkey);
   const steps: Step[] = [pass('event_shape')];
   steps.push(
     event.kind === config.nostr.bindingKind
       ? pass('kind')
-      : fail('kind', `kind ${event.kind} is not ${config.nostr.bindingKind}`),
+      : fail('kind', 'wrong_kind', `kind ${event.kind} is not ${config.nostr.bindingKind}`, {
+          kind: event.kind,
+          expected: config.nostr.bindingKind,
+        }),
   );
-  steps.push(idMatches(event) ? pass('event_id') : fail('event_id', 'id does not match the event fields (edited after signing)'));
-  steps.push(signatureValid(event) ? pass('nostr_sig') : fail('nostr_sig', 'Schnorr signature does not verify for this pubkey'));
+  steps.push(idMatches(event) ? pass('event_id') : fail('event_id', 'id_mismatch', 'id does not match the event fields (edited after signing)'));
+  steps.push(signatureValid(event) ? pass('nostr_sig') : fail('nostr_sig', 'nostr_sig_invalid', 'Schnorr signature does not verify for this pubkey'));
   steps.push(newestStep(event, options.sameAuthorEvents));
   const claims = claimsOf(event).map((c) => verifyClaim(c.address, c.signature, npub, event.pubkey, network));
   const ok = allPass(steps) && claims.length > 0 && claims.every((c) => c.ok);

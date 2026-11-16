@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useText } from '../i18n';
-import { errorText, Notice } from '../ui/Notice';
+import { errorText } from '../../src/errors';
+import { Notice } from '../ui/Notice';
 import { Qr } from '../ui/Qr';
 import type { BchSigner } from './bch';
 import { connectWallet, walletConnectAvailable } from './walletconnect';
@@ -22,7 +23,7 @@ export function WalletConnectOption({ onConnected }: { onConnected: (signer: Bch
       setUri(pending.uri);
       onConnected(await pending.approved);
     } catch (e) {
-      setError(errorText(e));
+      setError(errorText(e, t));
     } finally {
       setBusy(false);
       setUri('');

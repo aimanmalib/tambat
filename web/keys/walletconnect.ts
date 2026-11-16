@@ -4,6 +4,7 @@
  * library loads only when the user picks this option.
  */
 import { config } from '../../src/config';
+import { TextError } from '../../src/errors';
 import type { BchSigner } from './bch';
 
 export const walletConnectAvailable = (): boolean => config.walletConnect.projectId.trim() !== '';
@@ -23,11 +24,12 @@ export async function connectWallet(appName: string, description: string): Promi
   const { uri, approval } = await client.connect({
     requiredNamespaces: { bch: { chains: [chain], methods: config.walletConnect.methods, events: [] } },
   });
-  if (!uri) throw new Error('WalletConnect gave no pairing link');
+  if (!uri) throw new TextError('errors.noPairing');
   const approved = approval().then((session): BchSigner => {
     const account = session.namespaces.bch?.accounts[0] ?? '';
     const address = account.replace(/^bch:/, '');
-    if (!address.startsWith(`${config.network}:`)) throw new Error(`wallet offered ${account || 'no account'} on another network`);
+    if (!account) throw new TextError('errors.noAccount');
+    if (!address.startsWith(`${config.network}:`)) throw new TextError('errors.wrongNetwork', { account });
     return {
       kind: 'walletconnect',
       address,
@@ -37,7 +39,7 @@ export async function connectWallet(appName: string, description: string): Promi
           chainId: chain,
           request: { method: 'bch_signMessage', params: { message } },
         });
-        if (typeof result !== 'string') throw new Error('wallet returned no signature');
+        if (typeof result !== 'string') throw new TextError('errors.noSignature');
         return result;
       },
     };

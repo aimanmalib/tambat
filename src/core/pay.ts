@@ -11,13 +11,27 @@ export interface PaymentRequest {
 
 const AMOUNT = /^(?:0|[1-9]\d{0,7})(?:\.\d{1,8})?$/;
 
-/** Checks an amount in BCH (up to 8 decimals, positive). Returns the reason it is not valid, or null. */
-export function amountError(amount: string): string | null {
+/** Why an amount is not valid: `format` (not a BCH number with at most 8 decimals) or `zero` (not positive). */
+export type AmountProblem = 'format' | 'zero';
+
+const AMOUNT_TEXT: Record<AmountProblem, string> = {
+  format: 'amount must be a number in BCH with at most 8 decimals',
+  zero: 'amount must be more than zero',
+};
+
+/** Checks an amount in BCH (up to 8 decimals, positive). Empty is valid: the wallet asks. */
+export function amountProblem(amount: string): AmountProblem | null {
   const value = amount.trim();
   if (value === '') return null;
-  if (!AMOUNT.test(value)) return 'amount must be a number in BCH with at most 8 decimals';
-  if (Number(value) <= 0) return 'amount must be more than zero';
+  if (!AMOUNT.test(value)) return 'format';
+  if (Number(value) <= 0) return 'zero';
   return null;
+}
+
+/** The English reason an amount is not valid, or null. */
+export function amountError(amount: string): string | null {
+  const problem = amountProblem(amount);
+  return problem ? AMOUNT_TEXT[problem] : null;
 }
 
 /** Builds `bitcoincash:<address>?amount=..&label=..&message=..`. Throws on an invalid address or amount. */

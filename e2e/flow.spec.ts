@@ -73,8 +73,24 @@ test('a wrong signature is refused before anything is published', async ({ page 
   await page.getByLabel(en.bch.addressLabel, { exact: true }).fill(otherAddress);
   await page.getByLabel(en.bch.signatureLabel, { exact: true }).fill(vectors.bchSignature);
   await page.getByRole('button', exact(en.bch.pasteCheck)).click();
-  await expect(page.getByRole('alert')).toContainText('signature was not made by the key of');
+  await expect(page.getByRole('alert')).toContainText(en.steps.reasons.wrong_signer.split('{')[0] ?? '');
   await expect(page.getByRole('button', exact(en.link.publish))).toHaveCount(0);
+});
+
+test('in Malay a wrong signature is explained in Malay', async ({ page }) => {
+  await fakeExtension(page);
+  await page.goto('/');
+  await page.getByLabel(en.lang.label).selectOption('ms');
+  await page.getByRole('button', exact(ms.nostr.extension)).click();
+  await page.getByText(ms.bch.paste).click();
+  await page.getByLabel(ms.bch.addressLabel, { exact: true }).fill(otherAddress);
+  await page.getByLabel(ms.bch.signatureLabel, { exact: true }).fill(vectors.bchSignature);
+  await page.getByRole('button', exact(ms.bch.pasteCheck)).click();
+  const alert = page.getByRole('alert');
+  await expect(alert).toContainText(ms.steps.reasons.wrong_signer.split('{')[0] ?? '');
+  await expect(alert).toContainText(otherAddress);
+  await expect(alert).not.toContainText(en.steps.reasons.wrong_signer.split('{')[0] ?? '');
+  await expect(alert).not.toContainText('signature was not made');
 });
 
 test('Malay text and no sideways scroll at 320 px on every page', async ({ page }) => {

@@ -6,8 +6,10 @@ import type { Event } from './nostr.js';
 export interface RelayOutcome {
   relay: string;
   ok: boolean;
-  /** The relay's message on rejection, or the connection error. */
+  /** The relay's message on rejection, or the connection error. Text from the relay, not translated. */
   reason?: string;
+  /** Set when the relay did not answer in time, so a user interface can say so in its own language. */
+  noAnswer?: boolean;
 }
 
 /**
@@ -31,8 +33,9 @@ export async function publishEvent(
     return relays.map((relay, i) => {
       const s = settled[i];
       if (s?.status === 'fulfilled') return { relay, ok: true };
-      const reason = s?.status === 'rejected' ? String((s.reason as Error)?.message ?? s.reason) : 'no answer';
-      return { relay, ok: false, reason };
+      if (s?.status !== 'rejected') return { relay, ok: false, reason: 'no answer', noAnswer: true };
+      const reason = String((s.reason as Error)?.message ?? s.reason);
+      return /timed out/.test(reason) ? { relay, ok: false, reason, noAnswer: true } : { relay, ok: false, reason };
     });
   } finally {
     pool.close(relays);

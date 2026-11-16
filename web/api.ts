@@ -1,5 +1,6 @@
 /** Calls to the relying app server (the demo app). Same origin; the browser sends the Origin header itself. */
 import type { BindingResult } from '../src/core/verify';
+import { ApiError } from '../src/errors';
 
 export interface Challenge {
   nonce: string;
@@ -22,7 +23,7 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   const body = res.status === 204 ? null : ((await res.json()) as unknown);
   if (!res.ok) {
     const b = body as { reason?: string; error?: string } | null;
-    throw new Error(b?.reason ?? b?.error ?? `HTTP ${res.status}`);
+    throw new ApiError(b?.error ?? '', b?.reason ?? `HTTP ${res.status}`);
   }
   return body as T;
 }
