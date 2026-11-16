@@ -5,8 +5,8 @@ trusting a server.
 
 Built for BCH BLAZE 2026, bounty "Decentralized Identity".
 
-Status: early. The protocol is fixed in [docs/decisions/0001-protocol.md](docs/decisions/0001-protocol.md); the library,
-command-line verifier, web app and demo sign-in follow.
+Status: early. The protocol is fixed in [docs/decisions/0001-protocol.md](docs/decisions/0001-protocol.md). The core library
+(`src/core/`) and the command-line verifier work; the web app and demo sign-in follow.
 
 ## How it works
 
@@ -16,6 +16,18 @@ command-line verifier, web app and demo sign-in follow.
 3. Anyone can look up the binding from the npub or from the address on public relays and check every step locally: event id,
    Nostr signature, BCH signature recovered against the author's npub, address match, network, separate keys, newest event.
 4. A relying app can sign the user in with a challenge answered by a NIP-98 event, then read the verified BCH address from relays.
+
+## Command-line verifier
+
+```
+npx tsx bin/tambat.ts text <npub>                # the exact text the BCH wallet signs
+npx tsx bin/tambat.ts verify examples/binding-event.json
+npx tsx bin/tambat.ts lookup <npub|bitcoincash:...> [--json]
+```
+
+`verify` works offline. `lookup` asks the relays in `config/tambat.json` and verifies every event they return. Exit code 0 means
+verified, 1 not verified, 2 a usage error. Test vectors from the public BIP39 phrase `abandon ... about` are in
+[examples/vectors.json](examples/vectors.json).
 
 ## Development
 

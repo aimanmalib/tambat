@@ -1,0 +1,81 @@
+/**
+ * Finding bindings on relays. Relays are untrusted: every event they return is verified again here, and a
+ * claim found by address only counts if it is still in the author's newest kind 10011 event.
+ */
+import type { Filter } from 'nostr-tools/filter';
+import { SimplePool } from 'nostr-tools/pool';
+import { config } from '../config.js';
+import { claimIdentity } from './binding.js';
+import { parseP2pkhAddress } from './cashaddr.js';
+import { eventShapeError, idMatches, signatureValid, type Event } from './nostr.js';
+import { isNewer, verifyBinding, type BindingResult, type VerifyOptions } from './verify.js';
+
+export type { Filter };
+
+/** Queries relays and resolves with whatever events arrived before the timeout. Must not reject. */
+export type QueryFn = (relays: string[], filter: Filter, timeoutMs: number) => Promise<unknown[]>;
+
+export const relayQuery: QueryFn = async (relays, filter, timeoutMs) => {
+  const pool = new SimplePool();
+  try {
+    return await pool.querySync(relays, filter, { maxWait: timeoutMs });
+  } catch {
+    return [];
+  } finally {
+    pool.close(relays);
+  }
+};
+
+export interface DiscoverOptions extends Pick<VerifyOptions, 'network'> {
+  relays?: string[];
+  timeoutMs?: number;
+  query?: QueryFn;
+}
+
+function validEvents(raw: unknown[]): Event[] {
+  const seen = new Map<string, Event>();
+  for (const item of raw) {
+    if (eventShapeError(item)) continue;
+    const e = item as Event;
+    if (e.kind !== config.nostr.bindingKind || seen.has(e.id) || !idMatches(e) || !signatureValid(e)) continue;
+    seen.set(e.id, e);
+  }
+  return [...seen.values()];
+}
+
+function newest(events: Event[]): Event | null {
+  return events.reduce<Event | null>((best, e) => (best === null || isNewer(e, best) ? e : best), null);
+}
+
+/** The newest binding event of a Nostr key, verified, or null when relays hold none. */
+export async function lookupByPubkey(pubkey: string, options: DiscoverOptions = {}): Promise<BindingResult | null> {
+  const query = options.query ?? relayQuery;
+  const raw = await query(
+    options.relays ?? config.nostr.relays,
+    { kinds: [config.nostr.bindingKind], authors: [pubkey] },
+    options.timeoutMs ?? config.nostr.queryTimeoutMs,
+  );
+  const events = validEvents(raw).filter((e) => e.pubkey === pubkey);
+  const top = newest(events);
+  if (!top) return null;
+  const verifyOptions: VerifyOptions = { sameAuthorEvents: events };
+  if (options.network) verifyOptions.network = options.network;
+  return verifyBinding(top, verifyOptions);
+}
+
+/** Nostr keys whose newest binding still claims this address and passes every step. */
+export async function lookupByAddress(address: string, options: DiscoverOptions = {}): Promise<BindingResult[]> {
+  const parsed = parseP2pkhAddress(address);
+  if (typeof parsed === 'string') throw new Error(parsed);
+  const query = options.query ?? relayQuery;
+  const raw = await query(
+    options.relays ?? config.nostr.relays,
+    { kinds: [config.nostr.bindingKind], '#i': [claimIdentity(parsed.address)] },
+    options.timeoutMs ?? config.nostr.queryTimeoutMs,
+  );
+  const authors = [...new Set(validEvents(raw).map((e) => e.pubkey))];
+  const results = await Promise.all(authors.map((a) => lookupByPubkey(a, options)));
+  return results.filter(
+    (r): r is BindingResult => r !== null && r.ok && r.claims.some((c) => c.address.toLowerCase() === parsed.address),
+  );
+}
