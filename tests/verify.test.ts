@@ -1,7 +1,7 @@
 import { finalizeEvent } from 'nostr-tools/pure';
 import { describe, expect, it } from 'vitest';
 import { signMessage } from '../src/core/bchmsg.js';
-import { claimsOf, createBindingEvent, createRevocationEvent } from '../src/core/binding.js';
+import { claimsOf, createBindingEvent, createRevocationEvent, VERIFY_STEPS } from '../src/core/binding.js';
 import { addressFromPublicKey } from '../src/core/cashaddr.js';
 import { toNpub, verificationText } from '../src/core/nostr.js';
 import { bindingFromKeys, keysFromPhrase } from '../src/core/paytaca.js';
@@ -26,6 +26,12 @@ describe('verifyBinding', () => {
       ['network', 'pass'],
       ['key_separation', 'pass'],
     ]);
+  });
+
+  it('reports exactly the protocol step list, in protocol order', () => {
+    const r = verifyBinding(clone(vectors.bindingEvent));
+    const reported = [...r.steps, ...(r.claims[0]?.steps ?? [])].map((s) => s.name);
+    expect(reported).toEqual([...VERIFY_STEPS]);
   });
 
   it('rejects a BCH signature copied into another author event', () => {

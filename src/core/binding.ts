@@ -3,6 +3,26 @@ import { config } from '../config.js';
 import { parseP2pkhAddress } from './cashaddr.js';
 import type { Event, EventTemplate } from './nostr.js';
 
+/**
+ * The named checks a verifier runs on a binding, in the order they are reported. This list is part of the
+ * protocol: `event_shape`, `kind`, `event_id`, `nostr_sig` and `newest` run once per event; `bch_sig`,
+ * `address_match`, `network` and `key_separation` run once per BCH claim. `key_separation` rejects a claim whose
+ * BCH key is the same key as the Nostr key. The checks themselves live in `verify.ts`.
+ */
+export const VERIFY_STEPS = [
+  'event_shape',
+  'kind',
+  'event_id',
+  'nostr_sig',
+  'newest',
+  'bch_sig',
+  'address_match',
+  'network',
+  'key_separation',
+] as const;
+
+export type StepName = (typeof VERIFY_STEPS)[number];
+
 export interface BchClaim {
   /** Full CashAddr with prefix. */
   address: string;

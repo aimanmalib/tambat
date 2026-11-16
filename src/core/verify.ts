@@ -6,20 +6,11 @@
 import { binToHex, hash160 } from '@bitauth/libauth';
 import { config, type Network } from '../config.js';
 import { recoverSigner } from './bchmsg.js';
-import { claimsOf } from './binding.js';
+import { claimsOf, type StepName } from './binding.js';
 import { parseP2pkhAddress } from './cashaddr.js';
 import { eventShapeError, idMatches, signatureValid, toNpub, verificationText, type Event } from './nostr.js';
 
-export type StepName =
-  | 'event_shape'
-  | 'kind'
-  | 'event_id'
-  | 'nostr_sig'
-  | 'newest'
-  | 'bch_sig'
-  | 'address_match'
-  | 'network'
-  | 'key_separation';
+export type { StepName };
 
 export interface Step {
   name: StepName;
