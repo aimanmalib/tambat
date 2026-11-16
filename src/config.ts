@@ -16,7 +16,23 @@ export interface TambatConfig {
   auth: {
     challengeTtlSeconds: number;
     sessionTtlSeconds: number;
+    /** How far a sign-in event's created_at may differ from server time. */
+    clockSkewSeconds: number;
+    maxPendingChallenges: number;
+    maxSessions: number;
+    cookieName: string;
     allowedOrigins: string[];
+  };
+  did: {
+    /** CAIP-2 chain id per network, used in blockchainAccountId of the DID document. */
+    chains: Record<Network, string>;
+  };
+  server: {
+    host: string;
+    port: number;
+    bodyLimitBytes: number;
+    /** Built web app served as static files, relative to the repository root. */
+    staticDir: string;
   };
   walletConnect: {
     projectId: string;
@@ -69,12 +85,25 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.nostr.publishTimeoutMs, 'nostr.publishTimeoutMs');
   positiveInt(c.auth?.challengeTtlSeconds, 'auth.challengeTtlSeconds');
   positiveInt(c.auth.sessionTtlSeconds, 'auth.sessionTtlSeconds');
+  positiveInt(c.auth.clockSkewSeconds, 'auth.clockSkewSeconds');
+  positiveInt(c.auth.maxPendingChallenges, 'auth.maxPendingChallenges');
+  positiveInt(c.auth.maxSessions, 'auth.maxSessions');
+  if (typeof c.auth.cookieName !== 'string' || !/^[A-Za-z0-9_]+$/.test(c.auth.cookieName)) {
+    fail('auth.cookieName', 'must use A-Z, a-z, 0-9 and _ only');
+  }
   nonEmptyStrings(c.auth.allowedOrigins, 'auth.allowedOrigins', (s) => /^https?:\/\/[^\s/]+$/.test(s));
   if (typeof c.walletConnect?.projectId !== 'string') fail('walletConnect.projectId', 'must be a string');
   for (const n of NETWORKS) {
     if (typeof c.walletConnect.chains?.[n] !== 'string') fail(`walletConnect.chains.${n}`, 'must be a string');
   }
   nonEmptyStrings(c.walletConnect.methods, 'walletConnect.methods');
+  for (const n of NETWORKS) {
+    if (!/^bip122:[0-9a-f]{32}$/.test(c.did?.chains?.[n] ?? '')) fail(`did.chains.${n}`, 'must be a CAIP-2 bip122 chain id');
+  }
+  if (typeof c.server?.host !== 'string' || c.server.host === '') fail('server.host', 'must be a non-empty string');
+  positiveInt(c.server.port, 'server.port');
+  positiveInt(c.server.bodyLimitBytes, 'server.bodyLimitBytes');
+  if (typeof c.server.staticDir !== 'string') fail('server.staticDir', 'must be a string');
   if (!c.site?.languages?.includes(c.site.defaultLanguage)) fail('site.defaultLanguage', 'must be one of site.languages');
   for (const k of ['deckUrl', 'repoUrl', 'contactAddress'] as const) {
     if (typeof c.banner?.[k] !== 'string') fail(`banner.${k}`, 'must be a string (empty hides it)');

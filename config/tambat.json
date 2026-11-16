@@ -4,28 +4,60 @@
     "bindingKind": 10011,
     "authKind": 27235,
     "platform": "bch",
-    "relays": ["wss://relay.damus.io", "wss://nos.lol", "wss://relay.primal.net"],
+    "relays": [
+      "wss://relay.damus.io",
+      "wss://nos.lol",
+      "wss://relay.primal.net"
+    ],
     "queryTimeoutMs": 4000,
     "publishTimeoutMs": 6000
   },
   "auth": {
     "challengeTtlSeconds": 120,
     "sessionTtlSeconds": 3600,
-    "allowedOrigins": ["https://tambat.sasateguh.com", "http://localhost:5173"]
+    "clockSkewSeconds": 60,
+    "maxPendingChallenges": 10000,
+    "maxSessions": 10000,
+    "cookieName": "tambat_session",
+    "allowedOrigins": [
+      "https://tambat.sasateguh.com",
+      "http://localhost:5173"
+    ]
   },
   "walletConnect": {
     "projectId": "2d8c546c57b66aeae04bcdce9c95b4da",
-    "chains": { "bitcoincash": "bch:bitcoincash", "bchtest": "bch:bchtest" },
-    "methods": ["bch_getAddresses", "bch_signMessage"]
+    "chains": {
+      "bitcoincash": "bch:bitcoincash",
+      "bchtest": "bch:bchtest"
+    },
+    "methods": [
+      "bch_getAddresses",
+      "bch_signMessage"
+    ]
   },
   "site": {
     "publicUrl": "https://tambat.sasateguh.com",
     "defaultLanguage": "en",
-    "languages": ["en", "ms"]
+    "languages": [
+      "en",
+      "ms"
+    ]
   },
   "banner": {
     "deckUrl": "",
     "repoUrl": "",
     "contactAddress": ""
+  },
+  "did": {
+    "chains": {
+      "bitcoincash": "bip122:000000000000000000651ef99cb9fcbe",
+      "bchtest": "bip122:000000001dd410c49a788668ce267517"
+    }
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "bodyLimitBytes": 65536,
+    "staticDir": "dist/web"
   }
 }

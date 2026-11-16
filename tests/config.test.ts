@@ -44,4 +44,16 @@ describe('config/tambat.json', () => {
     c.auth.challengeTtlSeconds = 0;
     expect(() => parseConfig(c)).toThrow(/challengeTtlSeconds/);
   });
+
+  it('rejects a DID chain id that is not CAIP-2 bip122', () => {
+    const c = fresh();
+    c.did.chains.bitcoincash = 'bch:mainnet';
+    expect(() => parseConfig(c)).toThrow(/did.chains.bitcoincash/);
+  });
+
+  it('rejects a cookie name with a separator', () => {
+    const c = fresh();
+    c.auth.cookieName = 'a;b';
+    expect(() => parseConfig(c)).toThrow(/cookieName/);
+  });
 });
