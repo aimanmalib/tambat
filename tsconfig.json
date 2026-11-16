@@ -17,6 +17,6 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["src", "server", "bin", "scripts", "tests", "e2e", "*.ts"],
+  "include": ["src", "server", "bin", "scripts", "tests", "e2e", "examples", "*.ts"],
   "exclude": ["node_modules", "dist", "web"]
 }
