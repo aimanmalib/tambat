@@ -70,6 +70,6 @@ Run it with the public test phrase: `npx tsx examples/paytaca-binding.ts | npx t
 ## Notes for wallet authors
 
 - Never sign the verification text for an npub the wallet does not control: the signature is a public claim.
-- Use a P2PKH receiving address. The wallet's Nostr key and BCH key MUST be different keys; NIP-06 and BIP44 paths give that.
+- Use a P2PKH receiving address. The wallet's Nostr key and BCH key must be different keys; NIP-06 and BIP44 paths give that.
 - A wallet that rotates receiving addresses can bind one long-lived address and keep it, or publish a new binding for each
   change; verifiers use the newest event.

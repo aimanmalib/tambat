@@ -4,8 +4,6 @@ This document is the protocol in one place: what a binding is, how it is written
 user in with it, and the test vectors. Reasons for each choice are in [decisions/0001-protocol.md](decisions/0001-protocol.md)
 and [decisions/0002-sign-in-and-did.md](decisions/0002-sign-in-and-did.md). The reference code is `src/core/`.
 
-The key words MUST, MUST NOT and SHOULD are used as in RFC 2119.
-
 ## 1. Terms
 
 - **Nostr key**: a secp256k1 key used with BIP-340 Schnorr signatures. `pubkey` is its 32-byte x-only public key in hex;
@@ -23,7 +21,7 @@ The BCH key signs this exact UTF-8 text, the NIP-39 verification text, with one 
 Verifying that I control the following Nostr public key: <npub>
 ```
 
-`<npub>` is the NIP-19 encoding of the binding event's `pubkey`. A verifier MUST build the text from the event author and MUST
+`<npub>` is the NIP-19 encoding of the binding event's `pubkey`. A verifier must build the text from the event author and must
 NOT take it from anywhere else, so a signature copied into another author's event fails.
 
 `tambat text <npub>` prints it.
@@ -35,7 +33,7 @@ The format of Electron Cash "Sign message" and of `bch_signMessage` in Paytaca o
 1. Preimage: CompactSize(24) `0x18`, the ASCII bytes `Bitcoin Signed Message:\n`, CompactSize of the message length in bytes,
    the message bytes.
 2. Digest: SHA-256 applied twice to the preimage.
-3. Signature: 65 bytes, a header byte then the 64-byte compact ECDSA signature `r || s`. Header = recovery id + 27 for an
+3. Signature: 65 bytes, a header byte then the 64-byte compact secp256k1 signature `r || s`. Header = recovery id + 27 for an
    uncompressed public key, recovery id + 31 for a compressed one. Encoded as standard base64 with padding.
 
 A verifier recovers the public key from the signature and the digest, in the encoding the header declares.
@@ -62,13 +60,13 @@ A NIP-39 identity event:
 - The claim is an `i` tag whose second element starts with `bch:` followed by the full CashAddr with its prefix. The third
   element is the BCH signature from section 3 over the text from section 2.
 - Only P2PKH addresses can be bound: a signed message proves control of one public key. P2SH and token-aware address types
-  MUST be rejected.
-- Kind `10011` is replaceable: relays keep the newest event of each author. A writer MUST keep the author's other `i` tags (for
-  example `github:`) and SHOULD replace an earlier `bch:` tag, so one Nostr key claims one address and a look-up by npub has one
+  must be rejected.
+- Kind `10011` is replaceable: relays keep the newest event of each author. A writer must keep the author's other `i` tags (for
+  example `github:`) and should replace an earlier `bch:` tag, so one Nostr key claims one address and a look-up by npub has one
   answer. Reference: `createBindingEvent` in `src/core/binding.ts`.
 - **Revocation**: publish a newer kind `10011` event without the `bch:` tag (`createRevocationEvent`). The newer event replaces
   the claim on every relay that receives it.
-- The BCH key and the Nostr key MUST be different keys.
+- The BCH key and the Nostr key must be different keys.
 
 ## 5. Verification algorithm
 
@@ -124,7 +122,7 @@ The relying app's server proves that the visitor holds a Nostr key now, then rea
 4. The server checks, in order: event shape, kind, id and signature; `u` and `method`; `created_at` within the allowed clock skew;
    the nonce is pending, which removes it so it can be used at most once; the nonce has not expired; it was issued to the same
    origin. Then it looks up the binding of the signer from its own relays with section 6 and verifies it with section 5. When
-   `bchSignature` is present it MUST recover to the key of the verified address.
+   `bchSignature` is present it must recover to the key of the verified address.
 5. The session cookie is `HttpOnly`, `SameSite=Strict` and `Secure` on https. The session holds the npub and, when verified, the
    address. The client never tells the server which address is bound.
 

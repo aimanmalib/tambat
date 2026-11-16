@@ -7,10 +7,10 @@ Built for BCH BLAZE 2026, bounty "Decentralized Identity".
 
 Live demo: https://tambat.sasateguh.com
 
-- [docs/SPEC.md](docs/SPEC.md): the protocol, the verification algorithm, sign-in and test vectors.
-- [docs/VERIFY.md](docs/VERIFY.md): check a binding yourself, with the command line or by hand.
-- [docs/PAYTACA.md](docs/PAYTACA.md): how a wallet that holds a BIP39 phrase publishes a binding.
-- [docs/MEASURED.md](docs/MEASURED.md): what was measured on real relays and the live site, failures included.
+- [Protocol specification](docs/SPEC.md): the protocol, the verification algorithm, sign-in and test vectors.
+- [Verify it yourself](docs/VERIFY.md): check a binding with the command line or by hand.
+- [Wallet guide for Paytaca](docs/PAYTACA.md): how a wallet that holds a BIP39 phrase publishes a binding.
+- [Measurements](docs/MEASURED.md): what was measured on real relays and the live site, failures included.
 - [docs/decisions/](docs/decisions/): why each choice was made.
 
 ## What it is
@@ -45,7 +45,7 @@ The parts:
    and the session shows the verified BCH address.
 
 A binding made with a demo key is already on the public relays; its npub, address and event id are in
-[docs/MEASURED.md](docs/MEASURED.md). Try **Look up** with either.
+[the measurements](docs/MEASURED.md). Try **Look up** with either.
 
 ## Architecture
 
@@ -78,7 +78,7 @@ which address is bound: every reader checks the event itself.
 
 ## How verification works
 
-For each event a verifier runs named steps and reports `pass`, `fail` or `skip` with a reason ([SPEC.md](docs/SPEC.md)
+For each event a verifier runs named steps and reports `pass`, `fail` or `skip` with a reason ([specification](docs/SPEC.md)
 section 5):
 
 1. `event_shape`, `kind`: a NIP-01 event of kind `10011`.
@@ -148,7 +148,7 @@ everyone out.
 - Relays are untrusted, interchangeable stores. The default list is three public relays in `config/tambat.json`; any NIP-01
   relay works, and users can publish to their own.
 - Verification needs only the event and the public algorithm. The CLI, the browser and the server each check independently;
-  [docs/VERIFY.md](docs/VERIFY.md) shows the same checks with a wallet's "Verify message" and `jq`.
+  [the verification guide](docs/VERIFY.md) shows the same checks with a wallet's "Verify message" and `jq`.
 - The binding uses existing open formats: NIP-39 identity events, the Bitcoin signed-message format that wallets already
   produce, NIP-98 for sign-in, `did:nostr` and CAIP-10 for the DID document, BIP21 for payments. No new event kind, no registry,
   no token.
@@ -158,7 +158,7 @@ everyone out.
 
 - **Paytaca over WalletConnect** is built (`bch_signMessage`, the signed-message format read from the Paytaca source) but is
   not covered by automated tests, and a signature from a real Paytaca wallet has not yet been recorded in
-  [docs/MEASURED.md](docs/MEASURED.md). The paste path and the format itself are tested.
+  [the measurements](docs/MEASURED.md). The paste path and the format itself are tested.
 - **Key rotation and recovery**: a lost Nostr key cannot revoke its binding; a stolen one can rebind. A future version could
   require a BCH signature over a revocation, or a time-locked handover.
 - **One address per Nostr key**, P2PKH only. Multisig and P2SH addresses cannot sign a message; CashTokens are not covered.
