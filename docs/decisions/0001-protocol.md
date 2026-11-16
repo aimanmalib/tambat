@@ -21,6 +21,8 @@ formats before any code depends on them. Facts below were read from the public s
   `Verifying that I control the following Nostr public key: <npub>`, where `<npub>` is the NIP-19 encoding of the event author.
 - Kind `10011` is replaceable. The newest event from an author wins, so publishing a new event without the `bch:` tag revokes the
   claim. Other `i` tags the user already has (for example `github:`) are kept when we write a new event.
+- One `bch:` claim per Nostr key: writing a new binding replaces an earlier `bch:` tag, so a lookup by npub has one answer. A
+  verifier still checks every `bch:` tag it finds in events written by other tools.
 
 ### Verification steps
 

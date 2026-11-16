@@ -1,0 +1,20 @@
+{
+  "id": "8fe8e97941cf72f148674cf1bd35169f10b470d0d395987f61f059a5a4ec355f",
+  "pubkey": "e8bcf3823669444d0b49ad45d65088635d9fd8500a75b5f20b59abefa56a144f",
+  "created_at": 1763251200,
+  "kind": 10011,
+  "tags": [
+    [
+      "i",
+      "github:example",
+      "abc123"
+    ],
+    [
+      "i",
+      "bch:bitcoincash:qqyx49mu0kkn9ftfj6hje6g2wfer34yfnq5tahq3q6",
+      "HyjnEw2ZzkLk2OKkjIH07qEM+hYu82QBpWun8L+0w1KiTpai5/0YVlsuEJ1Eb5q0gS+MoIfGRT+yPaCdMseShMk="
+    ]
+  ],
+  "content": "",
+  "sig": "f76dd296cd7092de372f1ad6ca99e98c03f2323d6b0fd266de38c251465fbc6c68818f9a3956c241001099590417d14d70ed7339447bfb0a3fc62971a0324adc"
+}
