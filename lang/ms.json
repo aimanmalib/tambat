@@ -1,0 +1,12 @@
+{
+  "app": {
+    "name": "Tambat",
+    "tagline": "Ikat alamat Bitcoin Cash kepada kunci Nostr. Sesiapa boleh menyemak ikatan itu tanpa mempercayai pelayan.",
+    "status": "Sedang dibina. Skrin ikat, cari dan log masuk akan menyusul dalam langkah seterusnya."
+  },
+  "lang": {
+    "label": "Bahasa",
+    "en": "English",
+    "ms": "Bahasa Melayu"
+  }
+}

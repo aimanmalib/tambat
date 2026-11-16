@@ -1,0 +1,12 @@
+{
+  "app": {
+    "name": "Tambat",
+    "tagline": "Link a Bitcoin Cash address to a Nostr key. Anyone can check the link without trusting a server.",
+    "status": "Work in progress. The linking, lookup and sign-in screens arrive in the next steps."
+  },
+  "lang": {
+    "label": "Language",
+    "en": "English",
+    "ms": "Bahasa Melayu"
+  }
+}
