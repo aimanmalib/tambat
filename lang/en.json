@@ -1,12 +1,154 @@
 {
   "app": {
     "name": "Tambat",
-    "tagline": "Link a Bitcoin Cash address to a Nostr key. Anyone can check the link without trusting a server.",
-    "status": "Work in progress. The linking, lookup and sign-in screens arrive in the next steps."
+    "headline": "Prove that one person holds a Bitcoin Cash wallet and a Nostr key.",
+    "sub": "Sign with both keys, publish the proof to Nostr relays, and let anyone check it without trusting this site.",
+    "skip": "Skip to content"
+  },
+  "nav": {
+    "label": "Sections",
+    "link": "Link",
+    "lookup": "Look up",
+    "demo": "Demo app",
+    "pay": "Pay"
+  },
+  "banner": {
+    "event": "BCH BLAZE 2026",
+    "presentation": "Presentation",
+    "source": "Source code",
+    "address": "Address",
+    "copy": "Copy",
+    "copied": "Copied"
   },
   "lang": {
     "label": "Language",
     "en": "English",
     "ms": "Bahasa Melayu"
+  },
+  "common": {
+    "copy": "Copy",
+    "copied": "Copied",
+    "working": "Working",
+    "error": "Something went wrong",
+    "change": "Change",
+    "demoBadge": "demo key, throwaway"
+  },
+  "how": {
+    "title": "How it works",
+    "one": "Your Nostr key publishes a NIP-39 identity event that names your BCH address.",
+    "two": "Your BCH wallet signs a message naming your npub, so neither key can claim the other alone.",
+    "three": "Anyone fetches the event from relays and checks both signatures on their own device."
+  },
+  "nostr": {
+    "title": "Connect your Nostr key",
+    "extension": "Browser extension",
+    "extensionHelp": "NIP-07, for example Alby or nos2x.",
+    "extensionMissing": "No Nostr extension was found in this browser.",
+    "bunker": "Remote signer",
+    "bunkerHelp": "NIP-46. Paste the bunker address from your signer app.",
+    "bunkerLabel": "Bunker address",
+    "bunkerConnect": "Connect remote signer",
+    "demo": "Use a demo key",
+    "demoHelp": "A throwaway key made in this tab. It never leaves your browser and is gone when you close the tab.",
+    "connected": "Nostr key"
+  },
+  "bch": {
+    "title": "Sign with your Bitcoin Cash wallet",
+    "textLabel": "Message your wallet signs",
+    "wc": "Paytaca",
+    "wcHelp": "Connects over WalletConnect. The wallet signs a message and never sends a transaction.",
+    "wcStart": "Connect Paytaca",
+    "wcWaiting": "Scan this code with Paytaca, or open the link on this phone, then approve the connection.",
+    "wcOpen": "Open in wallet app",
+    "wcSign": "Ask the wallet to sign",
+    "wcSigning": "Confirm the signature in your wallet.",
+    "wcUnavailable": "WalletConnect is not set up on this site. Paste a signature instead.",
+    "paste": "Paste a signature",
+    "pasteHelp": "Use Sign message in any BCH wallet, for example Electron Cash, with the message above.",
+    "addressLabel": "Your BCH address",
+    "signatureLabel": "Signature",
+    "pasteCheck": "Check signature",
+    "demo": "Use a demo BCH key",
+    "demoHelp": "A throwaway key made in this tab. It holds no money.",
+    "signedBy": "Signed by"
+  },
+  "link": {
+    "step": "Step {n} of 3",
+    "step1": "Nostr key",
+    "step2": "BCH signature",
+    "step3": "Publish",
+    "review": "Check before you publish",
+    "kept": "Other accounts already listed in your identity event are kept.",
+    "invalid": "This binding would not pass verification. See the failed check.",
+    "publish": "Publish to relays",
+    "publishing": "Publishing to relays",
+    "result": "Accepted by {ok} of {total} relays.",
+    "accepted": "accepted",
+    "refused": "not accepted",
+    "lookUp": "Look it up",
+    "signIn": "Sign in to the demo app",
+    "again": "Start again"
+  },
+  "lookup": {
+    "title": "Look up an identity",
+    "help": "Enter an npub or a BCH address. Your browser asks the relays directly and checks every result itself.",
+    "label": "npub or BCH address",
+    "submit": "Look up",
+    "searching": "Asking relays",
+    "none": "No binding was found on the relays.",
+    "inputError": "Enter an npub, a 64-character hex key or a BCH address with its prefix.",
+    "verified": "Verified",
+    "failed": "Not verified",
+    "nostrKey": "Nostr key",
+    "bchAddress": "BCH address",
+    "published": "Published",
+    "event": "Signed event",
+    "did": "DID document",
+    "didLink": "Resolve from the server",
+    "pay": "Pay this identity"
+  },
+  "steps": {
+    "event_shape": "Event format",
+    "kind": "Event kind",
+    "event_id": "Event id",
+    "nostr_sig": "Nostr signature",
+    "newest": "Newest event",
+    "bch_sig": "BCH signature",
+    "address_match": "Address matches the signer",
+    "network": "Network",
+    "key_separation": "Separate keys",
+    "pass": "passed",
+    "fail": "failed",
+    "skip": "skipped"
+  },
+  "demo": {
+    "title": "Demo app: sign in with Nostr",
+    "help": "This page stands for any other app. Its server sends a one-time challenge, checks your signed answer, then fetches your binding from the relays itself.",
+    "signIn": "Sign in with Nostr",
+    "signingIn": "Signing in",
+    "alsoBch": "Also sign the challenge with my BCH key",
+    "signedIn": "Signed in",
+    "address": "Verified BCH address",
+    "noAddress": "No verified BCH address for this key yet.",
+    "bchSigned": "Your BCH key also signed this sign-in.",
+    "expires": "Session ends",
+    "signOut": "Sign out",
+    "failed": "Sign-in failed"
+  },
+  "pay": {
+    "title": "Pay an identity",
+    "help": "Enter an npub. The address comes from a binding your browser verifies, and your own wallet sends the payment.",
+    "label": "npub",
+    "find": "Find address",
+    "amount": "Amount in BCH (optional)",
+    "none": "This key has no verified BCH address.",
+    "uri": "Payment link",
+    "open": "Open in wallet",
+    "qr": "Payment QR code"
+  },
+  "footer": {
+    "built": "Built for BCH BLAZE 2026.",
+    "license": "Open source, MIT.",
+    "trust": "Keys stay in your browser and wallet. The server only issues sign-in challenges."
   }
 }

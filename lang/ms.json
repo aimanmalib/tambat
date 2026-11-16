@@ -1,12 +1,154 @@
 {
   "app": {
     "name": "Tambat",
-    "tagline": "Ikat alamat Bitcoin Cash kepada kunci Nostr. Sesiapa boleh menyemak ikatan itu tanpa mempercayai pelayan.",
-    "status": "Sedang dibina. Skrin ikat, cari dan log masuk akan menyusul dalam langkah seterusnya."
+    "headline": "Buktikan satu orang memegang dompet Bitcoin Cash dan kunci Nostr.",
+    "sub": "Tandatangan dengan kedua-dua kunci, terbitkan bukti ke relay Nostr, dan biar sesiapa menyemaknya tanpa mempercayai laman ini.",
+    "skip": "Langkau ke kandungan"
+  },
+  "nav": {
+    "label": "Bahagian",
+    "link": "Ikat",
+    "lookup": "Cari",
+    "demo": "Aplikasi demo",
+    "pay": "Bayar"
+  },
+  "banner": {
+    "event": "BCH BLAZE 2026",
+    "presentation": "Pembentangan",
+    "source": "Kod sumber",
+    "address": "Alamat",
+    "copy": "Salin",
+    "copied": "Disalin"
   },
   "lang": {
     "label": "Bahasa",
     "en": "English",
     "ms": "Bahasa Melayu"
+  },
+  "common": {
+    "copy": "Salin",
+    "copied": "Disalin",
+    "working": "Sedang berjalan",
+    "error": "Ada yang tidak kena",
+    "change": "Tukar",
+    "demoBadge": "kunci demo, pakai buang"
+  },
+  "how": {
+    "title": "Cara ia berfungsi",
+    "one": "Kunci Nostr anda menerbitkan event identiti NIP-39 yang menamakan alamat BCH anda.",
+    "two": "Dompet BCH anda menandatangan mesej yang menamakan npub anda, jadi tiada kunci boleh menuntut yang lain seorang diri.",
+    "three": "Sesiapa mengambil event itu dari relay dan menyemak kedua-dua tandatangan pada peranti sendiri."
+  },
+  "nostr": {
+    "title": "Sambung kunci Nostr anda",
+    "extension": "Sambungan pelayar",
+    "extensionHelp": "NIP-07, contohnya Alby atau nos2x.",
+    "extensionMissing": "Tiada sambungan Nostr ditemui dalam pelayar ini.",
+    "bunker": "Penandatangan jauh",
+    "bunkerHelp": "NIP-46. Tampal alamat bunker dari aplikasi penandatangan anda.",
+    "bunkerLabel": "Alamat bunker",
+    "bunkerConnect": "Sambung penandatangan jauh",
+    "demo": "Guna kunci demo",
+    "demoHelp": "Kunci pakai buang yang dibuat dalam tab ini. Ia tidak pernah keluar dari pelayar anda dan hilang bila tab ditutup.",
+    "connected": "Kunci Nostr"
+  },
+  "bch": {
+    "title": "Tandatangan dengan dompet Bitcoin Cash anda",
+    "textLabel": "Mesej yang dompet anda tandatangan",
+    "wc": "Paytaca",
+    "wcHelp": "Bersambung melalui WalletConnect. Dompet menandatangan mesej dan tidak pernah menghantar transaksi.",
+    "wcStart": "Sambung Paytaca",
+    "wcWaiting": "Imbas kod ini dengan Paytaca, atau buka pautan di telefon ini, kemudian luluskan sambungan.",
+    "wcOpen": "Buka dalam aplikasi dompet",
+    "wcSign": "Minta dompet menandatangan",
+    "wcSigning": "Sahkan tandatangan dalam dompet anda.",
+    "wcUnavailable": "WalletConnect belum disediakan di laman ini. Tampal tandatangan sebagai ganti.",
+    "paste": "Tampal tandatangan",
+    "pasteHelp": "Guna Sign message dalam mana-mana dompet BCH, contohnya Electron Cash, dengan mesej di atas.",
+    "addressLabel": "Alamat BCH anda",
+    "signatureLabel": "Tandatangan",
+    "pasteCheck": "Semak tandatangan",
+    "demo": "Guna kunci BCH demo",
+    "demoHelp": "Kunci pakai buang yang dibuat dalam tab ini. Ia tidak memegang wang.",
+    "signedBy": "Ditandatangan oleh"
+  },
+  "link": {
+    "step": "Langkah {n} daripada 3",
+    "step1": "Kunci Nostr",
+    "step2": "Tandatangan BCH",
+    "step3": "Terbit",
+    "review": "Semak sebelum menerbit",
+    "kept": "Akaun lain yang sudah tersenarai dalam event identiti anda dikekalkan.",
+    "invalid": "Ikatan ini tidak akan lulus pengesahan. Lihat semakan yang gagal.",
+    "publish": "Terbit ke relay",
+    "publishing": "Sedang menerbit ke relay",
+    "result": "Diterima oleh {ok} daripada {total} relay.",
+    "accepted": "diterima",
+    "refused": "tidak diterima",
+    "lookUp": "Cari semula",
+    "signIn": "Log masuk ke aplikasi demo",
+    "again": "Mula semula"
+  },
+  "lookup": {
+    "title": "Cari identiti",
+    "help": "Masukkan npub atau alamat BCH. Pelayar anda bertanya relay terus dan menyemak setiap hasil sendiri.",
+    "label": "npub atau alamat BCH",
+    "submit": "Cari",
+    "searching": "Sedang bertanya relay",
+    "none": "Tiada ikatan ditemui di relay.",
+    "inputError": "Masukkan npub, kunci hex 64 aksara atau alamat BCH dengan awalannya.",
+    "verified": "Disahkan",
+    "failed": "Tidak disahkan",
+    "nostrKey": "Kunci Nostr",
+    "bchAddress": "Alamat BCH",
+    "published": "Diterbitkan",
+    "event": "Event bertandatangan",
+    "did": "Dokumen DID",
+    "didLink": "Selesaikan dari pelayan",
+    "pay": "Bayar identiti ini"
+  },
+  "steps": {
+    "event_shape": "Format event",
+    "kind": "Jenis event",
+    "event_id": "Id event",
+    "nostr_sig": "Tandatangan Nostr",
+    "newest": "Event terbaharu",
+    "bch_sig": "Tandatangan BCH",
+    "address_match": "Alamat sepadan dengan penandatangan",
+    "network": "Rangkaian",
+    "key_separation": "Kunci berasingan",
+    "pass": "lulus",
+    "fail": "gagal",
+    "skip": "dilangkau"
+  },
+  "demo": {
+    "title": "Aplikasi demo: log masuk dengan Nostr",
+    "help": "Halaman ini mewakili mana-mana aplikasi lain. Pelayannya menghantar cabaran sekali guna, menyemak jawapan bertandatangan anda, kemudian mengambil ikatan anda dari relay sendiri.",
+    "signIn": "Log masuk dengan Nostr",
+    "signingIn": "Sedang log masuk",
+    "alsoBch": "Tandatangan cabaran dengan kunci BCH saya juga",
+    "signedIn": "Sudah log masuk",
+    "address": "Alamat BCH disahkan",
+    "noAddress": "Belum ada alamat BCH disahkan untuk kunci ini.",
+    "bchSigned": "Kunci BCH anda juga menandatangan log masuk ini.",
+    "expires": "Sesi tamat",
+    "signOut": "Log keluar",
+    "failed": "Log masuk gagal"
+  },
+  "pay": {
+    "title": "Bayar identiti",
+    "help": "Masukkan npub. Alamat datang dari ikatan yang pelayar anda sahkan, dan dompet anda sendiri yang menghantar bayaran.",
+    "label": "npub",
+    "find": "Cari alamat",
+    "amount": "Amaun dalam BCH (pilihan)",
+    "none": "Kunci ini tiada alamat BCH disahkan.",
+    "uri": "Pautan bayaran",
+    "open": "Buka dalam dompet",
+    "qr": "Kod QR bayaran"
+  },
+  "footer": {
+    "built": "Dibina untuk BCH BLAZE 2026.",
+    "license": "Sumber terbuka, MIT.",
+    "trust": "Kunci kekal dalam pelayar dan dompet anda. Pelayan hanya mengeluarkan cabaran log masuk."
   }
 }
