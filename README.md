@@ -5,9 +5,9 @@ trusting a server.
 
 Built for BCH BLAZE 2026, bounty "Decentralized Identity".
 
-Status: early. The protocol is fixed in [docs/decisions/0001-protocol.md](docs/decisions/0001-protocol.md). The core library
-(`src/core/`), the command-line verifier and the relying app server work; the web app follows. Sign-in and the DID document are
-described in [docs/decisions/0002-sign-in-and-did.md](docs/decisions/0002-sign-in-and-did.md).
+Status: in development. The protocol is fixed in [docs/decisions/0001-protocol.md](docs/decisions/0001-protocol.md); sign-in and
+the DID document are described in [docs/decisions/0002-sign-in-and-did.md](docs/decisions/0002-sign-in-and-did.md). The core library
+(`src/core/`), the command-line verifier, the relying app server and the web app work.
 
 ## How it works
 
@@ -36,7 +36,7 @@ verified, 1 not verified, 2 a usage error. Test vectors from the public BIP39 ph
 npm start
 ```
 
-Serves the built web app when `dist/` exists (`npm run build`; the web app is not written yet) and:
+Serves the built web app when `dist/` exists (`npm run build`) and:
 
 - `POST /api/rp/challenge`, `POST /api/rp/login`, `GET /api/rp/session`, `POST /api/rp/logout`: challenge and response sign-in
   with a NIP-98 event. The server finds the user's binding on relays itself and puts the verified BCH address in the session.
@@ -45,6 +45,21 @@ Serves the built web app when `dist/` exists (`npm run build`; the web app is no
 
 Limits, origins and relays are in `config/tambat.json`.
 
+## Web app
+
+English by default with a Malay toggle; all text is in `lang/en.json` and `lang/ms.json`.
+
+- **Link** (`/`): connect a Nostr key (NIP-07 extension, NIP-46 remote signer or a throwaway demo key), get a BCH signature
+  (Paytaca over WalletConnect, a signature pasted from any wallet, or a demo key), see every verification step, then publish to
+  the relays in `config/tambat.json` and see which relays accepted the event.
+- **Look up** (`/lookup`): an npub or a BCH address. The browser asks the relays and verifies each result itself, then shows the
+  step list, the signed event and the DID document.
+- **Demo app** (`/demo`): stands for any other app. It only talks to `/api/rp/*`; its server checks the signed challenge and
+  reads the binding from relays on its own.
+- **Pay** (`/pay`): an npub becomes a verified address, a BIP21 payment link and a QR code. The user's wallet sends the payment.
+
+Private keys never reach the server. The demo keys live in memory for the open tab only.
+
 ## Development
 
 Node 22, npm.
@@ -52,8 +67,13 @@ Node 22, npm.
 ```
 npm ci
 npm test
+npm run build && npm run e2e   # Chromium desktop and WebKit iPhone 13
 npm run gate
 ```
+
+End-to-end tests run the real server against an in-memory relay (`e2e/fake-relay.ts`); the page's relay connections are routed
+to it, and a NIP-07 extension is faked with the key from the public test phrase. They check accessibility (axe, WCAG 2.1 AA),
+console errors and horizontal overflow at 320 px.
 
 ## Third-party licenses
 
