@@ -33,6 +33,11 @@ export interface TambatConfig {
     bodyLimitBytes: number;
     /** Built web app served as static files, relative to the repository root. */
     staticDir: string;
+    /**
+     * Content-Security-Policy sent with the web app, one list of sources per directive. connect-src stays open to any
+     * wss: and https: host because NIP-46 signers and NIP-05 names point at relays and domains the user chooses.
+     */
+    contentSecurityPolicy: Record<string, string[]>;
   };
   walletConnect: {
     projectId: string;
@@ -104,6 +109,12 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.server.port, 'server.port');
   positiveInt(c.server.bodyLimitBytes, 'server.bodyLimitBytes');
   if (typeof c.server.staticDir !== 'string') fail('server.staticDir', 'must be a string');
+  const csp = c.server.contentSecurityPolicy;
+  if (!csp || typeof csp !== 'object' || !csp['default-src']) fail('server.contentSecurityPolicy', 'must be an object with default-src');
+  for (const [name, sources] of Object.entries(csp)) {
+    if (!/^[a-z-]+$/.test(name)) fail(`server.contentSecurityPolicy.${name}`, 'invalid directive name');
+    nonEmptyStrings(sources, `server.contentSecurityPolicy.${name}`, (s) => !/[\s;,]/.test(s));
+  }
   if (!c.site?.languages?.includes(c.site.defaultLanguage)) fail('site.defaultLanguage', 'must be one of site.languages');
   for (const k of ['deckUrl', 'repoUrl', 'contactAddress'] as const) {
     if (typeof c.banner?.[k] !== 'string') fail(`banner.${k}`, 'must be a string (empty hides it)');
@@ -112,3 +123,8 @@ export function parseConfig(input: unknown): TambatConfig {
 }
 
 export const config: TambatConfig = parseConfig(raw);
+
+/** The Content-Security-Policy header value built from a directive map. */
+export function cspHeader(directives: Record<string, string[]> = config.server.contentSecurityPolicy): string {
+  return Object.entries(directives).map(([name, sources]) => `${name} ${sources.join(' ')}`).join('; ');
+}

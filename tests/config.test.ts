@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { config, parseConfig } from '../src/config.js';
+import { config, cspHeader, parseConfig } from '../src/config.js';
 
 const fresh = () => JSON.parse(readFileSync(new URL('../config/tambat.json', import.meta.url), 'utf8'));
 
@@ -55,5 +55,18 @@ describe('config/tambat.json', () => {
     const c = fresh();
     c.auth.cookieName = 'a;b';
     expect(() => parseConfig(c)).toThrow(/cookieName/);
+  });
+
+  it('rejects a CSP source that would inject another directive', () => {
+    const c = fresh();
+    c.server.contentSecurityPolicy['script-src'] = ["'self'; script-src *"];
+    expect(() => parseConfig(c)).toThrow(/contentSecurityPolicy.script-src/);
+  });
+
+  it('builds the CSP header from the directive map', () => {
+    expect(cspHeader({ 'default-src': ["'self'"], 'img-src': ["'self'", 'data:'] })).toBe("default-src 'self'; img-src 'self' data:");
+    expect(cspHeader()).toMatch(/frame-ancestors 'none'/);
+    // libauth verifies signatures with WebAssembly: without this source the browser refuses to compile it.
+    expect(config.server.contentSecurityPolicy['script-src']).toContain("'wasm-unsafe-eval'");
   });
 });

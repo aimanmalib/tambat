@@ -58,6 +58,43 @@
     "host": "0.0.0.0",
     "port": 8080,
     "bodyLimitBytes": 65536,
-    "staticDir": "dist/web"
+    "staticDir": "dist/web",
+    "contentSecurityPolicy": {
+      "default-src": [
+        "'self'"
+      ],
+      "script-src": [
+        "'self'",
+        "'wasm-unsafe-eval'"
+      ],
+      "style-src": [
+        "'self'"
+      ],
+      "img-src": [
+        "'self'",
+        "data:"
+      ],
+      "connect-src": [
+        "'self'",
+        "wss:",
+        "https:"
+      ],
+      "frame-src": [
+        "https://verify.walletconnect.org",
+        "https://verify.walletconnect.com"
+      ],
+      "object-src": [
+        "'none'"
+      ],
+      "base-uri": [
+        "'self'"
+      ],
+      "form-action": [
+        "'self'"
+      ],
+      "frame-ancestors": [
+        "'none'"
+      ]
+    }
   }
 }

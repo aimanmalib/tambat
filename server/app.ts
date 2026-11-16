@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
 import cookie from '@fastify/cookie';
 import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
-import { config } from '../src/config.js';
+import { config, cspHeader } from '../src/config.js';
 import { bchAnswerValid, ChallengeStore, LOGIN_METHOD, LOGIN_PATH, bchChallengeText, loginUrl, nowSeconds, verifyLogin } from '../src/core/auth.js';
 import { didDocument } from '../src/core/did.js';
 import { lookupByPubkey, type QueryFn } from '../src/core/discover.js';
@@ -43,13 +43,19 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
     ...(options.relays ? { relays: options.relays } : {}),
     ...(options.timeoutMs ? { timeoutMs: options.timeoutMs } : {}),
   };
+  const csp = cspHeader();
   const app = Fastify({ logger: options.logger ?? false, bodyLimit: config.server.bodyLimitBytes });
   void app.register(cookie);
 
   app.addHook('onSend', async (req, reply, payload) => {
     const type = String(reply.getHeader('content-type') ?? '');
     if (req.url.startsWith('/api/')) reply.header('cache-control', 'no-store');
-    else if (type.startsWith('text/html')) reply.header('cache-control', 'no-cache, no-transform');
+    else if (type.startsWith('text/html')) {
+      reply.header('cache-control', 'no-cache, no-transform');
+      reply.header('content-security-policy', csp);
+    }
+    reply.header('x-content-type-options', 'nosniff');
+    reply.header('referrer-policy', 'strict-origin-when-cross-origin');
     return payload;
   });
 

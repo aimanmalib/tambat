@@ -129,6 +129,8 @@ describe('static web app', () => {
     const page = await app.inject({ url: '/demo' });
     expect(page.statusCode).toBe(200);
     expect(page.headers['cache-control']).toBe('no-cache, no-transform');
+    expect(page.headers['content-security-policy']).toContain("script-src 'self'");
+    expect(page.headers['x-content-type-options']).toBe('nosniff');
     expect((await app.inject({ url: '/api/missing' })).statusCode).toBe(404);
   });
 });
