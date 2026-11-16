@@ -32,6 +32,26 @@ export interface DiscoverOptions extends Pick<VerifyOptions, 'network'> {
   query?: QueryFn;
 }
 
+/** Extra wait after a query's own timeout before a stuck relay call is given up. */
+const GRACE_MS = 250;
+
+/**
+ * Runs a query so that a relay which throws or never answers cannot break a lookup: errors become an empty
+ * result and a query still pending after the timeout (plus a small grace period) resolves empty.
+ */
+export async function guardedQuery(query: QueryFn, relays: string[], filter: Filter, timeoutMs: number): Promise<unknown[]> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<unknown[]>((resolve) => {
+    timer = setTimeout(() => resolve([]), timeoutMs + GRACE_MS);
+  });
+  try {
+    const result = await Promise.race([query(relays, filter, timeoutMs).catch(() => []), late]);
+    return Array.isArray(result) ? result : [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function validEvents(raw: unknown[]): Event[] {
   const seen = new Map<string, Event>();
   for (const item of raw) {
@@ -49,8 +69,8 @@ function newest(events: Event[]): Event | null {
 
 /** The newest binding event of a Nostr key, verified, or null when relays hold none. */
 export async function lookupByPubkey(pubkey: string, options: DiscoverOptions = {}): Promise<BindingResult | null> {
-  const query = options.query ?? relayQuery;
-  const raw = await query(
+  const raw = await guardedQuery(
+    options.query ?? relayQuery,
     options.relays ?? config.nostr.relays,
     { kinds: [config.nostr.bindingKind], authors: [pubkey] },
     options.timeoutMs ?? config.nostr.queryTimeoutMs,
@@ -67,8 +87,8 @@ export async function lookupByPubkey(pubkey: string, options: DiscoverOptions = 
 export async function lookupByAddress(address: string, options: DiscoverOptions = {}): Promise<BindingResult[]> {
   const parsed = parseP2pkhAddress(address);
   if (typeof parsed === 'string') throw new Error(parsed);
-  const query = options.query ?? relayQuery;
-  const raw = await query(
+  const raw = await guardedQuery(
+    options.query ?? relayQuery,
     options.relays ?? config.nostr.relays,
     { kinds: [config.nostr.bindingKind], '#i': [claimIdentity(parsed.address)] },
     options.timeoutMs ?? config.nostr.queryTimeoutMs,

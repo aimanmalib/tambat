@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { deriveHdPath, deriveHdPrivateNodeFromBip39Mnemonic, secp256k1 } from '@bitauth/libauth';
 import { getPublicKey } from 'nostr-tools/pure';
+import type { Filter, QueryFn } from '../src/core/discover.js';
 import { addressFromPublicKey } from '../src/core/cashaddr.js';
 import { toNpub, type Event } from '../src/core/nostr.js';
 import { keysFromPhrase, type PhraseKeys } from '../src/core/paytaca.js';
@@ -35,3 +36,16 @@ function account(index: number): PhraseKeys {
 export const other = account(1);
 
 export const clone = (e: Event): Event => JSON.parse(JSON.stringify(e)) as Event;
+
+/** An in-process relay: answers authors and #i filters from a fixed list, like a NIP-01 relay would. */
+export function fakeRelay(events: unknown[]): QueryFn {
+  return async (_relays: string[], filter: Filter) =>
+    events.filter((raw) => {
+      const e = raw as Event;
+      if (!e || typeof e !== 'object' || !Array.isArray(e.tags)) return true; // relays may return junk
+      if (filter.kinds && !filter.kinds.includes(e.kind)) return false;
+      if (filter.authors && !filter.authors.includes(e.pubkey)) return false;
+      const wanted = filter['#i'];
+      return !wanted || e.tags.some((t) => t[0] === 'i' && wanted.includes(t[1] ?? ''));
+    });
+}
