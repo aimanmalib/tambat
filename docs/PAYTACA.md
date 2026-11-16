@@ -11,6 +11,9 @@ Paytaca already answers `bch_signMessage` over WalletConnect. In the web app, **
 sign the verification text, and publishes the event with the user's Nostr key (NIP-07 extension, NIP-46 remote signer or a demo
 key). Any wallet with "Sign message" works the same way through the paste option.
 
+The WalletConnect path is built from the Paytaca source but has not yet been recorded with a real Paytaca wallet; see
+[the measurements](MEASURED.md). Until then the paste path is the tested one.
+
 ## Inside the wallet
 
 1. Build the verification text from the wallet's own npub:

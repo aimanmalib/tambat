@@ -32,6 +32,18 @@ The parts:
 - `server/`: a small relying-app server (sign-in, DID documents, static files).
 - `web/`: the web app, in English and Malay.
 
+## Bounty requirements
+
+Where each required part of the "Decentralized Identity" bounty lives:
+
+| Requirement | Code | Try it or read it |
+| --- | --- | --- |
+| Identity creation and management | `src/core/binding.ts` (create, revoke), `web/pages/LinkPage.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com |
+| Cryptographic identity binding | `src/core/binding.ts`, `src/core/bchmsg.ts`, `src/core/verify.ts` | [SPEC.md](docs/SPEC.md), [vectors](examples/vectors.json) |
+| Decentralized discovery | `src/core/discover.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** on the live site, [MEASURED.md](docs/MEASURED.md) |
+| Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `server/`, `bin/tambat.ts` | **Demo app** on the live site, [VERIFY.md](docs/VERIFY.md) |
+| Working demonstration and documentation | `web/`, `deploy/`, `examples/` | https://tambat.sasateguh.com, this README, [docs/](docs/) |
+
 ## Demo in 60 seconds
 
 1. Open https://tambat.sasateguh.com. **Link**: connect a Nostr key (a NIP-07 extension, a NIP-46 remote signer, or "Use a
