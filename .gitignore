@@ -1,0 +1,26 @@
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+data/
+*.db
+*.sqlite
+.autopilot/
+
+# local working notes, kept outside the public repo
+/NEXT.md
+/CLAUDE.md
+/CLAUDE.local.md
+/.claude/
+/PELAN-*.md
+/PASTE*.md
+/PRD-*.md
+/docs/hantar/
+/dalaman/
+/state/
