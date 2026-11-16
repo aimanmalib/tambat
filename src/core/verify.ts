@@ -28,6 +28,8 @@ export interface ClaimResult {
 
 export interface BindingResult {
   ok: boolean;
+  /** Id of the verified event; empty when the input was not an event. */
+  eventId: string;
   pubkey: string;
   npub: string;
   createdAt: number;
@@ -106,7 +108,7 @@ export function verifyBinding(input: unknown, options: VerifyOptions = {}): Bind
   const shape = eventShapeError(input);
   const event = input as Event;
   if (shape) {
-    return { ok: false, pubkey: '', npub: '', createdAt: 0, steps: [fail('event_shape', shape)], claims: [] };
+    return { ok: false, eventId: '', pubkey: '', npub: '', createdAt: 0, steps: [fail('event_shape', shape)], claims: [] };
   }
   const npub = toNpub(event.pubkey);
   const steps: Step[] = [pass('event_shape')];
@@ -120,5 +122,5 @@ export function verifyBinding(input: unknown, options: VerifyOptions = {}): Bind
   steps.push(newestStep(event, options.sameAuthorEvents));
   const claims = claimsOf(event).map((c) => verifyClaim(c.address, c.signature, npub, event.pubkey, network));
   const ok = allPass(steps) && claims.length > 0 && claims.every((c) => c.ok);
-  return { ok, pubkey: event.pubkey, npub, createdAt: event.created_at, steps, claims };
+  return { ok, eventId: event.id, pubkey: event.pubkey, npub, createdAt: event.created_at, steps, claims };
 }
