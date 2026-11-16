@@ -6,7 +6,8 @@ trusting a server.
 Built for BCH BLAZE 2026, bounty "Decentralized Identity".
 
 Status: early. The protocol is fixed in [docs/decisions/0001-protocol.md](docs/decisions/0001-protocol.md). The core library
-(`src/core/`) and the command-line verifier work; the web app and demo sign-in follow.
+(`src/core/`), the command-line verifier and the relying app server work; the web app follows. Sign-in and the DID document are
+described in [docs/decisions/0002-sign-in-and-did.md](docs/decisions/0002-sign-in-and-did.md).
 
 ## How it works
 
@@ -28,6 +29,21 @@ npx tsx bin/tambat.ts lookup <npub|bitcoincash:...> [--json]
 `verify` works offline. `lookup` asks the relays in `config/tambat.json` and verifies every event they return. Exit code 0 means
 verified, 1 not verified, 2 a usage error. Test vectors from the public BIP39 phrase `abandon ... about` are in
 [examples/vectors.json](examples/vectors.json).
+
+## Server
+
+```
+npm run build && npm start
+```
+
+Serves the built web app and:
+
+- `POST /api/rp/challenge`, `POST /api/rp/login`, `GET /api/rp/session`, `POST /api/rp/logout`: challenge and response sign-in
+  with a NIP-98 event. The server finds the user's binding on relays itself and puts the verified BCH address in the session.
+- `GET /api/did/<npub>`: a `did:nostr` document with the verified BCH address as a CAIP-10 account.
+- `GET /healthz`.
+
+Limits, origins and relays are in `config/tambat.json`.
 
 ## Development
 
