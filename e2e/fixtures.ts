@@ -56,6 +56,13 @@ export async function expectNoOverflow(page: Page) {
   expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 }
 
+const allowedFailedLoads = new WeakMap<Page, string[]>();
+
+/** Lets a test expect the browser to log a failed load for a path, for a request the server is meant to refuse. */
+export function allowFailedLoad(page: Page, path: string) {
+  allowedFailedLoads.set(page, [...(allowedFailedLoads.get(page) ?? []), path]);
+}
+
 export const test = base.extend<{ consoleErrors: string[] }>({
   consoleErrors: [
     async ({ page }, use) => {
@@ -63,7 +70,8 @@ export const test = base.extend<{ consoleErrors: string[] }>({
       page.on('pageerror', (e) => errors.push(e.message));
       page.on('console', (msg) => {
         // Asking for the session before signing in answers 401 by design; browsers log that as a failed load.
-        if (msg.type() === 'error' && !msg.location().url.endsWith('/api/rp/session')) errors.push(msg.text());
+        const allowed = ['/api/rp/session', ...(allowedFailedLoads.get(page) ?? [])];
+        if (msg.type() === 'error' && !allowed.some((path) => msg.location().url.endsWith(path))) errors.push(msg.text());
       });
       await routeRelays(page);
       await use(errors);
