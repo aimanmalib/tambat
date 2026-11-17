@@ -13,6 +13,12 @@ export interface TambatConfig {
     queryTimeoutMs: number;
     publishTimeoutMs: number;
   };
+  cli: {
+    /** Phrase file the revoke and rotate commands sign with (JSON `{ "phrase": ... }`, mode 0600, never tracked). */
+    keysFile: string;
+    /** How many receiving addresses of the phrase `rotate` searches for the new address. */
+    addressSearchLimit: number;
+  };
   auth: {
     challengeTtlSeconds: number;
     sessionTtlSeconds: number;
@@ -88,6 +94,8 @@ export function parseConfig(input: unknown): TambatConfig {
   nonEmptyStrings(c.nostr.relays, 'nostr.relays', (s) => /^wss:\/\/[^\s/]+/.test(s));
   positiveInt(c.nostr.queryTimeoutMs, 'nostr.queryTimeoutMs');
   positiveInt(c.nostr.publishTimeoutMs, 'nostr.publishTimeoutMs');
+  if (typeof c.cli?.keysFile !== 'string' || c.cli.keysFile === '') fail('cli.keysFile', 'must be a non-empty string');
+  positiveInt(c.cli.addressSearchLimit, 'cli.addressSearchLimit');
   positiveInt(c.auth?.challengeTtlSeconds, 'auth.challengeTtlSeconds');
   positiveInt(c.auth.sessionTtlSeconds, 'auth.sessionTtlSeconds');
   positiveInt(c.auth.clockSkewSeconds, 'auth.clockSkewSeconds');

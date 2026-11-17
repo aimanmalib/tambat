@@ -12,6 +12,10 @@
     "queryTimeoutMs": 4000,
     "publishTimeoutMs": 6000
   },
+  "cli": {
+    "keysFile": "state/demo-keys.json",
+    "addressSearchLimit": 20
+  },
   "auth": {
     "challengeTtlSeconds": 120,
     "sessionTtlSeconds": 3600,

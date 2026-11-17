@@ -12,6 +12,8 @@ import { addressFromPublicKey } from './cashaddr.js';
 import { toNpub, verificationText, type Event } from './nostr.js';
 
 export const BCH_PATH = "m/44'/145'/0'/0/0";
+/** Receiving address `index` on the same account, as a phrase wallet shows the next address. */
+export const bchPath = (index: number): string => `m/44'/145'/0'/0/${index}`;
 export const NOSTR_PATH = "m/44'/1237'/0'/0/0";
 
 export interface PhraseKeys {
@@ -44,6 +46,26 @@ export function keysFromPhrase(phrase: string, network: Network): PhraseKeys {
     npub: toNpub(nostrPubkey),
   };
 }
+
+type BchKey = Pick<PhraseKeys, 'bchPrivateKey' | 'bchPublicKey' | 'address'>;
+
+/**
+ * The first `count` BCH receiving keys of a phrase, as a phrase wallet shows its next addresses. The seed is
+ * derived once (it is the slow step), so searching many addresses stays cheap.
+ */
+export function bchKeysOf(phrase: string, count: number, network: Network): BchKey[] {
+  const root = deriveHdPrivateNodeFromBip39Mnemonic(phrase);
+  return Array.from({ length: count }, (_, index) => {
+    const bchPrivateKey = deriveHdPath(root, bchPath(index)).privateKey;
+    const bchPublicKey = secp256k1.derivePublicKeyCompressed(bchPrivateKey);
+    if (typeof bchPublicKey === 'string') throw new Error(bchPublicKey);
+    return { bchPrivateKey, bchPublicKey, address: addressFromPublicKey(bchPublicKey, network) };
+  });
+}
+
+/** The BCH receiving key and address at `index` of a phrase. */
+export const bchKeyAt = (phrase: string, index: number, network: Network): BchKey =>
+  bchKeysOf(phrase, index + 1, network)[index] as BchKey;
 
 /** Signs the verification text with the BCH key and the binding event with the Nostr key. */
 export function bindingFromKeys(

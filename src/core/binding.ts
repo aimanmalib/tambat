@@ -72,7 +72,17 @@ export function createBindingEvent(input: CreateBindingInput): EventTemplate {
   };
 }
 
-/** Builds the event that removes every BCH claim while keeping the other identity tags (revocation). */
+/** True when the event carries a BCH claim for this address (case-insensitive CashAddr). */
+export function hasClaim(event: Pick<Event, 'tags'>, address: string): boolean {
+  const wanted = address.toLowerCase();
+  return claimsOf(event).some((c) => c.address.toLowerCase() === wanted);
+}
+
+/**
+ * Builds the event that removes every BCH claim while keeping the other identity tags (revocation). A key carries
+ * at most one BCH claim, so removing the claim for one address removes them all. It replaces the author's binding
+ * because relays keep only the newest kind 10011 event of a key, and verifiers fail any older one (`newest`).
+ */
 export function createRevocationEvent(previous: Pick<Event, 'tags' | 'content'>, createdAt?: number): EventTemplate {
   return {
     kind: config.nostr.bindingKind,
@@ -80,4 +90,21 @@ export function createRevocationEvent(previous: Pick<Event, 'tags' | 'content'>,
     content: previous.content,
     tags: previous.tags.filter((t) => claimFromTag(t) === null).map((t) => [...t]),
   };
+}
+
+/**
+ * Builds one event that moves a binding from `oldAddress` to the address in `claim` (rotation): the old claim is
+ * gone and the new one, with its own fresh BCH signature, takes its place; other identity tags are kept.
+ */
+export function createRotationEvent(
+  previous: Pick<Event, 'tags' | 'content'>,
+  oldAddress: string,
+  claim: BchClaim,
+  createdAt?: number,
+): EventTemplate {
+  if (!hasClaim(previous, oldAddress)) throw new Error(`the current binding does not claim ${oldAddress}`);
+  if (hasClaim({ tags: [['i', claimIdentity(claim.address)]] }, oldAddress)) throw new Error('the new address is the old address');
+  const input: CreateBindingInput = { claim, previous };
+  if (createdAt !== undefined) input.createdAt = createdAt;
+  return createBindingEvent(input);
 }
