@@ -32,5 +32,11 @@ export function startFakeRelay(port: number, host = '127.0.0.1'): { close: () =>
       }
     });
   });
-  return { events, close: () => new Promise((resolve) => server.close(() => resolve())) };
+  // Open page connections would keep the server from closing, so they are ended first.
+  const close = () =>
+    new Promise<void>((resolve) => {
+      for (const client of server.clients) client.terminate();
+      server.close(() => resolve());
+    });
+  return { events, close };
 }

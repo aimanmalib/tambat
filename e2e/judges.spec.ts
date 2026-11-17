@@ -1,0 +1,114 @@
+/**
+ * The judges page against its own fake relay holding the real demo binding (a public, signed event copied from the
+ * relays into demo-binding-event.json). The page must fit one screen at 1440 x 900 and on an iPhone 13 without
+ * scrolling, show every check of the live look-up, and say so plainly when the relays are blocked.
+ */
+import { join } from 'node:path';
+import type { Page, TestInfo } from '@playwright/test';
+import type { Event } from 'nostr-tools/pure';
+import WebSocket from 'ws';
+import config from '../config/tambat.json' with { type: 'json' };
+import demoEvent from './demo-binding-event.json' with { type: 'json' };
+import { startFakeRelay } from './fake-relay.js';
+import { en, expect, expectAccessible, expectNoOverflow, ms, test } from './fixtures.js';
+import { E2E } from './ports.js';
+
+const JUDGES_RELAY_PORT = E2E.relayPort + 20;
+
+let relay: ReturnType<typeof startFakeRelay>;
+test.beforeAll(() => {
+  relay = startFakeRelay(JUDGES_RELAY_PORT);
+  relay.events.set(demoEvent.id, demoEvent as Event);
+});
+test.afterAll(() => relay.close());
+
+async function useJudgesRelay(page: Page) {
+  await page.routeWebSocket(/^wss:\/\//, (ws) => {
+    const upstream = new WebSocket(`ws://127.0.0.1:${JUDGES_RELAY_PORT}`);
+    const queue: string[] = [];
+    upstream.on('open', () => queue.splice(0).forEach((m) => upstream.send(m)));
+    upstream.on('message', (data) => ws.send(String(data)));
+    upstream.on('close', () => ws.close());
+    upstream.on('error', () => ws.close());
+    ws.onMessage((m) => (upstream.readyState === WebSocket.OPEN ? upstream.send(String(m)) : queue.push(String(m))));
+    ws.onClose(() => upstream.close());
+  });
+}
+
+/** The page is one screen: the document is no taller than the window. */
+async function expectOneScreen(page: Page) {
+  const size = await page.evaluate(() => ({ scroll: document.documentElement.scrollHeight, inner: window.innerHeight }));
+  expect(size.scroll, `scrollHeight ${size.scroll} > innerHeight ${size.inner}`).toBeLessThanOrEqual(size.inner);
+}
+
+async function shot(page: Page, info: TestInfo, errors: string[], name: string) {
+  const dir = process.env.SHOTS_DIR ?? '';
+  if (!dir) return;
+  const before = errors.length;
+  await page.screenshot({ path: join(dir, `i9-${info.project.name}-${name}.png`), caret: 'initial' });
+  await page.waitForTimeout(300);
+  errors.push(...errors.splice(before).filter((e) => !e.startsWith('Refused to apply a stylesheet')));
+}
+
+const desktop = (info: TestInfo) => info.project.name === 'chromium';
+
+test('one screen with a green live check, the recorded proof and every requirement', async ({ page, consoleErrors }, info) => {
+  if (desktop(info)) await page.setViewportSize({ width: 1440, height: 900 });
+  await useJudgesRelay(page);
+  await page.goto('/judges');
+  await expect(page.getByRole('heading', { level: 1, name: en.judges.title })).toBeVisible();
+  const live = page.locator('.jpanel--live');
+  await expect(live).toHaveAttribute('data-state', 'verified', { timeout: 20_000 });
+  const chips = live.locator('.chip');
+  expect(await chips.count()).toBeGreaterThan(0);
+  await expect(live.locator('.chip:not([data-status="pass"])')).toHaveCount(0);
+  await expect(live.locator('.notice--ok')).toContainText(en.judges.verified.split(':')[0] ?? '');
+
+  await expect(page.locator(`[data-proof="paytaca"] a[data-event="${config.judges.paytaca.eventId}"]`)).toHaveAttribute('href', `/lookup?q=${config.judges.paytaca.npub}`);
+  await expect(page.locator(`[data-proof="revocation"] a[data-event="${config.judges.revocation.eventId}"]`)).toBeVisible();
+  for (const name of [en.judges.signIn, en.judges.verifyYourself, en.judges.spec, en.judges.repo]) {
+    await expect(page.getByRole('link', { name })).toBeVisible();
+  }
+  // Lists start open on a wide screen and closed on a phone; either way all five requirements and six criteria are there.
+  const folds = page.locator('details.jfold');
+  await expect(folds).toHaveCount(2);
+  for (const f of await folds.all()) expect(await f.evaluate((d: HTMLDetailsElement) => d.open)).toBe(desktop(info));
+  await expect(page.locator('[data-req]')).toHaveCount(5);
+  await expect(page.locator('[data-crit]')).toHaveCount(6);
+
+  await expectOneScreen(page);
+  await expectNoOverflow(page);
+  await expectAccessible(page);
+  await shot(page, info, consoleErrors, 'en');
+
+  await page.getByRole('combobox').selectOption('ms');
+  await expect(page.getByRole('heading', { level: 1, name: ms.judges.title })).toBeVisible();
+  await expect(live).toHaveAttribute('data-state', 'verified', { timeout: 20_000 });
+  await expectOneScreen(page);
+  await expectNoOverflow(page);
+  await shot(page, info, consoleErrors, 'ms');
+
+  await page.locator('[data-proof="paytaca"] a').click();
+  await expect(page).toHaveURL(`/lookup?q=${config.judges.paytaca.npub}`);
+});
+
+test('at 320 px the page does not overflow sideways and the lists still open', async ({ page }) => {
+  await useJudgesRelay(page);
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto('/judges');
+  await expect(page.locator('.jpanel--live')).toHaveAttribute('data-state', 'verified', { timeout: 20_000 });
+  for (const s of await page.locator('details.jfold > summary').all()) await s.click();
+  await expect(page.locator('[data-req="discovery"]')).toBeVisible();
+  await expectNoOverflow(page);
+});
+
+test('blocked relays read as not found, never as verified', async ({ page }, info) => {
+  if (desktop(info)) await page.setViewportSize({ width: 1440, height: 900 });
+  await page.routeWebSocket(/^wss:\/\//, (ws) => ws.close());
+  await page.goto('/judges');
+  const live = page.locator('.jpanel--live');
+  await expect(live.getByRole('alert')).toBeVisible({ timeout: 15_000 });
+  await expect(live).not.toHaveAttribute('data-state', 'verified', { timeout: 20_000 });
+  await expect(live.locator('.chip')).toHaveCount(0);
+  await expectOneScreen(page);
+});

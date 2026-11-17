@@ -1,5 +1,6 @@
 import { useText } from './i18n';
 import { KeysProvider } from './keys/KeysContext';
+import { JudgesPage } from './judges/JudgesPage';
 import { DemoPage } from './pages/DemoPage';
 import { LinkPage } from './pages/LinkPage';
 import { LookupPage } from './pages/LookupPage';
@@ -38,7 +39,7 @@ function Home() {
   );
 }
 
-const PAGES: Record<Route, () => React.JSX.Element> = { '/': Home, '/lookup': LookupPage, '/wall': WallPage, '/demo': DemoPage, '/pay': PayPage };
+const PAGES: Record<Route, () => React.JSX.Element> = { '/': Home, '/lookup': LookupPage, '/wall': WallPage, '/demo': DemoPage, '/pay': PayPage, '/judges': JudgesPage };
 
 export function App() {
   const { t, lang, setLang } = useText();
@@ -48,7 +49,7 @@ export function App() {
     <KeysProvider>
       <a className="skip" href="#main">{t('app.skip')}</a>
       <Banner />
-      <header className="top">
+      <header className={route === '/judges' ? 'top top--wide' : 'top'}>
         <a className="brand" href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>{t('app.name')}</a>
         <nav className="nav" aria-label={t('nav.label')}>
           {NAV.map((n) => (
@@ -71,13 +72,16 @@ export function App() {
           </select>
         </label>
       </header>
-      <main id="main" className="shell">
+      <main id="main" className={route === '/judges' ? 'shell shell--wide' : 'shell'}>
         <Page />
       </main>
-      <footer className="foot">
-        <p>{t('footer.trust')}</p>
-        <p>{t('footer.built')} {t('footer.license')}</p>
-      </footer>
+      {/* The judges page is one screen by design; its links lead to everything the footer says. */}
+      {route === '/judges' ? null : (
+        <footer className="foot">
+          <p>{t('footer.trust')}</p>
+          <p>{t('footer.built')} {t('footer.license')}</p>
+        </footer>
+      )}
     </KeysProvider>
   );
 }

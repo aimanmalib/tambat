@@ -19,7 +19,8 @@
     "source": "Kod sumber",
     "address": "Alamat",
     "copy": "Salin",
-    "copied": "Disalin"
+    "copied": "Disalin",
+    "judges": "Untuk juri"
   },
   "lang": {
     "label": "Bahasa",
@@ -282,5 +283,57 @@
     "try": "Cuba ubah suai",
     "caught": "Tidak disahkan. Gagal: {steps}",
     "reset": "Set semula"
+  },
+  "judges": {
+    "title": "Untuk juri",
+    "sub": "Semua yang diminta bounty, dalam satu skrin. Setiap baris membuka bahagian hidup atau fail yang membuktikannya.",
+    "sampleTitle": "Semakan hidup",
+    "sampleHelp": "Diambil dari relay awam dan disahkan dalam pelayar ini sebentar tadi.",
+    "loading": "Sedang bertanya kepada relay",
+    "verified": "Sah: {passed} daripada {total} semakan lulus dalam {seconds} s",
+    "notVerified": "Tidak sah: {failed} daripada {total} semakan gagal, dimuat dalam {seconds} s",
+    "notFound": "Tiada relay menjawab dengan ikatan demo selepas {seconds} s. Relay mungkin disekat dari rangkaian ini; semakan di bawah berfungsi semula sebaik satu relay menjawab.",
+    "failed": "Relay tidak dapat ditanya: {reason}",
+    "lookNpub": "npub → alamat",
+    "lookAddress": "alamat → npub",
+    "lookName": "NIP-05",
+    "proofTitle": "Bukti direkod",
+    "paytaca": "Ditandatangan dengan dompet Paytaca melalui WalletConnect",
+    "revocation": "Pautan yang dibatalkan (tiada alamat semasa)",
+    "open": "Cari",
+    "actionsTitle": "Cuba",
+    "signIn": "Log masuk",
+    "verifyYourself": "Sahkan sendiri",
+    "spec": "SPEC",
+    "repo": "Kod",
+    "reqTitle": "Lima syarat",
+    "req": {
+      "create": "Cipta dan urus identiti",
+      "binding": "Ikatan kriptografi",
+      "discovery": "Penemuan terdesentralisasi",
+      "auth": "Pengesahan dan log masuk",
+      "docs": "Demo berfungsi dan dokumen"
+    },
+    "link": {
+      "link": "Pautkan",
+      "revoke": "Batal dan pindah",
+      "vectors": "Vektor ujian",
+      "lookup": "Cari",
+      "wall": "Dinding",
+      "demo": "Aplikasi demo",
+      "readme": "README",
+      "verify": "VERIFY.md",
+      "measured": "Ukuran"
+    },
+    "critTitle": "Kriteria penilaian",
+    "crit": {
+      "correctness": "Ketepatan teknikal: setiap semakan bernama dan ada ujian gagal",
+      "security": "Keselamatan: satu kunci tidak boleh menandatangan kedua-dua belah, nonce log masuk sekali guna",
+      "decentralization": "Desentralisasi: relay tidak dipercayai; satu mati, carian masih sah",
+      "interop": "Kebolehoperasian: NIP-39, mesej bertandatangan Bitcoin, did:nostr, BIP21",
+      "usability": "Kebolehgunaan: Inggeris dan Melayu, telefon dan desktop, Paytaca melalui WalletConnect",
+      "demo": "Mutu demo: hidup di relay awam, setiap dakwaan diukur"
+    },
+    "proof": "Bukti"
   }
 }

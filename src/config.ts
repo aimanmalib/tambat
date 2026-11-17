@@ -81,6 +81,18 @@ export interface TambatConfig {
     /** How many of the newest binding events the wall asks each relay for and shows at most. */
     limit: number;
   };
+  /** The one-screen page for judges at /judges. Event ids and keys come from docs/MEASURED.md. */
+  judges: {
+    repoUrl: string;
+    /** The demo identity the page looks up on the relays when it opens. */
+    sample: { name: string; npub: string; address: string };
+    /** A binding whose BCH signature came from a Paytaca wallet over WalletConnect. */
+    paytaca: { eventId: string; npub: string };
+    /** The event that revoked the second demo identity's link. */
+    revocation: { eventId: string; npub: string };
+    /** CSS width from which the requirement and criteria lists start open; below it they start closed. */
+    openFromWidth: string;
+  };
 }
 
 const NETWORKS: readonly Network[] = ['bitcoincash', 'bchtest'];
@@ -100,6 +112,21 @@ function nonEmptyStrings(value: unknown, path: string, test?: (s: string) => boo
     if (typeof item !== 'string' || item === '' || (test && !test(item))) fail(path, `invalid entry ${JSON.stringify(item)}`);
   }
   return value as string[];
+}
+
+const NPUB = /^npub1[02-9ac-hj-np-z]{58}$/;
+const EVENT_ID = /^[0-9a-f]{64}$/;
+
+function parseJudges(j: TambatConfig['judges']): void {
+  if (!/^https:\/\/\S+$/.test(j?.repoUrl ?? '')) fail('judges.repoUrl', 'must be an https URL');
+  if (!/^[a-z0-9._-]+@[a-z0-9.-]+$/.test(j.sample?.name ?? '')) fail('judges.sample.name', 'must be a NIP-05 name');
+  if (!/^bitcoincash:q[02-9ac-hj-np-z]{41}$/.test(j.sample.address ?? '')) fail('judges.sample.address', 'must be a P2PKH CashAddr');
+  for (const [path, value] of [['sample.npub', j.sample.npub], ['paytaca.npub', j.paytaca?.npub], ['revocation.npub', j.revocation?.npub]]) {
+    if (!NPUB.test(value ?? '')) fail(`judges.${path}`, 'must be an npub');
+  }
+  if (!EVENT_ID.test(j.paytaca.eventId ?? '')) fail('judges.paytaca.eventId', 'must be a 64-character hex event id');
+  if (!EVENT_ID.test(j.revocation.eventId ?? '')) fail('judges.revocation.eventId', 'must be a 64-character hex event id');
+  if (!/^\d+(\.\d+)?(rem|px|em)$/.test(j.openFromWidth ?? '')) fail('judges.openFromWidth', 'must be a CSS length');
 }
 
 /** Checks the shape of a config object and returns it typed. Throws with the offending path. */
@@ -162,6 +189,7 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.embed.height, 'embed.height');
   nonEmptyStrings(c.embed.frameAncestors, 'embed.frameAncestors', (s) => !/[\s;,]/.test(s) && s !== "'none'");
   positiveInt(c.wall?.limit, 'wall.limit');
+  parseJudges(c.judges);
   return c;
 }
 

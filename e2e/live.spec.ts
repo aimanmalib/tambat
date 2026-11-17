@@ -150,3 +150,15 @@ test('the wall checks the newest bindings from the real relays and lists only ve
   expect(shown).toBeLessThanOrEqual(siteConfig.wall.limit);
   await expectNoOverflow(page);
 });
+
+test('the judges page verifies the demo identity from the real relays on one screen', async ({ page }) => {
+  await page.goto('/judges');
+  const live = page.locator('.jpanel--live');
+  await expect(live).toHaveAttribute('data-state', 'verified', { timeout: 20_000 });
+  await expect(live.locator('.chip:not([data-status="pass"])')).toHaveCount(0);
+  await expect(page.locator(`a[data-event="${siteConfig.judges.paytaca.eventId}"]`)).toBeVisible();
+  const size = await page.evaluate(() => ({ scroll: document.documentElement.scrollHeight, inner: window.innerHeight }));
+  expect(size.scroll).toBeLessThanOrEqual(size.inner);
+  await expectNoOverflow(page);
+  await expectAccessible(page);
+});

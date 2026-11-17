@@ -19,7 +19,8 @@
     "source": "Source code",
     "address": "Address",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "judges": "For judges"
   },
   "lang": {
     "label": "Language",
@@ -282,5 +283,57 @@
     "try": "Try tampering",
     "caught": "Not verified. Failed: {steps}",
     "reset": "Reset"
+  },
+  "judges": {
+    "title": "For judges",
+    "sub": "Everything the bounty asks for, on one screen. Each line opens the live part or the file that proves it.",
+    "sampleTitle": "Live check",
+    "sampleHelp": "Fetched from the public relays and verified in this browser just now.",
+    "loading": "Asking the relays",
+    "verified": "Verified: {passed} of {total} checks pass in {seconds} s",
+    "notVerified": "Not verified: {failed} of {total} checks fail, loaded in {seconds} s",
+    "notFound": "No relay answered with the demo binding after {seconds} s. The relays may be blocked from this network; the checks below still work once one answers.",
+    "failed": "The relays could not be asked: {reason}",
+    "lookNpub": "npub → address",
+    "lookAddress": "address → npub",
+    "lookName": "NIP-05",
+    "proofTitle": "Recorded proof",
+    "paytaca": "Signed with a Paytaca wallet over WalletConnect",
+    "revocation": "A revoked link (no current address)",
+    "open": "Look up",
+    "actionsTitle": "Try it",
+    "signIn": "Sign in",
+    "verifyYourself": "Verify yourself",
+    "spec": "SPEC",
+    "repo": "Code",
+    "reqTitle": "The five requirements",
+    "req": {
+      "create": "Create and manage an identity",
+      "binding": "Cryptographic binding",
+      "discovery": "Decentralized discovery",
+      "auth": "Verification and sign-in",
+      "docs": "Working demo and documents"
+    },
+    "link": {
+      "link": "Link",
+      "revoke": "Revoke and move",
+      "vectors": "Test vectors",
+      "lookup": "Look up",
+      "wall": "Wall",
+      "demo": "Demo app",
+      "readme": "README",
+      "verify": "VERIFY.md",
+      "measured": "Measurements"
+    },
+    "critTitle": "Judging criteria",
+    "crit": {
+      "correctness": "Technical correctness: every check is named and has a failing test",
+      "security": "Security: one key cannot sign both sides, sign-in nonces work once",
+      "decentralization": "Decentralization: relays are untrusted; one down, look-ups still verify",
+      "interop": "Interoperability: NIP-39, Bitcoin signed messages, did:nostr, BIP21",
+      "usability": "Usability: English and Malay, phone and desktop, Paytaca over WalletConnect",
+      "demo": "Demo quality: live on public relays, every claim measured"
+    },
+    "proof": "Proof"
   }
 }

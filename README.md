@@ -37,6 +37,11 @@ The parts:
 
 Where each required part of the "Decentralized Identity" bounty lives:
 
+The same map is one screen on the live site at https://tambat.sasateguh.com/judges, in English and Malay: it looks up the
+demo identity on the relays when it opens and shows every check, links the Paytaca binding and a revoked link from
+[MEASURED.md](docs/MEASURED.md), and opens each requirement and judging criterion. `e2e/judges.spec.ts` holds it to one
+screen at 1440 x 900 and on an iPhone 13.
+
 | Requirement | Code | Try it or read it |
 | --- | --- | --- |
 | Identity creation and management | `src/core/binding.ts` (create, revoke, rotate), `src/node/manage.ts`, `web/pages/LinkPage.tsx`, `web/pages/OwnerActions.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com; **Revoke this link** and **Move to a new address** on your own look-up result; [revocation measured](docs/MEASURED.md) |
@@ -185,7 +190,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-a404456ba0bd5dafa5e768d1f2a1d93c5b7042d256db0428963d4bce1c4975e6  tambat-verify.html
+ab33f54b3cff165e50dc799444edfbac7597a4ab4822eb59d0751dfcb9884fcb  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
