@@ -4,6 +4,8 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [react()],
+  // Files served as they are, such as the event deck (web/public/deck.pdf, made by tools/deck/build.ts).
+  publicDir: 'web/public',
   build: {
     outDir: 'dist/web',
     emptyOutDir: true,

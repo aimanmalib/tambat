@@ -1,0 +1,79 @@
+{
+  "_doc": "Text of the event deck, in the order of the event's slide template. Facts with a number name the MEASURED.md section they come from (tests/deck.test.ts checks it exists). Rebuild with: npx tsx tools/deck/build.ts",
+  "slides": [
+    {
+      "template": "Title",
+      "kind": "title",
+      "title": "Tambat",
+      "lines": ["Bitcoin Cash and Nostr identity binding", "tambat.sasateguh.com", "Muhammad Aiman (Sasateguh, Malaysia). Solo build."]
+    },
+    {
+      "template": "Tagline",
+      "kind": "tagline",
+      "title": "Tambat",
+      "lines": ["Prove that a Bitcoin Cash address and a Nostr key belong to the same person, and let anyone check it without trusting a server."],
+      "link": "repo"
+    },
+    {
+      "template": "Title here",
+      "kind": "list",
+      "title": "Try it in a minute",
+      "numbered": true,
+      "items": [
+        { "text": "Open tambat.sasateguh.com/judges. It looks up the demo identity on public relays and shows every check passing." },
+        { "text": "Look up demo@tambat.sasateguh.com and press Try tampering. Each edit to a local copy is caught by a named step." },
+        { "text": "Open Demo app and sign in with a BCH wallet only. The server finds the Nostr key from the binding on its own." }
+      ]
+    },
+    {
+      "template": "The Story of",
+      "kind": "list",
+      "title": "The Story of Tambat",
+      "items": [
+        { "text": "A Nostr npub and a BCH address often belong to the same person, but neither network can say so." },
+        { "text": "NIP-39 lets a Nostr key claim outside identities. Tambat adds a bch platform: the BCH key signs the npub, the Nostr key signs the event that carries that signature." },
+        { "text": "The binding lives on ordinary public relays. A web page, the command line or one HTML file checks both signatures locally." }
+      ]
+    },
+    {
+      "template": "Benefits of",
+      "kind": "list",
+      "title": "Benefits of Tambat",
+      "items": [
+        { "text": "Look-up both ways, npub to address and address to npub: 1.1 to 2.4 seconds across public relays.", "measured": "Lookup" },
+        { "text": "Signed with a Paytaca wallet over WalletConnect: event d7c03eee...489b verifies from two of three relays.", "measured": "2026-11-17: a binding signed with a Paytaca wallet over WalletConnect" },
+        { "text": "Sign in with a BCH wallet only: the server found the bound npub on its own relays.", "measured": "Sign-in" },
+        { "text": "Revoke or move a binding: afterwards the old address finds no npub.", "measured": "Revocation" },
+        { "text": "Nine named checks. On the wall, 2 of 34 relay events naming a BCH address passed every one, and only those are shown.", "measured": "Wall" }
+      ]
+    },
+    {
+      "template": "BCH Usage",
+      "kind": "list",
+      "title": "BCH Usage",
+      "items": [
+        { "text": "BCH signed messages in the format wallets such as Electron Cash use, checked against third-party test vectors." },
+        { "text": "CashAddr P2PKH addresses, with the network checked so a testnet address cannot pass as mainnet." },
+        { "text": "Paytaca over WalletConnect bch_signMessage, or a signature pasted from any wallet." },
+        { "text": "Pay a person by npub or NIP-05 name: a BIP21 link and QR code for an address they proved. Your own wallet sends." },
+        { "text": "No transaction is needed to bind, look up or sign in." }
+      ]
+    },
+    {
+      "template": "The Vision for",
+      "kind": "list",
+      "title": "The Vision for Tambat",
+      "items": [
+        { "text": "A wallet that holds a BIP39 phrase can derive a Nostr key (NIP-06) and publish the binding in one step. The wallet guide shows the code." },
+        { "text": "Apps sign people in with keys they already hold, and pay them at addresses they proved." },
+        { "text": "Next: recovery of a lost Nostr key with the bound BCH key, and more than one address per person." }
+      ]
+    },
+    {
+      "template": "Thank you",
+      "kind": "thanks",
+      "title": "Thank you",
+      "lines": []
+    }
+  ]
+}
