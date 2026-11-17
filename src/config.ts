@@ -81,6 +81,22 @@ export interface TambatConfig {
     /** How many of the newest binding events the wall asks each relay for and shows at most. */
     limit: number;
   };
+  /** Optional BCH anchor (docs/SPEC.md "Optional BCH anchor"). The server never signs or sends a transaction. */
+  anchor: {
+    /** Four ASCII bytes that start the OP_RETURN payload. */
+    prefix: string;
+    version: number;
+    /** The web app refuses to ask a wallet to sign a commitment whose fee is above this. */
+    maxFeeSats: number;
+    feePerByte: number;
+    /** The change output must keep at least this much, or the transaction is refused. */
+    dustSats: number;
+    /** Fulcrum servers, read only, tried in order. */
+    electrum: string[];
+    timeoutMs: number;
+    /** How many transactions of an address are read when looking for commitments. */
+    historyLimit: number;
+  };
   /** The one-screen page for judges at /judges. Event ids and keys come from docs/MEASURED.md. */
   judges: {
     repoUrl: string;
@@ -116,6 +132,18 @@ function nonEmptyStrings(value: unknown, path: string, test?: (s: string) => boo
 
 const NPUB = /^npub1[02-9ac-hj-np-z]{58}$/;
 const EVENT_ID = /^[0-9a-f]{64}$/;
+
+function parseAnchor(a: TambatConfig['anchor']): void {
+  if (typeof a?.prefix !== 'string' || !/^[\x21-\x7e]{4}$/.test(a.prefix)) fail('anchor.prefix', 'must be 4 printable ASCII characters');
+  positiveInt(a.version, 'anchor.version');
+  if (a.version > 255) fail('anchor.version', 'must fit in one byte');
+  positiveInt(a.maxFeeSats, 'anchor.maxFeeSats');
+  positiveInt(a.feePerByte, 'anchor.feePerByte');
+  positiveInt(a.dustSats, 'anchor.dustSats');
+  nonEmptyStrings(a.electrum, 'anchor.electrum', (s) => /^wss?:\/\/[^\s/:]+(:\d+)?\/?$/.test(s));
+  positiveInt(a.timeoutMs, 'anchor.timeoutMs');
+  positiveInt(a.historyLimit, 'anchor.historyLimit');
+}
 
 function parseJudges(j: TambatConfig['judges']): void {
   if (!/^https:\/\/\S+$/.test(j?.repoUrl ?? '')) fail('judges.repoUrl', 'must be an https URL');
@@ -189,6 +217,7 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.embed.height, 'embed.height');
   nonEmptyStrings(c.embed.frameAncestors, 'embed.frameAncestors', (s) => !/[\s;,]/.test(s) && s !== "'none'");
   positiveInt(c.wall?.limit, 'wall.limit');
+  parseAnchor(c.anchor);
   parseJudges(c.judges);
   return c;
 }

@@ -188,3 +188,58 @@ Third-party vectors, copied as data with a source pinned to a commit and a licen
 [examples/third-party-vectors.json](../examples/third-party-vectors.json): the BIP-340 test vectors, the CashAddr specification
 examples and the Electron Cash signed-message tests. `tests/third-party-vectors.test.ts` runs every one through `src/core/`. The
 `bch` platform is also written up as a NIP-39 extension draft in [NIP-39-bch.md](NIP-39-bch.md).
+
+## Optional BCH anchor
+
+The binding above needs no blockchain transaction. An anchor is an optional extra: an ordinary BCH transaction, signed by
+the wallet that holds the bound address, that records the pair (Nostr key, BCH address) in a block.
+
+**Format.** The transaction spends at least one P2PKH input from the bound address and has one `OP_RETURN` output:
+
+```
+OP_RETURN <"TMBT", 4 bytes ASCII> <0x01, a one-byte push: version> <Nostr x-only public key, 32 bytes> <binding event id, 32 bytes>
+```
+
+That is 71 bytes of script. The tool in this repository adds a single change output back to the same address and nothing
+else. The prefix is set in `config/tambat.json` (`anchor.prefix`); it was checked against the public OP_RETURN prefix list
+of bitcoincash.org (`etc/protocols.csv`) and is not taken there.
+
+**Valid when** all of these hold:
+
+1. the transaction is confirmed in a block;
+2. one input is P2PKH and HASH160 of its public key equals the payload of the address (the network already checked that
+   key's signature when it accepted the block);
+3. the Nostr key in the payload is the author of the newest kind 10011 event that still claims the address (section 5).
+
+"Bound since" is the time of the earliest block holding a valid anchor for the pair. If the event id in the payload is no
+longer on the relays (the binding was replaced by a newer event that still names the address), the anchor still counts for
+the pair, and readers say the anchored event is an earlier one.
+
+**Reading from the chain alone.** Address history, transactions and block headers come from Fulcrum servers over the
+Electrum protocol (`blockchain.scripthash.get_history`, `blockchain.transaction.get`, `blockchain.block.header`), read only.
+So address to Nostr key works with no relay: `tambat anchor-lookup <address>`. Check 3 still needs a relay, and the look-up
+page runs both. Servers are listed in `anchor.electrum`; none answering is shown as "chain servers unreachable", never as
+"not anchored".
+
+**Why it is optional.**
+
+- Every anchor costs a fee, and the address must hold coins. The base binding is free and works for an empty address.
+- The record is public and permanent. A revocation happens on Nostr (section 5, newest event); the old anchor cannot be
+  deleted. Readers ignore an anchor whose key no longer has a current binding to the address, but the bytes stay in the
+  block.
+- Verification of a binding (section 5) never depends on it.
+
+**What it adds over the off-chain proof.**
+
+- Time from a block instead of `created_at`, which the author writes and can set to any value.
+- Address to Nostr key lookup that survives relays losing the event.
+- A stolen Nostr key can publish a new binding event, but it cannot spend from the BCH address, so it cannot create an
+  anchor, and it cannot create one dated before the owner's. A verifier that has to choose can prefer the pair with the
+  earliest anchor.
+- The signature is an ordinary BCH transaction from the wallet, so any block explorer shows it.
+
+**Wallet request.** The web app builds the transaction without signatures from the address's coins, shows the outputs and
+the fee, refuses a fee above `anchor.maxFeeSats`, and asks the connected wallet with the WalletConnect BCH method
+`bch_signTransaction` (`transaction`, `sourceOutputs`, `broadcast: true`). The wallet signs and sends. The app checks that the
+signed transaction it gets back carries the same payload from the same address. The server of this repository never signs
+or sends a transaction and holds no key.

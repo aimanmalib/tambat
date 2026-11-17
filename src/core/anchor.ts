@@ -1,0 +1,169 @@
+/**
+ * Optional BCH anchor: an ordinary BCH transaction from the bound address with one OP_RETURN output that commits to
+ * the Nostr key and the binding event id. Format (docs/SPEC.md "Optional BCH anchor"):
+ *   OP_RETURN <prefix, 4 bytes> <version, 1 byte> <Nostr x-only public key, 32 bytes> <binding event id, 32 bytes>
+ * The block that confirms it dates the pair (Nostr key, BCH address) without trusting any relay or created_at.
+ * This module only builds and reads transactions. It never signs or sends one: the wallet does (web/keys/anchor.ts).
+ */
+import {
+  binToHex,
+  cashAddressToLockingBytecode,
+  decodeAuthenticationInstructions,
+  decodeTransaction,
+  encodeDataPush,
+  hash160,
+  hashTransaction,
+  hexToBin,
+  type Input,
+  type Output,
+  type TransactionCommon,
+} from '@bitauth/libauth';
+import { config } from '../config.js';
+import { parseP2pkhAddress } from './cashaddr.js';
+
+const OP_RETURN = 0x6a;
+const HEX32 = /^[0-9a-f]{64}$/;
+
+export interface AnchorPayload {
+  /** Hex x-only Nostr public key. */
+  pubkey: string;
+  /** Hex id of the kind 10011 binding event. */
+  eventId: string;
+}
+
+/** Why a transaction is not a valid commitment for an address. */
+export type AnchorProblem = 'not_transaction' | 'no_payload' | 'wrong_prefix' | 'wrong_version' | 'not_from_address';
+
+/** A commitment found in a confirmed transaction. */
+export interface Commitment extends AnchorPayload {
+  txid: string;
+  /** Block height; 0 or less means not yet in a block. */
+  height: number;
+  /** Block time in Unix seconds, when known. */
+  blockTime?: number;
+}
+
+export const prefixBytes = (prefix: string = config.anchor.prefix): Uint8Array => new TextEncoder().encode(prefix);
+
+/** The OP_RETURN locking bytecode that commits a Nostr key and a binding event id. */
+export function encodeAnchorScript(payload: AnchorPayload, prefix: string = config.anchor.prefix): Uint8Array {
+  if (!HEX32.test(payload.pubkey) || !HEX32.test(payload.eventId)) throw new Error('pubkey and eventId must be 64 hex characters');
+  // The version is a one-byte push (0x01 <version>), not OP_1: readers that only take data pushes see it the same way.
+  const version = [0x01, config.anchor.version];
+  const push = (bytes: Uint8Array) => [...encodeDataPush(bytes)];
+  return Uint8Array.from([OP_RETURN, ...push(prefixBytes(prefix)), ...version, ...push(hexToBin(payload.pubkey)), ...push(hexToBin(payload.eventId))]);
+}
+
+/** Reads a commitment from an OP_RETURN locking bytecode, or says why it is not one. */
+export function decodeAnchorScript(script: Uint8Array, prefix: string = config.anchor.prefix): AnchorPayload | AnchorProblem {
+  if (script[0] !== OP_RETURN) return 'no_payload';
+  const instructions = decodeAuthenticationInstructions(script.slice(1));
+  // OP_1 to OP_16 also count as one-byte data, so a version written as a small-number opcode reads the same.
+  const data = instructions.map((i) => ('data' in i ? i.data : i.opcode >= 0x51 && i.opcode <= 0x60 ? Uint8Array.of(i.opcode - 0x50) : undefined));
+  if (data.length === 0 || data.some((d) => d === undefined)) return 'no_payload';
+  const [tag, version, pubkey, eventId] = data as Uint8Array[];
+  if (binToHex(tag ?? new Uint8Array()) !== binToHex(prefixBytes(prefix))) return 'wrong_prefix';
+  if (data.length !== 4 || version?.length !== 1 || version[0] !== config.anchor.version) return 'wrong_version';
+  if (pubkey?.length !== 32 || eventId?.length !== 32) return 'wrong_version';
+  return { pubkey: binToHex(pubkey), eventId: binToHex(eventId) };
+}
+
+/** Public key pushed by a P2PKH unlocking bytecode (<signature> <public key>), if the input has that shape. */
+function p2pkhInputKey(input: Input): Uint8Array | undefined {
+  const pushes = decodeAuthenticationInstructions(input.unlockingBytecode);
+  if (pushes.length !== 2) return undefined;
+  const key = pushes[1] && 'data' in pushes[1] ? pushes[1].data : undefined;
+  return key && (key.length === 33 || key.length === 65) ? key : undefined;
+}
+
+/**
+ * Checks that a transaction is a commitment made from `address`: it carries the payload and at least one P2PKH input
+ * spends with the key behind the address (HASH160 of the input's public key equals the address payload). A confirmed
+ * transaction proves that key signed it, because the network checked the signature.
+ */
+export function commitmentFromTransaction(tx: TransactionCommon | Uint8Array, address: string): AnchorPayload | AnchorProblem {
+  const decoded = tx instanceof Uint8Array ? decodeTransaction(tx) : tx;
+  if (typeof decoded === 'string') return 'not_transaction';
+  const parsed = parseP2pkhAddress(address);
+  if (typeof parsed === 'string') return 'not_from_address';
+  let payload: AnchorPayload | AnchorProblem = 'no_payload';
+  for (const output of decoded.outputs) {
+    const found = decodeAnchorScript(output.lockingBytecode);
+    if (typeof found !== 'string') {
+      payload = found;
+      break;
+    }
+    if (found !== 'no_payload') payload = found;
+  }
+  if (typeof payload === 'string') return payload;
+  const fromAddress = decoded.inputs.some((input) => {
+    const key = p2pkhInputKey(input);
+    return key !== undefined && binToHex(hash160(key)) === binToHex(parsed.payload);
+  });
+  return fromAddress ? payload : 'not_from_address';
+}
+
+/**
+ * The commitment that dates a binding: confirmed, for the Nostr key whose current binding still claims the address,
+ * and the earliest such block (lowest height, then lowest txid for a stable answer). Null when there is none.
+ */
+export function earliestCommitment(commitments: Commitment[], currentPubkey: string): Commitment | null {
+  return commitments
+    .filter((c) => c.height > 0 && c.pubkey === currentPubkey)
+    .reduce<Commitment | null>((best, c) => (best === null || c.height < best.height || (c.height === best.height && c.txid < best.txid) ? c : best), null);
+}
+
+/** An unspent output of the bound address, as a chain server lists it. */
+export interface Utxo {
+  txid: string;
+  vout: number;
+  satoshis: number;
+}
+
+/** What the wallet is asked to sign: the transaction without signatures and the outputs it spends (wc2-bch-bcr). */
+export interface UnsignedAnchor {
+  transaction: TransactionCommon;
+  sourceOutputs: (Input & Output)[];
+  feeSats: number;
+  changeSats: number;
+}
+
+/** Serialized size of a P2PKH input with a 65-byte Schnorr signature and a compressed key. */
+const P2PKH_INPUT_BYTES = 32 + 4 + 1 + (1 + 65 + 1 + 33) + 4;
+
+/** Size in bytes of the signed transaction, for the fee. */
+export function anchorSize(inputCount: number, anchorScriptBytes: number, changeScriptBytes: number): number {
+  const output = (scriptBytes: number) => 8 + 1 + scriptBytes;
+  return 4 + 1 + inputCount * P2PKH_INPUT_BYTES + 1 + output(anchorScriptBytes) + output(changeScriptBytes) + 4;
+}
+
+/**
+ * Builds the commitment transaction: every UTXO of the address in, one OP_RETURN (0 sat) and the change back to the
+ * SAME address out. Throws when the fee would pass `maxFeeSats` or the change would be dust.
+ */
+export function buildAnchorTransaction(address: string, utxos: Utxo[], payload: AnchorPayload): UnsignedAnchor {
+  const locking = cashAddressToLockingBytecode(address);
+  if (typeof locking === 'string' || typeof parseP2pkhAddress(address) === 'string') throw new Error('address must be a P2PKH CashAddr');
+  if (utxos.length === 0) throw new Error('the address has no unspent outputs to pay the fee');
+  const anchorScript = encodeAnchorScript(payload);
+  const feeSats = Math.ceil(anchorSize(utxos.length, anchorScript.length, locking.bytecode.length) * config.anchor.feePerByte);
+  if (feeSats > config.anchor.maxFeeSats) throw new Error(`fee ${feeSats} sat is above the limit of ${config.anchor.maxFeeSats} sat`);
+  const total = utxos.reduce((sum, u) => sum + u.satoshis, 0);
+  const changeSats = total - feeSats;
+  if (changeSats < config.anchor.dustSats) throw new Error(`the address holds ${total} sat, too little to pay the fee and keep the change`);
+  const inputs: Input[] = utxos.map((u) => ({
+    outpointTransactionHash: hexToBin(u.txid),
+    outpointIndex: u.vout,
+    sequenceNumber: 0xffffffff,
+    unlockingBytecode: new Uint8Array(),
+  }));
+  const outputs: Output[] = [
+    { lockingBytecode: anchorScript, valueSatoshis: 0n },
+    { lockingBytecode: locking.bytecode, valueSatoshis: BigInt(changeSats) },
+  ];
+  const sourceOutputs = utxos.map((u, i) => ({ ...inputs[i]!, lockingBytecode: locking.bytecode, valueSatoshis: BigInt(u.satoshis) }));
+  return { transaction: { version: 2, inputs, outputs, locktime: 0 }, sourceOutputs, feeSats, changeSats };
+}
+
+/** Transaction id (UI byte order) of an encoded transaction. */
+export const txidOf = (encoded: Uint8Array): string => hashTransaction(encoded);

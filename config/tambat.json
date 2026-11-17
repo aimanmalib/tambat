@@ -42,7 +42,8 @@
     },
     "methods": [
       "bch_getAddresses",
-      "bch_signMessage"
+      "bch_signMessage",
+      "bch_signTransaction"
     ]
   },
   "site": {
@@ -118,6 +119,20 @@
   },
   "wall": {
     "limit": 30
+  },
+  "anchor": {
+    "prefix": "TMBT",
+    "version": 1,
+    "maxFeeSats": 1000,
+    "feePerByte": 1,
+    "dustSats": 546,
+    "electrum": [
+      "wss://bch.imaginary.cash:50004",
+      "wss://bch.loping.net:50004",
+      "wss://fulcrum.greyh.at:50004"
+    ],
+    "timeoutMs": 8000,
+    "historyLimit": 200
   },
   "judges": {
     "repoUrl": "https://github.com/aimanmalib/tambat",

@@ -6,6 +6,7 @@
  *   tambat lookup <npub|cashaddr>      fetch from the configured relays and verify
  *   tambat revoke <cashaddr>           publish an event that removes this address from your binding
  *   tambat rotate <old> <new>          publish one event that moves your binding to another address of the wallet
+ *   tambat anchor-lookup <cashaddr>    read the BCH chain only (no relays): Nostr keys this address committed to
  * revoke and rotate sign with the phrase in --keys <file> (default from config: cli.keysFile).
  * Add --json for machine-readable output. Exit code 0 = verified, 1 = not verified, 2 = usage error.
  */
@@ -18,10 +19,13 @@ import { publishEvent } from '../src/core/publish.js';
 import { readPhrase, revokeAddress, rotateAddress, type ManageDeps } from '../src/node/manage.js';
 import { RelaySocket } from '../src/node/relay.js';
 import { verifyBinding, type BindingResult } from '../src/core/verify.js';
+import { electrumChain, readCommitments, type OpenChain } from '../src/core/anchor-chain.js';
+import { parseP2pkhAddress } from '../src/core/cashaddr.js';
 
 const USAGE =
   'usage: tambat text <npub> | verify <event.json|-> | lookup <npub|cashaddr> [--json]\n' +
-  '       tambat revoke <cashaddr> | rotate <old cashaddr> <new cashaddr> [--keys <file>]';
+  '       tambat revoke <cashaddr> | rotate <old cashaddr> <new cashaddr> [--keys <file>]\n' +
+  '       tambat anchor-lookup <cashaddr> [--json]';
 
 const nodeDeps: ManageDeps = {
   query: nodeRelayQuery,
@@ -46,7 +50,38 @@ function out(json: boolean, results: BindingResult[], emptyMessage: string): num
   return results.length > 0 && results.every((r) => r.ok) ? 0 : 1;
 }
 
-export async function main(argv: string[], deps: ManageDeps = nodeDeps): Promise<number> {
+/** Chain only: every commitment the address made, oldest block first. Exit 0 when one is confirmed. */
+async function anchorLookup(address: string, json: boolean, open: OpenChain): Promise<number> {
+  const parsed = parseP2pkhAddress(address);
+  if (typeof parsed === 'string') return usageError(parsed);
+  let chain;
+  try {
+    chain = await open();
+  } catch (err) {
+    console.error(`chain servers unreachable: ${(err as Error).message}`);
+    return 1;
+  }
+  try {
+    const found = (await readCommitments(parsed.address, chain)).map((c) => ({ ...c, npub: toNpub(c.pubkey) }));
+    if (json) console.log(JSON.stringify(found, null, 2));
+    else if (found.length === 0) console.log(`no commitment found on BCH for ${parsed.address}`);
+    else {
+      for (const c of found) {
+        const when = c.height > 0 ? `block ${c.height} (${new Date((c.blockTime ?? 0) * 1000).toISOString()})` : 'unconfirmed';
+        console.log(`${when}  ${c.npub}\n  event ${c.eventId}\n  tx ${c.txid}`);
+      }
+      console.log('A commitment counts only while that key\'s newest binding still names this address: tambat lookup <npub>');
+    }
+    return found.some((c) => c.height > 0) ? 0 : 1;
+  } catch (err) {
+    console.error(`chain servers unreachable: ${(err as Error).message}`);
+    return 1;
+  } finally {
+    await chain.close();
+  }
+}
+
+export async function main(argv: string[], deps: ManageDeps = nodeDeps, openChain: OpenChain = electrumChain()): Promise<number> {
   const json = argv.includes('--json');
   const k = argv.indexOf('--keys');
   const keysFile = k >= 0 ? argv[k + 1] : config.cli.keysFile;
@@ -83,6 +118,7 @@ export async function main(argv: string[], deps: ManageDeps = nodeDeps): Promise
     const result = await lookupByPubkey(key.hex, { query: deps.query });
     return out(json, result ? [result] : [], `no binding event found for ${toNpub(key.hex)}`);
   }
+  if (command === 'anchor-lookup') return anchorLookup(arg, json, openChain);
   if (command === 'revoke' || command === 'rotate') {
     if (!keysFile || (command === 'rotate' && !arg2)) return usageError(`${command} needs its addresses and a key file`);
     try {
