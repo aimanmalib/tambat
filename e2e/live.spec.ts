@@ -1,12 +1,15 @@
 /**
  * Read-only checks against a deployed site: E2E_BASE_URL=https://... npx playwright test (the config picks this
  * file alone when that variable is set). Uses the real relays and publishes nothing. When E2E_LIVE_LOOKUP holds npubs
- * or addresses (space separated) that have a published binding, the look-up must verify each of them.
+ * or addresses (space separated) that have a published binding, the look-up must verify each of them. When
+ * E2E_LIVE_REVOKED holds npubs and addresses of a binding that was revoked, the page must show no current link for each.
  */
 import { test as base } from '@playwright/test';
 import { en, expect, expectAccessible, expectNoOverflow, ms } from './fixtures.js';
 
-const lookups = (process.env.E2E_LIVE_LOOKUP ?? '').split(/\s+/).filter(Boolean);
+const list = (value: string | undefined) => (value ?? '').split(/\s+/).filter(Boolean);
+const lookups = list(process.env.E2E_LIVE_LOOKUP);
+const revoked = list(process.env.E2E_LIVE_REVOKED);
 
 const test = base.extend<{ consoleErrors: string[] }>({
   consoleErrors: [
@@ -57,5 +60,15 @@ test('a published binding verifies from the real relays', async ({ page }) => {
     await page.goto(`/lookup?q=${encodeURIComponent(lookup)}`);
     await expect(page.locator('.result[data-ok="true"]').first()).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('.result[data-ok="false"]')).toHaveCount(0);
+  }
+});
+
+test('a revoked binding shows no current link from either direction', async ({ page }) => {
+  test.skip(revoked.length === 0, 'set E2E_LIVE_REVOKED to the npub and addresses of a revoked binding');
+  for (const lookup of revoked) {
+    await page.goto(`/lookup?q=${encodeURIComponent(lookup)}`);
+    const expected = lookup.startsWith('npub') ? (en.lookup.noLink.split('{')[0] ?? '') : en.lookup.none;
+    await expect(page.getByText(expected)).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('.result')).toHaveCount(0);
   }
 });

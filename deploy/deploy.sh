@@ -36,7 +36,7 @@ hold_previous() {  # $1 = image ID the replaced container ran: keep it by ID in 
 }
 
 browser_check() {  # read-only checks, two engines, against the public URL
-  (cd .. && E2E_BASE_URL="$URL" E2E_LIVE_LOOKUP="${LIVE_LOOKUP:-}" $BROWSER_CMD npx playwright test --reporter=line)
+  (cd .. && E2E_BASE_URL="$URL" E2E_LIVE_LOOKUP="${LIVE_LOOKUP:-}" E2E_LIVE_REVOKED="${LIVE_REVOKED:-}" $BROWSER_CMD npx playwright test --reporter=line)
 }
 
 mode=${1:-deploy}
