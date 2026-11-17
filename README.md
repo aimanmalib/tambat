@@ -142,6 +142,7 @@ Serves the built web app when `dist/` exists (`npm run build`) and:
 - `GET /api/did/<npub>`: a `did:nostr` document with the verified BCH address as a CAIP-10 account.
 - `GET /.well-known/nostr.json?name=<name>`: NIP-05 for the one demo name in `config/tambat.json` (`nip05.names`), readable
   from any origin. Other names get an empty list; the site is not a name service.
+- `GET /embed/<npub or address>` and `GET /embed.js`: the [embeddable badge](#embeddable-badge).
 - `GET /healthz`.
 
 Limits, origins, relays and the Content-Security-Policy are in `config/tambat.json`.
@@ -179,7 +180,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-6a3b5c54cc8b800bccac1bbf6395eb0d9596cb21bebb397287170cf2e25e8076  tambat-verify.html
+9f2f8ef51f47a72674a7574ffc61371eec091a4073b97bc3664fb0189d4300eb  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -187,6 +188,23 @@ To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prin
 Two builds of the same commit give the same bytes, and a test fails when this hash no longer matches the build
 (`tests/verifier-build.test.ts`). `e2e/verifier.spec.ts` opens the file from `file://` in Chromium and WebKit and fails on any
 request that is not the file itself.
+
+## Embeddable badge
+
+Any page can show whether an identity is linked, checked in the visitor's browser:
+
+```html
+<script src="https://tambat.sasateguh.com/embed.js" data-tambat-id="npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt" data-lang="en" async></script>
+<iframe src="https://tambat.sasateguh.com/embed/npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt?lang=ms" width="320" height="96" title="Tambat identity badge" style="border:0"></iframe>
+```
+
+Use the script tag or the iframe; `data-tambat-id` (or the path after `/embed/`) takes an npub, a hex key or a BCH
+address, and `lang` is `en` or `ms`. The badge is a 320 by 96 frame that looks the identity up on the relays in
+`config/tambat.json` and verifies every event with the same code as Look up (`src/core/badge.ts`). It shows one of four
+states: linked (short npub and address), no verified link, relays unreachable (no relay answered, checked separately so an
+outage never reads as "not linked"), or not an npub or address. Only `/embed/` may be framed by other sites
+(`embed.frameAncestors` in the config); every other page keeps `frame-ancestors 'none'`. Tested by
+`tests/badge.test.ts`, `tests/server-embed.test.ts` and `e2e/embed.spec.ts` (a page on another origin embeds both forms).
 
 ## Decentralisation
 
@@ -216,6 +234,9 @@ request that is not the file itself.
 - **NIP-05 names** depend on the domain that serves them: if it is down, or does not let browsers read its file, a name
   cannot be looked up (the npub still can). The one-file verifier takes npubs and addresses only, since it talks to relays
   and nothing else.
+- **The badge** is served by this site and checks in the visitor's browser, so a host page trusts this site for the badge
+  code (not for the result, which comes from relays). Sites that want no such dependency can run the CLI or the one-file
+  verifier themselves.
 - **Single sign-in instance**: nonces and sessions live in memory, so more than one server process needs a shared store.
 
 ## Web app

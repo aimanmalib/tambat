@@ -1,26 +1,5 @@
 /* Tambat: warm paper, one green accent, quiet type. Every colour and size comes from these tokens. */
-:root {
-  --paper: #f4f1ea;
-  --paper-deep: #e9e3d6;
-  --card: #fffdf8;
-  --ink: #12261f;
-  --ink-soft: #3c4f47;
-  --accent: #0e6b5c;
-  --accent-pale: #cfe1db;
-  --lamp: #e8a23a;
-  --danger: #a63a29;
-  --line: #cfc7b6;
-
-  --font-display: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
-  --font-text: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-
-  --radius: 14px;
-  --gap: clamp(1rem, 3vw, 1.5rem);
-  --measure: 42rem;
-  --touch: 44px;
-  --focus: 3px solid var(--lamp);
-}
+@import './tokens.css';
 
 *, *::before, *::after { box-sizing: border-box; }
 html {

@@ -247,5 +247,15 @@
     "bad_answer": "{name} could not be checked: the domain answered without a list of names.",
     "unknown_name": "The domain does not list the name {name}.",
     "bad_key": "The domain lists {name} with a key that is not valid."
+  },
+  "embed": {
+    "title": "Tambat identity badge",
+    "checking": "Checking relays",
+    "verified": "BCH and Nostr linked",
+    "notLinked": "No verified link",
+    "unreachable": "Relays unreachable",
+    "badInput": "Not an npub or BCH address",
+    "open": "Check on Tambat",
+    "checkedHere": "Checked in your browser"
   }
 }

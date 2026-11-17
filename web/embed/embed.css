@@ -1,0 +1,31 @@
+/* The badge fits a 320 x 96 frame: a status mark, two short lines and one link. Colours come from the app tokens. */
+@import '../tokens.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
+body { font-family: var(--font-text); color: var(--ink); line-height: 1.3; -webkit-text-size-adjust: 100%; }
+p { margin: 0; }
+
+.embed {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: 1fr auto;
+  column-gap: 0.625rem; row-gap: 0.25rem; align-items: center;
+  height: 100%; max-height: 96px; padding: 0.5rem 0.75rem;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.embed__mark {
+  grid-row: 1 / span 2; width: 0.875rem; height: 0.875rem; border-radius: 50%;
+  background: var(--line); box-shadow: 0 0 0 3px var(--paper-deep);
+}
+.embed[data-state='verified'] .embed__mark { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-pale); }
+.embed[data-state='not_linked'] .embed__mark,
+.embed[data-state='bad_input'] .embed__mark { background: var(--danger); }
+.embed[data-state='unreachable'] .embed__mark { background: var(--lamp); }
+
+.embed__body { min-width: 0; }
+.embed__state { font-family: var(--font-display); font-weight: 600; font-size: 1rem; }
+.embed__detail {
+  font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-soft);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.embed__open { grid-column: 2; font-size: 0.8125rem; color: var(--accent); text-underline-offset: 0.18em; }
+.embed__open:focus-visible { outline: var(--focus); outline-offset: 2px; }

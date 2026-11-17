@@ -58,6 +58,14 @@
     "repoUrl": "",
     "contactAddress": ""
   },
+  "embed": {
+    "page": "web/embed.html",
+    "width": 320,
+    "height": 96,
+    "frameAncestors": [
+      "*"
+    ]
+  },
   "did": {
     "chains": {
       "bitcoincash": "bip122:000000000000000000651ef99cb9fcbe",

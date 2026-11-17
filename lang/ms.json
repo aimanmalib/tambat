@@ -247,5 +247,15 @@
     "bad_answer": "{name} tidak dapat disemak: domain menjawab tanpa senarai nama.",
     "unknown_name": "Domain itu tidak menyenaraikan nama {name}.",
     "bad_key": "Domain itu menyenaraikan {name} dengan kunci yang tidak sah."
+  },
+  "embed": {
+    "title": "Lencana identiti Tambat",
+    "checking": "Menyemak relay",
+    "verified": "BCH dan Nostr terikat",
+    "notLinked": "Tiada ikatan yang sah",
+    "unreachable": "Relay tidak dapat dihubungi",
+    "badInput": "Bukan npub atau alamat BCH",
+    "open": "Semak di Tambat",
+    "checkedHere": "Disemak dalam pelayar anda"
   }
 }

@@ -68,6 +68,15 @@ export interface TambatConfig {
     repoUrl: string;
     contactAddress: string;
   };
+  embed: {
+    /** The badge page inside the built web app (staticDir), served at /embed/<npub or address>. */
+    page: string;
+    /** Size of the iframe /embed.js inserts, in CSS pixels. */
+    width: number;
+    height: number;
+    /** frame-ancestors for /embed/ only; every other page keeps the server policy (frame-ancestors 'none'). */
+    frameAncestors: string[];
+  };
 }
 
 const NETWORKS: readonly Network[] = ['bitcoincash', 'bchtest'];
@@ -144,6 +153,10 @@ export function parseConfig(input: unknown): TambatConfig {
   for (const k of ['deckUrl', 'repoUrl', 'contactAddress'] as const) {
     if (typeof c.banner?.[k] !== 'string') fail(`banner.${k}`, 'must be a string (empty hides it)');
   }
+  if (typeof c.embed?.page !== 'string' || !c.embed.page.endsWith('.html')) fail('embed.page', 'must be the path of an .html file');
+  positiveInt(c.embed.width, 'embed.width');
+  positiveInt(c.embed.height, 'embed.height');
+  nonEmptyStrings(c.embed.frameAncestors, 'embed.frameAncestors', (s) => !/[\s;,]/.test(s) && s !== "'none'");
   return c;
 }
 

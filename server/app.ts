@@ -15,6 +15,7 @@ import { lookupByAddress, lookupByPubkey, type QueryFn } from '../src/core/disco
 import { servedNames } from '../src/core/nip05.js';
 import { parsePubkey, toNpub } from '../src/core/nostr.js';
 import { nodeRelayQuery } from '../src/node/relay.js';
+import { registerEmbed } from './embed.js';
 import { SessionStore, type Session } from './sessions.js';
 import { registerVerifier } from './verifier.js';
 
@@ -163,6 +164,7 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
 
   registerVerifier(app, resolve(options.verifierFile ?? config.server.verifierFile));
   const root = resolve(options.staticDir ?? config.server.staticDir);
+  registerEmbed(app, root);
   if (existsSync(root)) {
     void app.register(fastifyStatic, { root, index: ['index.html'] });
     app.setNotFoundHandler((req, reply) => {
