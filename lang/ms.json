@@ -89,7 +89,8 @@
     "signIn": "Log masuk ke aplikasi demo",
     "again": "Mula semula",
     "relaySaid": "Mesej relay: {reason}",
-    "noAnswer": "tiada jawapan dalam masa"
+    "noAnswer": "tiada jawapan dalam masa",
+    "moving": "Kunci ini terikat pada {address}. Menerbit akan menggantikannya dengan alamat baharu dalam satu event."
   },
   "lookup": {
     "title": "Cari identiti",
@@ -107,7 +108,8 @@
     "event": "Event bertandatangan",
     "did": "Dokumen DID",
     "didLink": "Selesaikan dari pelayan",
-    "pay": "Bayar identiti ini"
+    "pay": "Bayar identiti ini",
+    "noLink": "Kunci ini tiada ikatan BCH semasa. Event identiti terbaharunya, diterbitkan {date}, tidak menamakan alamat BCH."
   },
   "steps": {
     "event_shape": "Format event",
@@ -193,5 +195,17 @@
       "pubkey": "Itu bukan kunci Nostr yang sah.",
       "not_found": "Tiada apa-apa ditemui."
     }
+  },
+  "owner": {
+    "title": "Ini kunci anda",
+    "help": "Anda bersambung dengan npub ini, jadi anda boleh menukar ikatannya. Setiap perubahan menerbitkan event identiti baharu yang menggantikan yang ini.",
+    "revoke": "Batalkan ikatan ini",
+    "move": "Pindah ke alamat baharu",
+    "confirm": "Terbitkan event yang membuang {address} daripada kunci ini? Aplikasi yang mencarinya tidak akan menemui ikatan.",
+    "confirmYes": "Ya, batalkan",
+    "cancel": "Batal",
+    "revoking": "Menerbitkan",
+    "done": "Ikatan dibatalkan. Diterima oleh {ok} daripada {total} relay.",
+    "again": "Cari semula"
   }
 }

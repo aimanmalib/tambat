@@ -89,7 +89,8 @@
     "signIn": "Sign in to the demo app",
     "again": "Start again",
     "relaySaid": "Relay message: {reason}",
-    "noAnswer": "no answer in time"
+    "noAnswer": "no answer in time",
+    "moving": "This key is linked to {address}. Publishing replaces it with the new address in one event."
   },
   "lookup": {
     "title": "Look up an identity",
@@ -107,7 +108,8 @@
     "event": "Signed event",
     "did": "DID document",
     "didLink": "Resolve from the server",
-    "pay": "Pay this identity"
+    "pay": "Pay this identity",
+    "noLink": "This key has no current BCH link. Its newest identity event, published {date}, names no BCH address."
   },
   "steps": {
     "event_shape": "Event format",
@@ -193,5 +195,17 @@
       "pubkey": "That is not a valid Nostr key.",
       "not_found": "Nothing was found."
     }
+  },
+  "owner": {
+    "title": "This is your key",
+    "help": "You are connected with this npub, so you can change its link. Each change publishes a new identity event that replaces this one.",
+    "revoke": "Revoke this link",
+    "move": "Move to a new address",
+    "confirm": "Publish an event that removes {address} from this key? Apps that look it up will find no link.",
+    "confirmYes": "Yes, revoke",
+    "cancel": "Cancel",
+    "revoking": "Publishing",
+    "done": "Link revoked. Accepted by {ok} of {total} relays.",
+    "again": "Look up again"
   }
 }

@@ -9,6 +9,7 @@ import { navigate, queryParam } from '../router';
 import { Checklist } from '../ui/Checklist';
 import { errorText } from '../../src/errors';
 import { Notice } from '../ui/Notice';
+import { OwnerActions } from './OwnerActions';
 
 type State = { kind: 'idle' } | { kind: 'busy' } | { kind: 'done'; results: BindingResult[] } | { kind: 'error'; message: string };
 
@@ -23,8 +24,14 @@ export async function lookUp(input: string): Promise<BindingResult[] | 'bad_inpu
   return 'bad_input';
 }
 
-function Result({ result }: { result: BindingResult }) {
+/** The author's newest event is genuine but carries no BCH claim: the link was revoked or never made. */
+const noCurrentLink = (r: BindingResult): boolean => r.claims.length === 0 && r.steps.every((s) => s.status !== 'fail');
+
+function Result({ result, onChanged }: { result: BindingResult; onChanged: () => void }) {
   const { t, lang } = useText();
+  if (noCurrentLink(result)) {
+    return <Notice>{t('lookup.noLink', { date: new Date(result.createdAt * 1000).toLocaleString(lang) })}</Notice>;
+  }
   const did = didDocument(result.pubkey, result);
   return (
     <article className="result" data-ok={result.ok}>
@@ -40,6 +47,7 @@ function Result({ result }: { result: BindingResult }) {
         <dd>{new Date(result.createdAt * 1000).toLocaleString(lang)}</dd>
       </dl>
       <Checklist result={result} />
+      <OwnerActions result={result} onChanged={onChanged} />
       {result.ok ? (
         <button type="button" className="btn" onClick={() => navigate('/pay', `?npub=${result.npub}`)}>{t('lookup.pay')}</button>
       ) : null}
@@ -99,7 +107,7 @@ export function LookupPage() {
       {state.kind === 'busy' ? <Notice>{t('lookup.searching')}</Notice> : null}
       {state.kind === 'error' ? <Notice tone="error">{state.message}</Notice> : null}
       {state.kind === 'done' && state.results.length === 0 ? <Notice>{t('lookup.none')}</Notice> : null}
-      {state.kind === 'done' ? state.results.map((r) => <Result key={r.eventId} result={r} />) : null}
+      {state.kind === 'done' ? state.results.map((r) => <Result key={r.eventId} result={r} onChanged={() => run(input)} />) : null}
     </section>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { config } from '../../src/config';
-import { createBindingEvent, type BchClaim } from '../../src/core/binding';
+import { claimsOf, createBindingEvent, createRotationEvent, type BchClaim } from '../../src/core/binding';
 import { lookupByPubkey } from '../../src/core/discover';
 import type { Event } from '../../src/core/nostr';
 import { publishEvent, type RelayOutcome } from '../../src/core/publish';
@@ -49,6 +49,9 @@ export function LinkPage() {
   };
 
   const step = !nostr ? 1 : !claim ? 2 : 3;
+  // An address this key is already linked to: publishing a different one moves the link (rotation).
+  const current = previous ? claimsOf(previous)[0]?.address : undefined;
+  const moving = current !== undefined && claim !== null && current.toLowerCase() !== claim.address.toLowerCase();
   const keptOthers = (previous?.tags ?? []).some((tag) => tag[0] === 'i' && !tag[1]?.startsWith(`${config.nostr.platform}:`));
 
   const publish = async () => {
@@ -56,7 +59,9 @@ export function LinkPage() {
     setBusy(true);
     setError('');
     try {
-      const event = await nostr.sign(createBindingEvent({ claim, previous }));
+      const template =
+        moving && previous && current ? createRotationEvent(previous, current, claim) : createBindingEvent({ claim, previous });
+      const event = await nostr.sign(template);
       // The event found on relays before signing is the one this replaces; the new event must be newer.
       const checked = verifyBinding(event, { sameAuthorEvents: previous ? [previous] : [] });
       setResult(checked);
@@ -89,6 +94,7 @@ export function LinkPage() {
             <dt>{t('lookup.bchAddress')}</dt>
             <dd><code>{claim.address}</code></dd>
           </dl>
+          {moving ? <Notice>{t('link.moving', { address: current ?? '' })}</Notice> : null}
           {keptOthers ? <p className="option__help">{t('link.kept')}</p> : null}
           {result ? <Checklist result={result} /> : null}
           {result && !result.ok ? <Notice tone="error">{t('link.invalid')}</Notice> : null}
