@@ -4,6 +4,7 @@ import { getChallenge, getSession, login, logout, type SessionView } from '../ap
 import { useText } from '../i18n';
 import { useKeys } from '../keys/KeysContext';
 import { NostrConnect } from '../keys/NostrConnect';
+import { BchSignIn } from './BchSignIn';
 import { errorText } from '../../src/errors';
 import { Notice } from '../ui/Notice';
 
@@ -56,26 +57,34 @@ export function DemoPage() {
             <dt>{t('demo.expires')}</dt>
             <dd>{new Date(session.expiresAt * 1000).toLocaleTimeString(lang)}</dd>
           </dl>
-          {session.bchSigned ? <p className="option__help">{t('demo.bchSigned')}</p> : null}
+          {session.method === 'bch' ? (
+            <p className="option__help">{t('demo.viaBch')}</p>
+          ) : session.bchSigned ? (
+            <p className="option__help">{t('demo.bchSigned')}</p>
+          ) : null}
           <button type="button" className="btn" onClick={() => void signOut()}>{t('demo.signOut')}</button>
         </div>
       ) : (
         <div className="stack">
-          <NostrConnect headingLevel={2} />
-          {nostr && bch ? (
-            <label className="checkbox">
-              <input type="checkbox" checked={alsoBch} onChange={(e) => setAlsoBch(e.target.checked)} />
-              <span>{t('demo.alsoBch')}</span>
-            </label>
-          ) : null}
-          {nostr ? (
-            <button type="button" className="btn btn--primary" disabled={busy} onClick={() => void signIn()}>
-              {busy ? t('demo.signingIn') : t('demo.signIn')}
-            </button>
-          ) : null}
+          <section className="picker" aria-labelledby="demo-nostr-title">
+            <h2 className="picker__title" id="demo-nostr-title">{t('demo.nostrTitle')}</h2>
+            <NostrConnect headingLevel={3} />
+            {nostr && bch ? (
+              <label className="checkbox">
+                <input type="checkbox" checked={alsoBch} onChange={(e) => setAlsoBch(e.target.checked)} />
+                <span>{t('demo.alsoBch')}</span>
+              </label>
+            ) : null}
+            {nostr ? (
+              <button type="button" className="btn btn--primary" disabled={busy} onClick={() => void signIn()}>
+                {busy ? t('demo.signingIn') : t('demo.signIn')}
+              </button>
+            ) : null}
+            {error ? <Notice tone="error">{error}</Notice> : null}
+          </section>
+          <BchSignIn onSession={setSession} />
         </div>
       )}
-      {error ? <Notice tone="error">{error}</Notice> : null}
     </section>
   );
 }

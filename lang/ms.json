@@ -140,8 +140,8 @@
     }
   },
   "demo": {
-    "title": "Aplikasi demo: log masuk dengan Nostr",
-    "help": "Halaman ini mewakili mana-mana aplikasi lain. Pelayannya menghantar cabaran sekali guna, menyemak jawapan bertandatangan anda, kemudian mengambil ikatan anda dari relay sendiri.",
+    "title": "Aplikasi demo: log masuk",
+    "help": "Halaman ini mewakili mana-mana aplikasi lain. Pelayannya menghantar cabaran sekali guna dan menyemak jawapan bertandatangan anda, kemudian mengambil ikatan dari relay sendiri.",
     "signIn": "Log masuk dengan Nostr",
     "signingIn": "Sedang log masuk",
     "alsoBch": "Tandatangan cabaran dengan kunci BCH saya juga",
@@ -151,7 +151,17 @@
     "bchSigned": "Kunci BCH anda juga menandatangan log masuk ini.",
     "expires": "Sesi tamat",
     "signOut": "Log keluar",
-    "failed": "Log masuk gagal"
+    "failed": "Log masuk gagal",
+    "nostrTitle": "Log masuk dengan Nostr",
+    "bchTitle": "Log masuk dengan dompet BCH",
+    "bchHelp": "Dompet anda menandatangan teks cabaran. Pelayan menyemak tandatangan dahulu, kemudian mencari kunci Nostr yang diikat pada alamat anda di relay.",
+    "bchSignIn": "Log masuk dengan dompet ini",
+    "bchPaste": "Tampal tandatangan dari mana-mana dompet",
+    "bchPasteHelp": "Dapatkan cabaran, tandatangan teksnya dengan Sign message dalam dompet anda, kemudian tampal alamat anda dan tandatangan itu. Cabaran hanya boleh dipakai sekali dan tamat selepas {minutes} minit.",
+    "bchGetChallenge": "Dapatkan cabaran",
+    "bchTextLabel": "Teks untuk ditandatangan",
+    "bchPasteSubmit": "Log masuk dengan tandatangan ini",
+    "viaBch": "Anda log masuk dengan dompet BCH. Pelayan menemui kunci Nostr ini diikat pada alamat anda di relay."
   },
   "pay": {
     "title": "Bayar identiti",
@@ -190,10 +200,13 @@
       "challenge_unknown": "Cabaran ini sudah digunakan atau tidak pernah dikeluarkan. Cuba lagi.",
       "challenge_expired": "Cabaran sudah tamat tempoh. Cuba lagi.",
       "origin": "Permintaan ini datang dari laman yang tidak dibenarkan.",
-      "bch_sig": "Tandatangan BCH pada cabaran tidak sepadan dengan alamat anda yang disahkan.",
+      "bch_sig": "Tandatangan BCH pada cabaran tidak sepadan dengan alamat itu.",
       "no_session": "Anda belum log masuk.",
       "pubkey": "Itu bukan kunci Nostr yang sah.",
-      "not_found": "Tiada apa-apa ditemui."
+      "not_found": "Tiada apa-apa ditemui.",
+      "no_binding": "Tiada identiti Nostr diikat pada alamat ini di relay. Ikat dahulu, atau pastikan ikatan itu tidak dibatalkan.",
+      "input": "Isi alamat, tandatangan dan cabaran.",
+      "address": "Itu bukan alamat BCH P2PKH pada rangkaian ini."
     }
   },
   "owner": {

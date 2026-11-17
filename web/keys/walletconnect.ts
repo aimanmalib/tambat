@@ -14,8 +14,20 @@ export interface PendingConnection {
   approved: Promise<BchSigner>;
 }
 
+type SignClientClass = (typeof import('@walletconnect/sign-client'))['SignClient'];
+
+/**
+ * The WalletConnect client class. End-to-end tests replace it at this library boundary with a fake wallet that
+ * answers exactly as Paytaca does (`window.__tambatSignClient`), because the WalletConnect relay network is not
+ * reachable from a test run; everything after this point is the same code the real wallet talks to.
+ */
+async function loadSignClient(): Promise<SignClientClass> {
+  const replacement = (window as { __tambatSignClient?: SignClientClass }).__tambatSignClient;
+  return replacement ?? (await import('@walletconnect/sign-client')).SignClient;
+}
+
 export async function connectWallet(appName: string, description: string): Promise<PendingConnection> {
-  const { SignClient } = await import('@walletconnect/sign-client');
+  const SignClient = await loadSignClient();
   const client = await SignClient.init({
     projectId: config.walletConnect.projectId,
     metadata: { name: appName, description, url: window.location.origin, icons: [] },

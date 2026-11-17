@@ -140,8 +140,8 @@
     }
   },
   "demo": {
-    "title": "Demo app: sign in with Nostr",
-    "help": "This page stands for any other app. Its server sends a one-time challenge, checks your signed answer, then fetches your binding from the relays itself.",
+    "title": "Demo app: sign in",
+    "help": "This page stands for any other app. Its server sends a one-time challenge and checks your signed answer, then fetches the binding from the relays itself.",
     "signIn": "Sign in with Nostr",
     "signingIn": "Signing in",
     "alsoBch": "Also sign the challenge with my BCH key",
@@ -151,7 +151,17 @@
     "bchSigned": "Your BCH key also signed this sign-in.",
     "expires": "Session ends",
     "signOut": "Sign out",
-    "failed": "Sign-in failed"
+    "failed": "Sign-in failed",
+    "nostrTitle": "Sign in with Nostr",
+    "bchTitle": "Sign in with a BCH wallet",
+    "bchHelp": "Your wallet signs the challenge text. The server checks the signature first, then finds the Nostr key linked to your address on the relays.",
+    "bchSignIn": "Sign in with this wallet",
+    "bchPaste": "Paste a signature from any wallet instead",
+    "bchPasteHelp": "Get a challenge, sign its text with Sign message in your wallet, then paste your address and the signature. A challenge works once and ends after {minutes} minutes.",
+    "bchGetChallenge": "Get a challenge",
+    "bchTextLabel": "Text to sign",
+    "bchPasteSubmit": "Sign in with this signature",
+    "viaBch": "You signed in with a BCH wallet. The server found this Nostr key linked to your address on the relays."
   },
   "pay": {
     "title": "Pay an identity",
@@ -190,10 +200,13 @@
       "challenge_unknown": "This challenge was already used or never issued. Try again.",
       "challenge_expired": "The challenge expired. Try again.",
       "origin": "This request came from a site that is not allowed.",
-      "bch_sig": "The BCH signature on the challenge does not match your verified address.",
+      "bch_sig": "The BCH signature on the challenge does not match the address.",
       "no_session": "You are not signed in.",
       "pubkey": "That is not a valid Nostr key.",
-      "not_found": "Nothing was found."
+      "not_found": "Nothing was found.",
+      "no_binding": "No Nostr identity is linked to this address on the relays. Link one first, or check that the link was not revoked.",
+      "input": "Fill in the address, the signature and the challenge.",
+      "address": "That is not a P2PKH BCH address on this network."
     }
   },
   "owner": {

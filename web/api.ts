@@ -11,6 +11,7 @@ export interface Challenge {
 }
 
 export interface SessionView {
+  method: 'nostr' | 'bch';
   pubkey: string;
   npub: string;
   address: string | null;
@@ -33,6 +34,12 @@ export const login = (event: unknown, bchSignature?: string) =>
   call<{ session: SessionView; binding: BindingResult | null }>('/api/rp/login', {
     method: 'POST',
     body: JSON.stringify(bchSignature ? { event, bchSignature } : { event }),
+  });
+/** BCH-only sign-in: the wallet's signature over the challenge text, for the address it belongs to. */
+export const loginWithBch = (address: string, signature: string, nonce: string) =>
+  call<{ session: SessionView; binding: BindingResult | null }>('/api/rp/login', {
+    method: 'POST',
+    body: JSON.stringify({ type: 'bch', address: address.trim(), signature: signature.trim(), nonce }),
   });
 export const getSession = () => call<{ session: SessionView }>('/api/rp/session');
 export const logout = () => call<null>('/api/rp/logout', { method: 'POST', body: '{}' });
