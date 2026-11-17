@@ -17,6 +17,7 @@ import { E2E } from './ports.js';
 
 const FILE = pathToFileURL(resolve(import.meta.dirname, '..', 'dist-verifier', 'tambat-verify.html')).href;
 const exact = (name: string) => ({ name, exact: true });
+if (!FILE.startsWith('file://')) throw new Error(`the verifier must be opened from file://, got ${FILE}`);
 
 /** A fresh identity per run, so bindings other tests publish to the shared fake relay never interfere. */
 function freshKeys() {
