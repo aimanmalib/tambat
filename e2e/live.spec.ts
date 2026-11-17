@@ -5,6 +5,7 @@
  * E2E_LIVE_REVOKED holds npubs and addresses of a binding that was revoked, the page must show no current link for each.
  */
 import { test as base } from '@playwright/test';
+import siteConfig from '../config/tambat.json' with { type: 'json' };
 import { en, expect, expectAccessible, expectNoOverflow, ms } from './fixtures.js';
 
 const list = (value: string | undefined) => (value ?? '').split(/\s+/).filter(Boolean);
@@ -96,4 +97,18 @@ test('the one-file verifier is served whole and verifies a binding from the real
     await expect(page.locator('.result[data-ok="true"]').first()).toBeVisible({ timeout: 20_000 });
   }
   expect(off).toEqual([]);
+});
+
+test('the demo NIP-05 name is served and pays to its verified address from the real relays', async ({ page, request, baseURL }) => {
+  const [name, key] = Object.entries(siteConfig.nip05.names as Record<string, string>)[0] ?? ['', ''];
+  const res = await request.get(`/.well-known/nostr.json?name=${name}`);
+  expect(res.headers()['access-control-allow-origin']).toBe('*');
+  expect(await res.json()).toEqual({ names: { [name]: key } });
+
+  const host = new URL(baseURL ?? '').hostname;
+  await page.goto('/pay');
+  await page.getByLabel(en.pay.label).fill(`${name}@${host}`);
+  await page.getByRole('button', { name: en.pay.find, exact: true }).click();
+  await expect(page.locator('.notice', { hasText: `${name}@${host}` })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole('img', { name: en.pay.qr, exact: true })).toBeVisible();
 });
