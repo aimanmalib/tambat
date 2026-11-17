@@ -2,6 +2,17 @@
 
 Facts measured on a real run, failures included. Newest first.
 
+## Wall
+
+The wall's own code (`loadWall` in `src/core/wall.ts`, with the query that keeps events whose signature fails) run from the
+host against the default relays, 2026-11-17, before deploying it. Each relay was asked for the newest 30 kind 10011 events
+(`wall.limit`). relay.damus.io refused this host's connections, as all day. "shown" are bindings that passed every step;
+"hidden" are events naming a BCH address that failed a step. Kind 10011 events without a BCH address are not counted.
+
+| UTC | events per relay | unique events | shown | hidden | ms | result |
+| --- | --- | --- | --- | --- | --- | --- |
+| 17:46:12 | relay.damus.io 0, nos.lol 30, relay.primal.net 30 | 34 | 2: `d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b` (the Paytaca binding below), `f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2` (main demo identity) | 0 | 3385 | ok |
+
 ## Sign-in
 
 BCH-only sign-in on the live demo app, 2026-11-17, after deploying `b21e09d`. A script on the host asked

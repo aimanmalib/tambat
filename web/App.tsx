@@ -4,6 +4,7 @@ import { DemoPage } from './pages/DemoPage';
 import { LinkPage } from './pages/LinkPage';
 import { LookupPage } from './pages/LookupPage';
 import { PayPage } from './pages/PayPage';
+import { WallPage } from './pages/WallPage';
 import { navigate, useRoute, type Route } from './router';
 import { Banner } from './ui/Banner';
 import { config } from '../src/config';
@@ -11,6 +12,7 @@ import { config } from '../src/config';
 const NAV: { path: Route; key: string }[] = [
   { path: '/', key: 'nav.link' },
   { path: '/lookup', key: 'nav.lookup' },
+  { path: '/wall', key: 'nav.wall' },
   { path: '/demo', key: 'nav.demo' },
   { path: '/pay', key: 'nav.pay' },
 ];
@@ -36,7 +38,7 @@ function Home() {
   );
 }
 
-const PAGES: Record<Route, () => React.JSX.Element> = { '/': Home, '/lookup': LookupPage, '/demo': DemoPage, '/pay': PayPage };
+const PAGES: Record<Route, () => React.JSX.Element> = { '/': Home, '/lookup': LookupPage, '/wall': WallPage, '/demo': DemoPage, '/pay': PayPage };
 
 export function App() {
   const { t, lang, setLang } = useText();

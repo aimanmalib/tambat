@@ -130,3 +130,16 @@ test('the badge for the demo identity may be framed and verifies from the real r
   await expect(page.locator('.embed[data-state="verified"] .embed__state')).toHaveText(ms.embed.verified, { timeout: 20_000 });
   await expect(page.locator('.embed__detail')).toContainText(npub.slice(0, 10));
 });
+
+test('the wall checks the newest bindings from the real relays and lists only verified ones', async ({ page }) => {
+  await page.goto('/wall');
+  const hidden = page.locator('.wall__hidden');
+  await expect(hidden).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  const cards = page.locator('.wall__card');
+  const shown = await cards.count();
+  if (shown === 0) await expect(page.getByText(en.wall.empty)).toBeVisible();
+  await expect(cards.locator('.badge--ok')).toHaveCount(shown);
+  expect(shown).toBeLessThanOrEqual(siteConfig.wall.limit);
+  await expectNoOverflow(page);
+});

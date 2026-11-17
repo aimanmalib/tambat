@@ -1,0 +1,107 @@
+/**
+ * The wall against its own fake relay holding exactly two binding events: one genuine and one named `forged` whose
+ * Nostr signature was changed after signing. Only the genuine one may be listed; the forged one only counts as hidden.
+ */
+import { join } from 'node:path';
+import { secp256k1 } from '@bitauth/libauth';
+import { generateSecretKey, getPublicKey, type Event } from 'nostr-tools/pure';
+import type { Page, TestInfo } from '@playwright/test';
+import WebSocket from 'ws';
+import { addressFromPublicKey } from '../src/core/cashaddr.js';
+import { shortAddress, shortNpub } from '../src/core/badge.js';
+import { toNpub } from '../src/core/nostr.js';
+import { bindingFromKeys } from '../src/core/paytaca.js';
+import { startFakeRelay } from './fake-relay.js';
+import { en, expect, expectAccessible, expectNoOverflow, ms, test } from './fixtures.js';
+import { E2E } from './ports.js';
+
+const WALL_RELAY_PORT = E2E.relayPort + 10;
+const wallRelayUrl = `ws://127.0.0.1:${WALL_RELAY_PORT}`;
+
+function freshBinding(createdAt: number) {
+  const nostrSecretKey = generateSecretKey();
+  const bchPrivateKey = generateSecretKey();
+  const address = addressFromPublicKey(secp256k1.derivePublicKeyCompressed(bchPrivateKey) as Uint8Array, 'bitcoincash');
+  const npub = toNpub(getPublicKey(nostrSecretKey));
+  return { npub, address, event: bindingFromKeys({ nostrSecretKey, bchPrivateKey, address, npub }, createdAt) };
+}
+
+const now = Math.floor(Date.now() / 1000);
+const genuine = freshBinding(now - 60);
+const forgedSource = freshBinding(now - 30);
+const forged: Event = { ...forgedSource.event, sig: `${forgedSource.event.sig.slice(0, -4)}${forgedSource.event.sig.endsWith('0000') ? '1111' : '0000'}` };
+
+let relay: ReturnType<typeof startFakeRelay>;
+test.beforeAll(() => {
+  relay = startFakeRelay(WALL_RELAY_PORT);
+  // Stored directly: the fake relay, like a real one, would refuse the forged event if it were published.
+  relay.events.set(genuine.event.id, genuine.event);
+  relay.events.set(forged.id, forged);
+});
+test.afterAll(() => relay.close());
+
+/** Sends every relay connection of the page to the wall relay (registered last, so it wins over the shared relay). */
+async function useWallRelay(page: Page) {
+  await page.routeWebSocket(/^wss:\/\//, (ws) => {
+    const upstream = new WebSocket(wallRelayUrl);
+    const queue: string[] = [];
+    upstream.on('open', () => queue.splice(0).forEach((m) => upstream.send(m)));
+    upstream.on('message', (data) => ws.send(String(data)));
+    upstream.on('close', () => ws.close());
+    upstream.on('error', () => ws.close());
+    ws.onMessage((m) => (upstream.readyState === WebSocket.OPEN ? upstream.send(String(m)) : queue.push(String(m))));
+    ws.onClose(() => upstream.close());
+  });
+}
+
+/** Review screenshot when SHOTS_DIR is set. WebKit injects a stylesheet while it takes the picture, which the page policy refuses; that one message is dropped. */
+async function shot(page: Page, info: TestInfo, errors: string[], name: string) {
+  const dir = process.env.SHOTS_DIR ?? '';
+  if (!dir) return;
+  const before = errors.length;
+  await page.screenshot({ path: join(dir, `i6-${info.project.name}-${name}.png`), fullPage: true, caret: 'initial' });
+  await page.waitForTimeout(300);
+  const after = errors.splice(before).filter((e) => !e.startsWith('Refused to apply a stylesheet'));
+  errors.push(...after);
+}
+
+test('the wall lists the genuine binding and only counts the forged one', async ({ page, consoleErrors }, info) => {
+  await useWallRelay(page);
+  await page.goto('/wall');
+  await expect(page.getByRole('heading', { level: 1, name: en.wall.title })).toBeVisible();
+  const cards = page.locator('.wall__card');
+  await expect(cards).toHaveCount(1);
+  await expect(cards.first()).toHaveAttribute('data-event', genuine.event.id);
+  await expect(page.locator(`[data-event="${forged.id}"]`)).toHaveCount(0);
+  await expect(cards.first()).toContainText(shortNpub(genuine.npub));
+  await expect(cards.first()).toContainText(shortAddress(genuine.address));
+  await expect(page.locator('.wall__hidden')).toHaveAttribute('data-hidden', '1');
+  await expect(page.locator('.wall__hidden')).toHaveText(en.wall.hidden.replace('{count}', '1'));
+  await expect(page.getByRole('link', { name: en.nav.wall })).toHaveAttribute('aria-current', 'page');
+  await expectAccessible(page);
+  await expectNoOverflow(page);
+  await shot(page, info, consoleErrors, 'en');
+
+  await cards.first().getByRole('link', { name: en.wall.open }).click();
+  await expect(page).toHaveURL(`/lookup?q=${genuine.npub}`);
+  await expect(page.locator('.result[data-ok="true"]')).toBeVisible();
+});
+
+test('the wall in Malay at 320 px fits and keeps the same verdicts', async ({ page, consoleErrors }, info) => {
+  await useWallRelay(page);
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto('/wall?lang=ms');
+  await expect(page.getByRole('heading', { level: 1, name: ms.wall.title })).toBeVisible();
+  await expect(page.locator('.wall__card')).toHaveCount(1);
+  await expect(page.locator('.wall__hidden')).toHaveText(ms.wall.hidden.replace('{count}', '1'));
+  await expectNoOverflow(page);
+  await expectAccessible(page);
+  await shot(page, info, consoleErrors, 'ms-320');
+});
+
+test('blocked relays read as unreachable, not as an empty wall', async ({ page }) => {
+  await page.routeWebSocket(/^wss:\/\//, (ws) => ws.close());
+  await page.goto('/wall');
+  await expect(page.getByRole('alert')).toHaveText(en.wall.unreachable);
+  await expect(page.locator('.wall__card')).toHaveCount(0);
+});

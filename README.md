@@ -180,7 +180,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-9f2f8ef51f47a72674a7574ffc61371eec091a4073b97bc3664fb0189d4300eb  tambat-verify.html
+92a299ff933dc23c29ba3a4e213093b520dfa31a2ee8137114f82b2e4fa424d0  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -243,12 +243,17 @@ outage never reads as "not linked"), or not an npub or address. Only `/embed/` m
 
 English by default with a Malay toggle; all text is in `lang/en.json` and `lang/ms.json`.
 
-- **Link** (`/`), **Look up** (`/lookup`), **Demo app** (`/demo`) and **Pay** (`/pay`) as in the demo above.
+- **Link** (`/`), **Look up** (`/lookup`), **Wall** (`/wall`), **Demo app** (`/demo`) and **Pay** (`/pay`) as in the demo above.
 - The demo app only talks to `/api/rp/*`; its server checks the signed challenge and reads the binding from relays on its own.
   It offers two ways in: a Nostr key, or a BCH wallet alone (the server finds the Nostr key linked to the address).
 - When the connected Nostr key is the author of a look-up result, the result offers **Revoke this link** (with a confirm
   step) and **Move to a new address** (the Link page signs the new address and publishes one replacing event). A key whose
   newest event carries no BCH address shows "no current BCH link".
+- **Wall** (`/wall`) asks the relays for the newest kind 10011 events (`wall.limit` in the config), keeps those that name a
+  BCH address, and verifies each one in the browser with the same steps as Look up (`src/core/wall.ts`). Only bindings
+  that pass every step are listed, with a link to Look up; the rest are never shown, only counted as "hidden: failed
+  verification". The query keeps events with a bad signature so they are counted rather than silently dropped. Tested by
+  `tests/wall.test.ts` and `e2e/wall.spec.ts` (a fake relay holding one genuine event and one with a forged signature).
 - **Look up** and **Pay** also take a NIP-05 name (`name@domain`): the browser asks the domain for the key, then verifies
   that key's binding on the relays and says which npub the name led to.
 - Demo keys live in memory for the open tab only.

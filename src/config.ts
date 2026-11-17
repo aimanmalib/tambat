@@ -77,6 +77,10 @@ export interface TambatConfig {
     /** frame-ancestors for /embed/ only; every other page keeps the server policy (frame-ancestors 'none'). */
     frameAncestors: string[];
   };
+  wall: {
+    /** How many of the newest binding events the wall asks each relay for and shows at most. */
+    limit: number;
+  };
 }
 
 const NETWORKS: readonly Network[] = ['bitcoincash', 'bchtest'];
@@ -157,6 +161,7 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.embed.width, 'embed.width');
   positiveInt(c.embed.height, 'embed.height');
   nonEmptyStrings(c.embed.frameAncestors, 'embed.frameAncestors', (s) => !/[\s;,]/.test(s) && s !== "'none'");
+  positiveInt(c.wall?.limit, 'wall.limit');
   return c;
 }
 

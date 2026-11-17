@@ -20,11 +20,13 @@ export type QueryFn = (relays: string[], filter: Filter, timeoutMs: number) => P
  * Builds a relay query on a fresh pool. `websocketImplementation` is the WebSocket class to use; browsers pass
  * nothing and get the global one. Node must pass the `ws` package (see src/node/relay.ts): Node's built-in
  * WebSocket re-enters its error handler when a relay fails during the handshake and the process dies.
+ * `keepUnverified` passes events with a bad signature through instead of dropping them in the pool; the caller must
+ * then verify every event itself (the wall does, to count forgeries instead of losing them).
  */
-export function createRelayQuery(websocketImplementation?: typeof WebSocket): QueryFn {
+export function createRelayQuery(websocketImplementation?: typeof WebSocket, options: { keepUnverified?: boolean } = {}): QueryFn {
   return async (relays, filter, timeoutMs) => {
     const pool = new AbstractSimplePool({
-      verifyEvent,
+      verifyEvent: options.keepUnverified ? () => true : verifyEvent,
       // A relay that accepts the TCP connection but never answers must not hold the query past its timeout.
       maxWaitForConnection: timeoutMs,
       websocketImplementation: websocketImplementation ?? globalThis.WebSocket,

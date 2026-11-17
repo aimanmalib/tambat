@@ -9,6 +9,7 @@
     "label": "Bahagian",
     "link": "Ikat",
     "lookup": "Cari",
+    "wall": "Dinding",
     "demo": "Aplikasi demo",
     "pay": "Bayar"
   },
@@ -257,5 +258,16 @@
     "badInput": "Bukan npub atau alamat BCH",
     "open": "Semak di Tambat",
     "checkedHere": "Disemak dalam pelayar anda"
+  },
+  "wall": {
+    "title": "Ikatan terkini",
+    "help": "{limit} event identiti terbaharu di relay, disemak satu demi satu dalam pelayar anda. Ikatan disenaraikan hanya bila setiap langkah lulus; selebihnya dikira di bawah dan tidak pernah dipaparkan sebagai sah.",
+    "refresh": "Semak semula",
+    "loading": "Bertanya kepada relay",
+    "listLabel": "Ikatan yang disahkan",
+    "empty": "Relay tidak memegang ikatan BCH yang disahkan buat masa ini.",
+    "unreachable": "Tiada relay menjawab. Dinding tidak dapat disemak.",
+    "open": "Semak dalam Cari",
+    "hidden": "Disorok: {count} gagal pengesahan"
   }
 }

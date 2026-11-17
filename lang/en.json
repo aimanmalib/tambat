@@ -9,6 +9,7 @@
     "label": "Sections",
     "link": "Link",
     "lookup": "Look up",
+    "wall": "Wall",
     "demo": "Demo app",
     "pay": "Pay"
   },
@@ -257,5 +258,16 @@
     "badInput": "Not an npub or BCH address",
     "open": "Check on Tambat",
     "checkedHere": "Checked in your browser"
+  },
+  "wall": {
+    "title": "Recent bindings",
+    "help": "The newest {limit} identity events on the relays, checked one by one in your browser. A binding is listed only when every step passes; the rest are counted below and never shown as verified.",
+    "refresh": "Check again",
+    "loading": "Asking relays",
+    "listLabel": "Verified bindings",
+    "empty": "The relays hold no verified BCH binding right now.",
+    "unreachable": "No relay answered. The wall could not be checked.",
+    "open": "Check in Look up",
+    "hidden": "Hidden: {count} failed verification"
   }
 }
