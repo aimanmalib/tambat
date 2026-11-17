@@ -220,5 +220,24 @@
     "revoking": "Publishing",
     "done": "Link revoked. Accepted by {ok} of {total} relays.",
     "again": "Look up again"
+  },
+  "verifier": {
+    "tag": "one-file verifier",
+    "title": "Verify a BCH and Nostr binding",
+    "intro": "This page is a single HTML file. It checks every signature in your browser and talks only to the relays listed below, never to the Tambat server. Save it and open it from disk to check bindings without this site.",
+    "inputLabel": "Signed event JSON, npub or BCH address",
+    "inputHelp": "Paste a kind 10011 event to check it on this device, or enter an npub or address to fetch the newest binding from relays.",
+    "relaysLabel": "Relays",
+    "relaysHelp": "One per line. Edit them freely; nothing else is contacted.",
+    "submit": "Verify",
+    "pastedNote": "Checked on this device without relays. The newest-event step needs relays, so it is skipped.",
+    "asked": "Asked {relays}.",
+    "none": "No binding was found on these relays.",
+    "badJson": "This is not valid JSON. Details: {reason}",
+    "badRelays": "Each relay must start with ws:// or wss://. Check: {relay}",
+    "trust": "No server is involved: the checks run here, with code from the same open source library as the app.",
+    "download": "Download the one-file verifier",
+    "downloadHelp": "Check bindings without this site: one HTML file that talks only to relays.",
+    "open": "Open it"
   }
 }

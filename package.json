@@ -13,13 +13,14 @@
   },
   "scripts": {
     "dev:web": "vite",
-    "build": "vite build",
+    "build": "vite build && npm run -s build:verifier",
     "start": "tsx server/main.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.web.json",
     "test": "vitest run",
     "e2e": "playwright test",
-    "gate": "bash scripts/gerbang-ujian.sh"
+    "gate": "bash scripts/gerbang-ujian.sh",
+    "build:verifier": "tsx scripts/build-verifier.ts"
   },
   "dependencies": {
     "@bitauth/libauth": "3.0.0",
@@ -49,6 +50,7 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.2",
     "vite": "8.3.8",
+    "vite-plugin-singlefile": "2.3.4",
     "vitest": "5.1.0"
   }
 }

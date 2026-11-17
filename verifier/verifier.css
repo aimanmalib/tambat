@@ -1,0 +1,6 @@
+/* The one-file verifier reuses the app tokens and components; only its own layout lives here. */
+.top .brand { margin: 0; }
+.brand__tag { font-family: var(--font-text); font-size: 0.875rem; font-weight: 400; color: var(--ink-soft); }
+.verifier { display: grid; gap: var(--gap); justify-items: start; margin-top: var(--gap); }
+.verifier .field { width: 100%; }
+.verifier .field .option__help { margin: 0; }

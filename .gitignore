@@ -28,3 +28,4 @@ data/
 /deploy/hos.env
 /deploy/CURRENT_TAG
 /deploy/PREVIOUS_TAG
+/dist-verifier/

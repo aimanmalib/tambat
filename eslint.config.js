@@ -4,14 +4,14 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['node_modules', 'dist', 'coverage', 'playwright-report', 'test-results'] },
+  { ignores: ['node_modules', 'dist', 'dist-verifier', 'coverage', 'playwright-report', 'test-results'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
     languageOptions: { globals: { ...globals.node } },
   },
   {
-    files: ['web/**/*.{ts,tsx}'],
+    files: ['web/**/*.{ts,tsx}', 'verifier/**/*.{ts,tsx}'],
     languageOptions: { globals: { ...globals.browser } },
     plugins: { 'react-hooks': reactHooks },
     rules: { ...reactHooks.configs.recommended.rules },

@@ -220,5 +220,24 @@
     "revoking": "Menerbitkan",
     "done": "Ikatan dibatalkan. Diterima oleh {ok} daripada {total} relay.",
     "again": "Cari semula"
+  },
+  "verifier": {
+    "tag": "pengesah satu fail",
+    "title": "Sahkan ikatan BCH dan Nostr",
+    "intro": "Halaman ini satu fail HTML. Ia menyemak setiap tandatangan dalam pelayar anda dan hanya berhubung dengan relay yang disenaraikan di bawah, tidak sekali-kali dengan pelayan Tambat. Simpan fail ini dan buka dari cakera untuk menyemak ikatan tanpa laman ini.",
+    "inputLabel": "JSON event bertandatangan, npub atau alamat BCH",
+    "inputHelp": "Tampal event kind 10011 untuk menyemaknya pada peranti ini, atau masukkan npub atau alamat untuk mengambil ikatan terbaharu dari relay.",
+    "relaysLabel": "Relay",
+    "relaysHelp": "Satu setiap baris. Ubah sesuka hati; tiada yang lain dihubungi.",
+    "submit": "Sahkan",
+    "pastedNote": "Disemak pada peranti ini tanpa relay. Langkah event terbaharu memerlukan relay, jadi ia dilangkau.",
+    "asked": "Relay yang ditanya: {relays}.",
+    "none": "Tiada ikatan ditemui pada relay ini.",
+    "badJson": "Ini bukan JSON yang sah. Butiran: {reason}",
+    "badRelays": "Setiap relay mesti bermula dengan ws:// atau wss://. Semak: {relay}",
+    "trust": "Tiada pelayan terlibat: semakan berjalan di sini, dengan kod dari pustaka sumber terbuka yang sama dengan aplikasi.",
+    "download": "Muat turun pengesah satu fail",
+    "downloadHelp": "Semak ikatan tanpa laman ini: satu fail HTML yang hanya berhubung dengan relay.",
+    "open": "Buka"
   }
 }

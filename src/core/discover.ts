@@ -8,7 +8,7 @@ import { verifyEvent } from 'nostr-tools/pure';
 import { config } from '../config.js';
 import { claimIdentity } from './binding.js';
 import { parseP2pkhAddress } from './cashaddr.js';
-import { eventShapeError, idMatches, signatureValid, type Event } from './nostr.js';
+import { eventShapeError, idMatches, parsePubkey, signatureValid, type Event } from './nostr.js';
 import { isNewer, verifyBinding, type BindingResult, type VerifyOptions } from './verify.js';
 
 export type { Filter };
@@ -114,4 +114,18 @@ export async function lookupByAddress(address: string, options: DiscoverOptions 
   return results.filter(
     (r): r is BindingResult => r !== null && r.ok && r.claims.some((c) => c.address.toLowerCase() === parsed.address),
   );
+}
+
+/**
+ * Looks up one free-form query: an npub or hex key gives that key's newest binding, a BCH address gives every key
+ * still bound to it. Shared by the web app and the one-file verifier so both run the same steps.
+ */
+export async function lookupInput(input: string, options: DiscoverOptions = {}): Promise<BindingResult[] | 'bad_input'> {
+  const key = parsePubkey(input);
+  if ('hex' in key) {
+    const r = await lookupByPubkey(key.hex, options);
+    return r ? [r] : [];
+  }
+  if (typeof parseP2pkhAddress(input) !== 'string') return lookupByAddress(input, options);
+  return 'bad_input';
 }

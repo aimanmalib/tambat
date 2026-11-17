@@ -17,8 +17,25 @@ interface TextState {
 
 const TextContext = createContext<TextState | null>(null);
 
+/** Storage can be missing or throw (a page opened from file://, private modes); the language choice is then not kept. */
+function storage(): Storage | null {
+  try {
+    return typeof localStorage === 'undefined' ? null : localStorage;
+  } catch {
+    return null;
+  }
+}
+
+/** A `?lang=` in the address wins over the saved choice, which wins over the configured default. */
 function initialLanguage(): string {
-  const saved = typeof localStorage === 'undefined' ? null : localStorage.getItem(STORAGE_KEY);
+  const asked = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('lang');
+  if (asked && asked in dictionaries) return asked;
+  let saved: string | null;
+  try {
+    saved = storage()?.getItem(STORAGE_KEY) ?? null;
+  } catch {
+    saved = null;
+  }
   return saved && saved in dictionaries ? saved : config.site.defaultLanguage;
 }
 
@@ -26,7 +43,11 @@ export function TextProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState(initialLanguage);
   useEffect(() => {
     document.documentElement.lang = lang;
-    localStorage.setItem(STORAGE_KEY, lang);
+    try {
+      storage()?.setItem(STORAGE_KEY, lang);
+    } catch {
+      // Not kept; the page still switches language.
+    }
   }, [lang]);
   const value = useMemo<TextState>(() => {
     const dict = dictionaries[lang] ?? en;

@@ -166,3 +166,6 @@ export function verifyBinding(input: unknown, options: VerifyOptions = {}): Bind
   const ok = allPass(steps) && claims.length > 0 && claims.every((c) => c.ok);
   return { ok, eventId: event.id, pubkey: event.pubkey, npub, createdAt: event.created_at, steps, claims, event: plainEvent(event) };
 }
+
+/** The author's newest event is genuine but carries no BCH claim: the link was revoked or never made. */
+export const hasNoCurrentLink = (r: BindingResult): boolean => r.claims.length === 0 && r.steps.every((s) => s.status !== 'fail');

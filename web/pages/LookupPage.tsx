@@ -1,52 +1,27 @@
 import { useEffect, useState } from 'react';
-import { parseP2pkhAddress } from '../../src/core/cashaddr';
 import { didDocument } from '../../src/core/did';
-import { lookupByAddress, lookupByPubkey } from '../../src/core/discover';
-import { parsePubkey } from '../../src/core/nostr';
-import type { BindingResult } from '../../src/core/verify';
+import { lookupInput } from '../../src/core/discover';
+import { hasNoCurrentLink, type BindingResult } from '../../src/core/verify';
 import { useText } from '../i18n';
 import { navigate, queryParam } from '../router';
-import { Checklist } from '../ui/Checklist';
+import { BindingSummary } from '../ui/BindingSummary';
 import { errorText } from '../../src/errors';
 import { Notice } from '../ui/Notice';
 import { OwnerActions } from './OwnerActions';
 
+const VERIFIER_PATH = '/verify/';
+
 type State = { kind: 'idle' } | { kind: 'busy' } | { kind: 'done'; results: BindingResult[] } | { kind: 'error'; message: string };
-
-/** Runs a lookup by npub (or hex key) or by BCH address. Results are verified in this browser. */
-export async function lookUp(input: string): Promise<BindingResult[] | 'bad_input'> {
-  const key = parsePubkey(input);
-  if ('hex' in key) {
-    const r = await lookupByPubkey(key.hex);
-    return r ? [r] : [];
-  }
-  if (typeof parseP2pkhAddress(input) !== 'string') return lookupByAddress(input);
-  return 'bad_input';
-}
-
-/** The author's newest event is genuine but carries no BCH claim: the link was revoked or never made. */
-const noCurrentLink = (r: BindingResult): boolean => r.claims.length === 0 && r.steps.every((s) => s.status !== 'fail');
 
 function Result({ result, onChanged }: { result: BindingResult; onChanged: () => void }) {
   const { t, lang } = useText();
-  if (noCurrentLink(result)) {
+  if (hasNoCurrentLink(result)) {
     return <Notice>{t('lookup.noLink', { date: new Date(result.createdAt * 1000).toLocaleString(lang) })}</Notice>;
   }
   const did = didDocument(result.pubkey, result);
   return (
     <article className="result" data-ok={result.ok}>
-      <p className={`badge ${result.ok ? 'badge--ok' : 'badge--fail'}`}>{result.ok ? t('lookup.verified') : t('lookup.failed')}</p>
-      <dl className="facts">
-        <dt>{t('lookup.nostrKey')}</dt>
-        <dd><code>{result.npub}</code></dd>
-        {result.claims.map((c) => [
-          <dt key={`t-${c.address}`}>{t('lookup.bchAddress')}</dt>,
-          <dd key={`d-${c.address}`}><code>{c.address}</code></dd>,
-        ])}
-        <dt>{t('lookup.published')}</dt>
-        <dd>{new Date(result.createdAt * 1000).toLocaleString(lang)}</dd>
-      </dl>
-      <Checklist result={result} />
+      <BindingSummary result={result} />
       <OwnerActions result={result} onChanged={onChanged} />
       {result.ok ? (
         <button type="button" className="btn" onClick={() => navigate('/pay', `?npub=${result.npub}`)}>{t('lookup.pay')}</button>
@@ -70,7 +45,7 @@ export function LookupPage() {
   const [state, setState] = useState<State>(() => (queryParam('q') ? { kind: 'busy' } : { kind: 'idle' }));
 
   const settle = (value: string): Promise<State> =>
-    lookUp(value.trim()).then(
+    lookupInput(value.trim()).then(
       (results): State => (results === 'bad_input' ? { kind: 'error', message: t('lookup.inputError') } : { kind: 'done', results }),
       (e: unknown): State => ({ kind: 'error', message: errorText(e, t) }),
     );
@@ -90,6 +65,11 @@ export function LookupPage() {
     <section className="card" aria-labelledby="lookup-title">
       <h1 className="card__title" id="lookup-title">{t('lookup.title')}</h1>
       <p className="option__help">{t('lookup.help')}</p>
+      <p className="option__help">
+        {t('verifier.downloadHelp')} <a href={VERIFIER_PATH}>{t('verifier.open')}</a>
+        {' · '}
+        <a href={`${VERIFIER_PATH}tambat-verify.html`} download>{t('verifier.download')}</a>
+      </p>
       <form
         className="row row--form"
         onSubmit={(e) => {

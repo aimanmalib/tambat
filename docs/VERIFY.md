@@ -1,7 +1,14 @@
 # Verify a binding yourself
 
-You do not need our web app or our server to check a binding. This page shows two ways: the command-line verifier from this
-repository, and the same checks by hand with general tools. The algorithm is in [SPEC.md](SPEC.md) section 5.
+You do not need our web app or our server to check a binding. This page shows three ways: the one-file verifier, the
+command-line verifier from this repository, and the same checks by hand with general tools. The algorithm is in [SPEC.md](SPEC.md) section 5.
+
+## With the one-file verifier
+
+Download `tambat-verify.html` from https://tambat.sasateguh.com/verify/ (or build it with `npm run build:verifier`), compare its
+SHA-256 with the one in the [README](../README.md#one-file-verifier), and open it from disk in any browser. Paste the event
+JSON to check it with no network at all, or enter an npub or address and list the relays to ask. Its policy allows WebSocket
+connections only, so it cannot reach our server.
 
 ## With the command-line verifier
 

@@ -40,8 +40,8 @@ Where each required part of the "Decentralized Identity" bounty lives:
 | --- | --- | --- |
 | Identity creation and management | `src/core/binding.ts` (create, revoke, rotate), `src/node/manage.ts`, `web/pages/LinkPage.tsx`, `web/pages/OwnerActions.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com; **Revoke this link** and **Move to a new address** on your own look-up result; [revocation measured](docs/MEASURED.md) |
 | Cryptographic identity binding | `src/core/binding.ts`, `src/core/bchmsg.ts`, `src/core/verify.ts` | [SPEC.md](docs/SPEC.md), [vectors](examples/vectors.json) |
-| Decentralized discovery | `src/core/discover.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** on the live site, [MEASURED.md](docs/MEASURED.md) |
-| Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `src/core/auth-bch.ts`, `server/`, `bin/tambat.ts` | **Demo app** on the live site: sign in with Nostr or with a BCH wallet only ([sign-in measured](docs/MEASURED.md)), [VERIFY.md](docs/VERIFY.md) |
+| Decentralized discovery | `src/core/discover.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** on the live site, the [one-file verifier](#one-file-verifier) at https://tambat.sasateguh.com/verify/, [MEASURED.md](docs/MEASURED.md) |
+| Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `src/core/auth-bch.ts`, `server/`, `bin/tambat.ts`, `verifier/` | **Demo app** on the live site: sign in with Nostr or with a BCH wallet only ([sign-in measured](docs/MEASURED.md)), [VERIFY.md](docs/VERIFY.md) |
 | Working demonstration and documentation | `web/`, `deploy/`, `examples/` | https://tambat.sasateguh.com, this README, [docs/](docs/) |
 
 ## Demo in 60 seconds
@@ -165,11 +165,32 @@ Not covered: a stolen key (the thief can publish a new binding; see known limits
 for someone else, and relays that all withhold an event. The sign-in server keeps nonces and sessions in memory; a restart signs
 everyone out.
 
+## One-file verifier
+
+`tambat-verify.html` is the whole verifier in one HTML file: scripts, styles and the secp256k1 WebAssembly are inline. Paste a
+signed kind 10011 event to check it on your device, or enter an npub or a BCH address to fetch the newest binding from relays
+you can edit. It runs the same checks as the app and the CLI (`src/core/`) and talks only to those relays: its own
+Content-Security-Policy allows no connection except `ws:` and `wss:`, so it works when opened from disk and never calls this
+site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
+
+SHA-256 of `tambat-verify.html` built from this commit:
+
+```
+da47079275eb3c69a6c2fd013a80ae7a327b368b24f7f8dfcbbe6fc0007ae066  tambat-verify.html
+```
+
+To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
+`sha256sum` on a downloaded copy must print the same value (the site also serves it at `/verify/tambat-verify.html.sha256`).
+Two builds of the same commit give the same bytes, and a test fails when this hash no longer matches the build
+(`tests/verifier-build.test.ts`). `e2e/verifier.spec.ts` opens the file from `file://` in Chromium and WebKit and fails on any
+request that is not the file itself.
+
 ## Decentralisation
 
 - Relays are untrusted, interchangeable stores. The default list is three public relays in `config/tambat.json`; any NIP-01
   relay works, and users can publish to their own.
-- Verification needs only the event and the public algorithm. The CLI, the browser and the server each check independently;
+- Verification needs only the event and the public algorithm. The CLI, the browser, the server and the
+  [one-file verifier](#one-file-verifier) each check independently;
   [the verification guide](docs/VERIFY.md) shows the same checks with a wallet's "Verify message" and `jq`.
 - The binding uses existing open formats: NIP-39 identity events, the Bitcoin signed-message format that wallets already
   produce, NIP-98 for sign-in, `did:nostr` and CAIP-10 for the DID document, BIP21 for payments. No new event kind, no registry,
@@ -202,6 +223,7 @@ English by default with a Malay toggle; all text is in `lang/en.json` and `lang/
   step) and **Move to a new address** (the Link page signs the new address and publishes one replacing event). A key whose
   newest event carries no BCH address shows "no current BCH link".
 - Demo keys live in memory for the open tab only.
+- **Verify** (`/verify/`) is the [one-file verifier](#one-file-verifier), linked from Look up with a download link.
 
 ## Development
 
