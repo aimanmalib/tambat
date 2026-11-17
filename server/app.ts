@@ -9,8 +9,9 @@ import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 import { config, cspHeader } from '../src/config.js';
 import { bchAnswerValid, ChallengeStore, LOGIN_METHOD, LOGIN_PATH, bchChallengeText, loginUrl, nowSeconds, verifyLogin } from '../src/core/auth.js';
+import { isBchLogin, verifyBchLogin } from '../src/core/auth-bch.js';
 import { didDocument } from '../src/core/did.js';
-import { lookupByPubkey, type QueryFn } from '../src/core/discover.js';
+import { lookupByAddress, lookupByPubkey, type QueryFn } from '../src/core/discover.js';
 import { parsePubkey, toNpub } from '../src/core/nostr.js';
 import { nodeRelayQuery } from '../src/node/relay.js';
 import { SessionStore, type Session } from './sessions.js';
@@ -67,7 +68,39 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
     return null;
   }
 
-  const sessionView = (s: Session) => ({ pubkey: s.pubkey, npub: s.npub, address: s.address, bchSigned: s.bchSigned, expiresAt: s.expiresAt });
+  const sessionView = (s: Session) => ({
+    method: s.method,
+    pubkey: s.pubkey,
+    npub: s.npub,
+    address: s.address,
+    bchSigned: s.bchSigned,
+    expiresAt: s.expiresAt,
+  });
+
+  function startSession(reply: FastifyReply, origin: string, data: Omit<Session, 'expiresAt'>) {
+    const { id, session } = sessions.create(data, now());
+    void reply.setCookie(config.auth.cookieName, id, {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: origin.startsWith('https://'),
+      path: '/api/rp',
+      maxAge: config.auth.sessionTtlSeconds,
+    });
+    return sessionView(session);
+  }
+
+  /** BCH-only sign-in: signature first (no network), then the address to Nostr key binding from our own relay query. */
+  async function bchLogin(body: unknown, origin: string, reply: FastifyReply) {
+    const check = verifyBchLogin(body, { origin, store: challenges, now: now() });
+    if (!check.ok) return reply.code(401).send({ error: check.error, reason: check.reason });
+    const found = await lookupByAddress(check.address, lookupOptions);
+    const binding = found.reduce<(typeof found)[number] | null>((best, r) => (best === null || r.createdAt > best.createdAt ? r : best), null);
+    if (!binding) {
+      return reply.code(401).send({ error: 'no_binding', reason: 'no Nostr identity linked to this address on the relays' });
+    }
+    const session = startSession(reply, origin, { method: 'bch', pubkey: binding.pubkey, npub: binding.npub, address: check.address, bchSigned: true });
+    return { session, binding };
+  }
 
   app.get('/healthz', async () => ({ ok: true }));
 
@@ -81,6 +114,7 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
   app.post<{ Body: LoginBody }>(LOGIN_PATH, async (req, reply) => {
     const origin = allowedOrigin(req, reply);
     if (!origin) return reply;
+    if (isBchLogin(req.body)) return bchLogin(req.body, origin, reply);
     const check = verifyLogin(req.body?.event, { origin, store: challenges, now: now() });
     if (!check.ok) return reply.code(401).send({ error: check.error, reason: check.reason });
     const binding = await lookupByPubkey(check.pubkey, lookupOptions);
@@ -92,16 +126,8 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
       if (answer !== true) return reply.code(401).send({ error: 'bch_sig', reason: answer });
       bchSigned = true;
     }
-    const npub = toNpub(check.pubkey);
-    const { id, session } = sessions.create({ pubkey: check.pubkey, npub, address, bchSigned }, now());
-    void reply.setCookie(config.auth.cookieName, id, {
-      httpOnly: true,
-      sameSite: 'strict',
-      secure: origin.startsWith('https://'),
-      path: '/api/rp',
-      maxAge: config.auth.sessionTtlSeconds,
-    });
-    return { session: sessionView(session), binding };
+    const session = startSession(reply, origin, { method: 'nostr', pubkey: check.pubkey, npub: toNpub(check.pubkey), address, bchSigned });
+    return { session, binding };
   });
 
   app.get('/api/rp/session', async (req, reply) => {

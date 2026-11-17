@@ -3,6 +3,8 @@ import { config } from '../src/config.js';
 import { nowSeconds, randomToken } from '../src/core/auth.js';
 
 export interface Session {
+  /** How the user proved control: a Nostr event, or a BCH signature resolved to a Nostr key through a binding. */
+  method: 'nostr' | 'bch';
   pubkey: string;
   npub: string;
   /** BCH address from the user's newest binding, verified by this server on relays; null when none verified. */
