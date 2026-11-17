@@ -42,15 +42,14 @@ export async function connectWallet(appName: string, description: string): Promi
     const address = account.replace(/^bch:/, '');
     if (!account) throw new TextError('errors.noAccount');
     if (!address.startsWith(`${config.network}:`)) throw new TextError('errors.wrongNetwork', { account });
+    const request = (method: string, params: unknown): Promise<unknown> =>
+      client.request({ topic: session.topic, chainId: chain, request: { method, params } });
     return {
       kind: 'walletconnect',
       address,
+      request,
       signMessage: async (message) => {
-        const result: unknown = await client.request({
-          topic: session.topic,
-          chainId: chain,
-          request: { method: 'bch_signMessage', params: { message } },
-        });
+        const result = await request('bch_signMessage', { message });
         if (typeof result !== 'string') throw new TextError('errors.noSignature');
         return result;
       },

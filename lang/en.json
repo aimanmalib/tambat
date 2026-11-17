@@ -335,5 +335,28 @@
       "demo": "Demo quality: live on public relays, every claim measured"
     },
     "proof": "Proof"
+  },
+  "anchor": {
+    "title": "BCH anchor (optional)",
+    "checking": "Reading the BCH chain",
+    "since": "Anchored on BCH since block {height} ({date}). The address committed to this Nostr key in that block.",
+    "otherEvent": "The anchored event is an earlier event of this key that is no longer on the relays. The key and address pair is the same, so the anchor still counts.",
+    "none": "Not anchored on BCH. Anchoring is optional; the binding above is verified without it.",
+    "unreachable": "Chain servers unreachable, so the anchor could not be read. The binding above is verified without it.",
+    "tx": "Transaction",
+    "help": "You can record this link on BCH. Your wallet signs an ordinary transaction from {address} with one data output naming this Nostr key and event, and the change goes back to the same address. You pay a small fee, and the record is public and permanent: revoking on Nostr later does not remove it.",
+    "helpAgain": "This link is already anchored. A new anchor costs another fee and does not move the earliest block.",
+    "offer": "Anchor this link on BCH",
+    "preparing": "Reading the coins of the address",
+    "preview": "Outputs: one data output (0 sat) and {change} sat back to {address}. Fee: {fee} sat.",
+    "ask": "Ask the wallet to sign and send",
+    "asking": "Waiting for the wallet. Check the outputs and the fee in the wallet before you approve.",
+    "prompt": "Anchor a Nostr identity link on BCH",
+    "sent": "Sent. It counts from the block that confirms it. Transaction",
+    "noCoins": "{address} has no coins to pay the fee. Anchoring needs a small amount of BCH at the bound address.",
+    "tooLittle": "{address} holds too little BCH to pay the fee and keep the change.",
+    "feeHigh": "The fee would be above {max} sat, so this page will not ask the wallet.",
+    "badReply": "The wallet's answer is not this anchor from this address. Nothing was recorded.",
+    "needWallet": "Connect the wallet that holds the bound address over WalletConnect first."
   }
 }

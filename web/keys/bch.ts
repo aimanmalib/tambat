@@ -10,6 +10,8 @@ export interface BchSigner {
   kind: BchSignerKind;
   address: string;
   signMessage(text: string): Promise<string>;
+  /** WalletConnect only: send any request of the session's methods to the wallet (see anchor.ts). */
+  request?(method: string, params: unknown): Promise<unknown>;
 }
 
 export function demoBchSigner(): BchSigner {

@@ -192,7 +192,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-5087e28c9dc230f05742fa7282f7c976e4f8067de83723a4ed425480d6653776  tambat-verify.html
+5f18369ee9aaf93895c684ba19a4ddd8106d2bab62f03b4326449b0ea8fca350  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -249,6 +249,10 @@ outage never reads as "not linked"), or not an npub or address. Only `/embed/` m
 - **The badge** is served by this site and checks in the visitor's browser, so a host page trusts this site for the badge
   code (not for the result, which comes from relays). Sites that want no such dependency can run the CLI or the one-file
   verifier themselves.
+- **Optional BCH anchor** ([SPEC](docs/SPEC.md#optional-bch-anchor), [ADR 0008](docs/decisions/0008-optional-bch-anchor.md)):
+  the OP_RETURN format, the chain reader, `tambat anchor-lookup <address>` (chain only, no relays), the look-up page's status
+  line and its wallet request (`bch_signTransaction`) are built and tested against a fake chain server and a fake wallet. No
+  anchor transaction has been made yet, so no binding here is shown as anchored.
 - **Single sign-in instance**: nonces and sessions live in memory, so more than one server process needs a shared store.
 
 ## Web app

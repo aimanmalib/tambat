@@ -14,6 +14,8 @@ import { secp256k1 } from '@bitauth/libauth';
 import { addressFromPublicKey } from '../src/core/cashaddr.js';
 import { keysFromPhrase } from '../src/core/paytaca.js';
 import { E2E } from './ports.js';
+import config from '../config/tambat.json' with { type: 'json' };
+import { answer, type FakeChain } from '../tests/fake-fulcrum.js';
 
 export { en, ms, vectors };
 export const phraseKeys = keysFromPhrase(vectors.phrase, 'bitcoincash');
@@ -34,6 +36,21 @@ async function routeRelays(page: Page) {
       else queue.push(text);
     });
     ws.onClose(() => upstream.close());
+  });
+}
+
+/** URL pattern of the configured chain servers, so a test can route them apart from the relays. */
+export const chainServers = new RegExp(`^(${config.anchor.electrum.map((u) => u.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`);
+
+/**
+ * Answers the chain servers from `chain` (an empty chain by default, so every look-up reads "not anchored").
+ * Routes registered later win in Playwright, so a test calls this again to change the chain.
+ */
+export async function routeChain(page: Page, chain: FakeChain = { history: {}, headers: {} }) {
+  await page.routeWebSocket(chainServers, (ws) => {
+    ws.onMessage((m) => {
+      for (const line of String(m).split('\n')) if (line.trim()) ws.send(answer(chain, line));
+    });
   });
 }
 
@@ -74,6 +91,7 @@ export const test = base.extend<{ consoleErrors: string[] }>({
         if (msg.type() === 'error' && !allowed.some((path) => msg.location().url.endsWith(path))) errors.push(msg.text());
       });
       await routeRelays(page);
+      await routeChain(page);
       await use(errors);
       expect(errors).toEqual([]);
     },

@@ -335,5 +335,28 @@
       "demo": "Mutu demo: hidup di relay awam, setiap dakwaan diukur"
     },
     "proof": "Bukti"
+  },
+  "anchor": {
+    "title": "Sauh BCH (pilihan)",
+    "checking": "Membaca rantaian BCH",
+    "since": "Disauh pada BCH sejak blok {height} ({date}). Alamat ini mengikat dirinya kepada kunci Nostr ini dalam blok tersebut.",
+    "otherEvent": "Event yang disauh ialah event lebih awal kunci ini yang tiada lagi di relay. Pasangan kunci dan alamat tetap sama, jadi sauh itu masih dikira.",
+    "none": "Belum disauh pada BCH. Sauh ialah pilihan; ikatan di atas disahkan tanpanya.",
+    "unreachable": "Pelayan rantaian tidak dapat dihubungi, jadi sauh tidak dapat dibaca. Ikatan di atas disahkan tanpanya.",
+    "tx": "Transaksi",
+    "help": "Anda boleh merekod pautan ini pada BCH. Dompet anda menandatangani transaksi biasa dari {address} dengan satu output data yang menamakan kunci Nostr dan event ini, dan bakinya kembali ke alamat yang sama. Anda membayar yuran kecil, dan rekod itu awam serta kekal: membatalkan di Nostr kemudian tidak memadamnya.",
+    "helpAgain": "Pautan ini sudah disauh. Sauh baharu memerlukan yuran lagi dan tidak mengubah blok paling awal.",
+    "offer": "Sauh pautan ini pada BCH",
+    "preparing": "Membaca syiling alamat ini",
+    "preview": "Output: satu output data (0 sat) dan {change} sat kembali ke {address}. Yuran: {fee} sat.",
+    "ask": "Minta dompet menandatangani dan menghantar",
+    "asking": "Menunggu dompet. Semak output dan yuran dalam dompet sebelum meluluskan.",
+    "prompt": "Sauh pautan identiti Nostr pada BCH",
+    "sent": "Dihantar. Ia dikira dari blok yang mengesahkannya. Transaksi",
+    "noCoins": "{address} tiada syiling untuk membayar yuran. Sauh memerlukan sedikit BCH pada alamat yang terikat.",
+    "tooLittle": "{address} memegang terlalu sedikit BCH untuk membayar yuran dan menyimpan baki.",
+    "feeHigh": "Yuran akan melebihi {max} sat, jadi halaman ini tidak akan meminta dompet.",
+    "badReply": "Jawapan dompet bukan sauh ini dari alamat ini. Tiada apa-apa direkod.",
+    "needWallet": "Sambungkan dahulu dompet yang memegang alamat terikat melalui WalletConnect."
   }
 }
