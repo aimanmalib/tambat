@@ -3,11 +3,10 @@
  * Nostr sign-in. The signature is checked first, with no network access; only then is the nonce consumed, and only
  * after that does the server look on relays for the Nostr key bound to the address.
  */
-import { binToHex, hash160 } from '@bitauth/libauth';
 import { config } from '../config.js';
 import { bchChallengeText, nowSeconds, type Challenge, type ChallengeStore } from './auth.js';
 import { recoverSigner } from './bchmsg.js';
-import { parseP2pkhAddress } from './cashaddr.js';
+import { keyControlsPayload, parseP2pkhAddress } from './cashaddr.js';
 
 export const BCH_LOGIN_TYPE = 'bch';
 
@@ -57,7 +56,7 @@ export function verifyBchLogin(input: unknown, ctx: BchLoginContext): BchLoginCh
   const nonce = body.nonce.trim();
   const recovered = recoverSigner(bchChallengeText({ origin: ctx.origin, nonce }), body.signature.trim());
   if (typeof recovered === 'string') return no('bch_sig', recovered);
-  if (binToHex(hash160(recovered.publicKey)) !== binToHex(parsed.payload)) {
+  if (!keyControlsPayload(recovered.publicKey, parsed.payload)) {
     return no('bch_sig', 'signature over the challenge was not made by this address');
   }
   const challenge = ctx.store.take(nonce);

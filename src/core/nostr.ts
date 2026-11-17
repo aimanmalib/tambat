@@ -1,5 +1,7 @@
 /** Nostr helpers: key encodings, the NIP-39 verification text and a cache-free event check. */
-import { getEventHash, verifyEvent, type Event, type EventTemplate } from 'nostr-tools/pure';
+import { schnorr } from '@noble/curves/secp256k1.js';
+import { hexToBytes } from '@noble/curves/utils.js';
+import { getEventHash, type Event, type EventTemplate } from 'nostr-tools/pure';
 import { decode, npubEncode } from 'nostr-tools/nip19';
 
 export type { Event, EventTemplate };
@@ -66,7 +68,21 @@ export function idMatches(event: Event): boolean {
   return getEventHash(event) === event.id;
 }
 
-/** True when the BIP-340 signature over the id verifies. Never trusts a cached marker. */
+/**
+ * BIP-340 verification of a signature over a message, all in hex. Malformed input is an invalid signature, never a throw.
+ * The BIP-340 test vectors run through this function (tests/third-party-vectors.test.ts).
+ */
+export function schnorrValid(pubkeyHex: string, messageHex: string, signatureHex: string): boolean {
+  if (![pubkeyHex, messageHex, signatureHex].every((h) => /^([0-9a-fA-F]{2})*$/.test(h))) return false;
+  try {
+    return schnorr.verify(hexToBytes(signatureHex), hexToBytes(messageHex), hexToBytes(pubkeyHex));
+  } catch {
+    return false;
+  }
+}
+
+/** True when the id is the event hash and the BIP-340 signature over it verifies. Never trusts a cached marker. */
 export function signatureValid(event: Event): boolean {
-  return verifyEvent(plainEvent(event));
+  const hash = getEventHash(plainEvent(event));
+  return hash === event.id && schnorrValid(event.pubkey, hash, event.sig);
 }

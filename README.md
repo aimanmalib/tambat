@@ -39,7 +39,7 @@ Where each required part of the "Decentralized Identity" bounty lives:
 | Requirement | Code | Try it or read it |
 | --- | --- | --- |
 | Identity creation and management | `src/core/binding.ts` (create, revoke, rotate), `src/node/manage.ts`, `web/pages/LinkPage.tsx`, `web/pages/OwnerActions.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com; **Revoke this link** and **Move to a new address** on your own look-up result; [revocation measured](docs/MEASURED.md) |
-| Cryptographic identity binding | `src/core/binding.ts`, `src/core/bchmsg.ts`, `src/core/verify.ts` | [SPEC.md](docs/SPEC.md), [vectors](examples/vectors.json) |
+| Cryptographic identity binding | `src/core/binding.ts`, `src/core/bchmsg.ts`, `src/core/verify.ts` | [SPEC.md](docs/SPEC.md), [vectors](examples/vectors.json), [third-party vectors](examples/third-party-vectors.json) |
 | Decentralized discovery | `src/core/discover.ts`, `src/core/nip05.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** or **Pay** on the live site by npub, address or NIP-05 name (`demo@tambat.sasateguh.com`), the [one-file verifier](#one-file-verifier) at https://tambat.sasateguh.com/verify/, [MEASURED.md](docs/MEASURED.md) |
 | Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `src/core/auth-bch.ts`, `server/`, `bin/tambat.ts`, `verifier/` | **Demo app** on the live site: sign in with Nostr or with a BCH wallet only ([sign-in measured](docs/MEASURED.md)), [VERIFY.md](docs/VERIFY.md) |
 | Working demonstration and documentation | `web/`, `deploy/`, `examples/` | https://tambat.sasateguh.com, this README, [docs/](docs/) |
@@ -123,7 +123,9 @@ npx tsx bin/tambat.ts rotate <old address> <new address> [--keys <file>]   # mov
 
 `verify` works offline. `lookup` asks the relays in `config/tambat.json` and verifies every event they return. Exit code 0 means
 verified, 1 not verified, 2 a usage error. Test vectors from the public BIP39 phrase `abandon ... about` are in
-[examples/vectors.json](examples/vectors.json). [examples/paytaca-binding.ts](examples/paytaca-binding.ts) writes a binding
+[examples/vectors.json](examples/vectors.json). The core code also passes vectors from outside this project, pinned to a
+commit with their license in [examples/third-party-vectors.json](examples/third-party-vectors.json): BIP-340, the CashAddr
+specification and Electron Cash signed messages. [examples/paytaca-binding.ts](examples/paytaca-binding.ts) writes a binding
 from a phrase with only `@bitauth/libauth` and `nostr-tools`.
 
 `revoke` and `rotate` sign with keys derived from a BIP39 phrase file (`{ "phrase": "..." }`, default `cli.keysFile` in the
@@ -182,7 +184,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-d8773194c3db654ff26285016348d00f9439afa5df737e48eca92ae59068943b  tambat-verify.html
+a404456ba0bd5dafa5e768d1f2a1d93c5b7042d256db0428963d4bce1c4975e6  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;

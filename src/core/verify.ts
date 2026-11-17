@@ -3,11 +3,11 @@
  * exactly why a binding passes or fails. Nothing here trusts a server: inputs are the event and, optionally,
  * the other kind 10011 events the caller fetched for the same author.
  */
-import { binToHex, hash160 } from '@bitauth/libauth';
+import { binToHex } from '@bitauth/libauth';
 import { config, type Network } from '../config.js';
 import { recoverSigner } from './bchmsg.js';
 import { claimsOf, type StepName } from './binding.js';
-import { parseP2pkhAddress } from './cashaddr.js';
+import { keyControlsPayload, parseP2pkhAddress } from './cashaddr.js';
 import { eventShapeError, idMatches, plainEvent, signatureValid, toNpub, verificationText, type Event } from './nostr.js';
 
 export type { StepName };
@@ -112,7 +112,7 @@ export function verifyClaim(address: string, signature: string, npub: string, no
     steps.push(fail('address_match', 'address_invalid', parsed), fail('network', 'address_invalid', parsed));
   } else {
     if (typeof recovered === 'string') steps.push(skip('address_match', 'no_public_key', 'no public key recovered'));
-    else if (binToHex(hash160(recovered.publicKey)) === binToHex(parsed.payload)) steps.push(pass('address_match'));
+    else if (keyControlsPayload(recovered.publicKey, parsed.payload)) steps.push(pass('address_match'));
     else steps.push(fail('address_match', 'wrong_signer', `signature was not made by the key of ${parsed.address} for ${npub}`, {
           address: parsed.address,
           npub,

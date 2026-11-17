@@ -3,10 +3,10 @@
  * page origin and an expiry; the user answers with a NIP-98 event (kind 27235) carrying the nonce. Optionally the
  * user also signs a BCH message over the same nonce. Runs in Node and the browser (Web Crypto only).
  */
-import { binToHex, hash160 } from '@bitauth/libauth';
+import { binToHex } from '@bitauth/libauth';
 import { config } from '../config.js';
 import { recoverSigner } from './bchmsg.js';
-import { parseP2pkhAddress } from './cashaddr.js';
+import { keyControlsPayload, parseP2pkhAddress } from './cashaddr.js';
 import { eventShapeError, idMatches, signatureValid, type Event, type EventTemplate } from './nostr.js';
 
 export const LOGIN_PATH = '/api/rp/login';
@@ -136,5 +136,5 @@ export function bchAnswerValid(challenge: Pick<Challenge, 'origin' | 'nonce'>, s
   if (typeof parsed === 'string') return parsed;
   const recovered = recoverSigner(bchChallengeText(challenge), signature);
   if (typeof recovered === 'string') return recovered;
-  return binToHex(hash160(recovered.publicKey)) === binToHex(parsed.payload) ? true : 'signature was not made by this address';
+  return keyControlsPayload(recovered.publicKey, parsed.payload) ? true : 'signature was not made by this address';
 }
