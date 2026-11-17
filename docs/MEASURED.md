@@ -2,6 +2,20 @@
 
 Facts measured on a real run, failures included. Newest first.
 
+## Sign-in
+
+BCH-only sign-in on the live demo app, 2026-11-17, after deploying `b21e09d`. A script on the host asked
+`POST /api/rp/challenge` on https://tambat.sasateguh.com, signed the returned `bchText` with the demo BCH key (it matched
+`Sign in to https://tambat.sasateguh.com with challenge <nonce>` exactly) and posted `{"type": "bch", ...}` to
+`/api/rp/login`. The server found the Nostr key on its own relays. `ms` covers the challenge and the sign-in. Sending the same
+answer again was refused with `challenge_unknown` in both rows. "ok" means a session for the bound npub; "refused" means no
+session.
+
+| UTC | method | address | npub from the server | binding event | ms | result |
+| --- | --- | --- | --- | --- | --- | --- |
+| 11:57:31 | bch | `bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77` (main demo identity) | `npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt` | `f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2` | 2196 | ok |
+| 11:57:37 | bch | `bitcoincash:qruxnv4dpr6ygdvv5czupa9dgrqy69vtjceqzzvzc9` (second demo identity, revoked above) | none: `401 no_binding` | none | 1192 | refused |
+
 ## Lookup
 
 Second demo identity (not the main demo below), 2026-11-17, from the host with `tambat lookup` and the same library calls. `ms`
