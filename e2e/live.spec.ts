@@ -72,3 +72,28 @@ test('a revoked binding shows no current link from either direction', async ({ p
     await expect(page.locator('.result')).toHaveCount(0);
   }
 });
+
+test('the one-file verifier is served whole and verifies a binding from the real relays', async ({ page, request }) => {
+  const res = await request.get('/verify/');
+  expect(res.status()).toBe(200);
+  const html = await res.text();
+  expect(html.replace(/(<(script|style)\b[^>]*>)[\s\S]*?<\/\2>/g, '$1</$2>')).not.toMatch(/\ssrc=/);
+  expect(res.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
+  const digest = await (await request.get('/verify/tambat-verify.html.sha256')).text();
+  expect(digest).toMatch(/^[0-9a-f]{64} {2}tambat-verify\.html\n$/);
+
+  const off: string[] = [];
+  page.on('request', (r) => {
+    if (!r.url().endsWith('/verify/')) off.push(r.url());
+  });
+  await page.goto('/verify/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.verifier.title);
+  await expectAccessible(page);
+  const first = lookups[0];
+  if (first) {
+    await page.getByLabel(en.verifier.inputLabel, { exact: true }).fill(first);
+    await page.getByRole('button', { name: en.verifier.submit, exact: true }).click();
+    await expect(page.locator('.result[data-ok="true"]').first()).toBeVisible({ timeout: 20_000 });
+  }
+  expect(off).toEqual([]);
+});
