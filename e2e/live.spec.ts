@@ -63,6 +63,13 @@ test('a published binding verifies from the real relays', async ({ page }) => {
     await expect(page.locator('.result[data-ok="true"]').first()).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('.result[data-ok="false"]')).toHaveCount(0);
   }
+  // Tampering edits a local copy only: the edited signature is caught and the real result stays verified.
+  const tamper = page.getByRole('region', { name: en.tamper.title, exact: true }).first();
+  await tamper.getByRole('radio', { name: en.tamper.field.sig, exact: true }).check();
+  await tamper.getByRole('button', { name: en.tamper.try, exact: true }).click();
+  await expect(tamper.locator('.check[data-status="fail"]')).toHaveCount(1);
+  await expect(tamper.locator('.check[data-step="nostr_sig"]')).toHaveAttribute('data-status', 'fail');
+  await expect(page.locator('.result[data-ok="false"]')).toHaveCount(0);
 });
 
 test('a revoked binding shows no current link from either direction', async ({ page }) => {
