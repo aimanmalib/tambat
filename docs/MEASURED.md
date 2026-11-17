@@ -2,16 +2,22 @@
 
 Facts measured on a real run, failures included. Newest first.
 
-## 2026-11-17: a binding made on the live site with a key that is not the demo key
+## 2026-11-17: a binding signed with a Paytaca wallet over WalletConnect
 
+- The BCH signature in this binding was signed with a Paytaca wallet over WalletConnect `bch_signMessage` (the wallet
+  owner's statement; the WalletConnect client log below agrees). The Nostr key is not the demo key.
 - Event `d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b` (kind 10011, created_at 1794907987, 09:33 UTC),
-  claiming one address that starts `bitcoincash:qp2n90ka` and is not the demo address above.
-- `tambat lookup <address>` and `tambat lookup <npub>` from the default relays: VERIFIED, every step passes (exit code 0).
-- Asking each relay by address tag: nos.lol and relay.primal.net return the event; relay.damus.io returns nothing, also when
-  asked by author, while it still returns the demo binding. Two of three relays were enough for both look-ups.
+  npub `npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz`,
+  address `bitcoincash:qp2n90karn7qnp7thtqzsgj2hfjze6ktgs8r2mm56u` (not the demo address below).
+- When it was published: accepted by nos.lol and relay.primal.net; relay.damus.io could not be reached from the browser.
+- Measured again at 10:09 UTC on 2026-11-17, asking each relay by event id and by address tag (`#i`): nos.lol and
+  relay.primal.net return the event to both questions (under 1.1 s each); relay.damus.io refused the connection
+  (no WebSocket upgrade), so it returned nothing.
+- `tambat lookup bitcoincash:qp2n90karn7qnp7thtqzsgj2hfjze6ktgs8r2mm56u` from the default relays at 10:09 UTC: VERIFIED,
+  every step passes (event_shape, kind, event_id, nostr_sig, newest, bch_sig, address_match, network, key_separation),
+  exit code 0. Two of three relays were enough.
 - The site log for that visit shows the page loaded at 09:27 UTC and the WalletConnect client requested at 09:29 UTC. The
-  client loads only when a visitor picks the WalletConnect option. The event does not say which wallet signed, so this record
-  does not claim that the signature came over WalletConnect or from Paytaca.
+  client loads only when a visitor picks the WalletConnect option.
 
 ## 2026-11-16: live demo at https://tambat.sasateguh.com with a binding on public relays
 

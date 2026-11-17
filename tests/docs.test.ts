@@ -59,9 +59,21 @@ describe('docs', () => {
     }
   });
 
-  it('PAYTACA.md says the WalletConnect path is not yet recorded with a real wallet', () => {
+  it('MEASURED.md records the Paytaca binding with its event id, npub and address', () => {
+    const entry = /## [^\n]*Paytaca[^\n]*\n([\s\S]*?)\n## /.exec(read('docs/MEASURED.md'))?.[1] ?? '';
+    expect(entry).toContain('signed with a Paytaca wallet over WalletConnect');
+    expect(entry).toContain('d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b');
+    expect(entry).toContain('npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz');
+    expect(entry).toContain('bitcoincash:qp2n90karn7qnp7thtqzsgj2hfjze6ktgs8r2mm56u');
+  });
+
+  it('PAYTACA.md and the README point to the recorded Paytaca signature and keep the test gap honest', () => {
     const today = /## Today, with no wallet change\n([\s\S]*?)\n## /.exec(read('docs/PAYTACA.md'))?.[1] ?? '';
-    expect(today).toMatch(/not yet been recorded with a real Paytaca wallet/);
+    expect(today).toMatch(/used with a real Paytaca wallet/);
     expect(today).toContain('(MEASURED.md)');
+    const limits = /## Known limits and next steps\n([\s\S]*?)(\n## |$)/.exec(read('README.md'))?.[1] ?? '';
+    expect(limits).toMatch(/used once with a real Paytaca wallet/);
+    expect(limits).toMatch(/not covered by automated tests/);
+    expect(read('README.md')).not.toMatch(/not yet been recorded/);
   });
 });

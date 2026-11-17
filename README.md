@@ -168,9 +168,9 @@ everyone out.
 
 ## Known limits and next steps
 
-- **Paytaca over WalletConnect** is built (`bch_signMessage`, the signed-message format read from the Paytaca source) but is
-  not covered by automated tests, and a signature from a real Paytaca wallet has not yet been recorded in
-  [the measurements](docs/MEASURED.md). The paste path and the format itself are tested.
+- **Paytaca over WalletConnect** (`bch_signMessage`) has been used once with a real Paytaca wallet, recorded in
+  [the measurements](docs/MEASURED.md), but it is not covered by automated tests: they cannot drive a phone wallet. The paste
+  path and the signature format are tested.
 - **Key rotation and recovery**: a lost Nostr key cannot revoke its binding; a stolen one can rebind. A future version could
   require a BCH signature over a revocation, or a time-locked handover.
 - **One address per Nostr key**, P2PKH only. Multisig and P2SH addresses cannot sign a message; CashTokens are not covered.

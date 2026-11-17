@@ -11,8 +11,10 @@ Paytaca already answers `bch_signMessage` over WalletConnect. In the web app, **
 sign the verification text, and publishes the event with the user's Nostr key (NIP-07 extension, NIP-46 remote signer or a demo
 key). Any wallet with "Sign message" works the same way through the paste option.
 
-The WalletConnect path is built from the Paytaca source but has not yet been recorded with a real Paytaca wallet; see
-[the measurements](MEASURED.md). Until then the paste path is the tested one.
+This path has been used with a real Paytaca wallet: on 2026-11-17 a binding was signed with a Paytaca wallet over
+WalletConnect and published to public relays; [the measurements](MEASURED.md) give the event id, the address and the relays
+that return it. It is not covered by automated tests, because they cannot drive a phone wallet; the paste path and the
+signature format are.
 
 ## Inside the wallet
 
