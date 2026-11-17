@@ -17,3 +17,4 @@ playwright-report/
 test-results/
 deploy/
 *.log
+dist-verifier/

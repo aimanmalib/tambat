@@ -15,7 +15,7 @@ const T = vectors.bindingEvent.created_at + 100;
 const binding = clone(vectors.bindingEvent);
 
 function makeApp(events: unknown[]) {
-  return buildApp({ query: fakeRelay(events), now: () => T, allowedOrigins: [ORIGIN], staticDir: '/nonexistent' });
+  return buildApp({ query: fakeRelay(events), now: () => T, allowedOrigins: [ORIGIN], staticDir: '/nonexistent', verifierFile: '/nonexistent.html' });
 }
 
 async function challenge(app: ReturnType<typeof makeApp>, origin = ORIGIN) {
@@ -99,7 +99,7 @@ describe('relying app server', () => {
   });
 
   it('still signs in when relays do not answer', async () => {
-    const app3 = buildApp({ query: () => Promise.reject(new Error('down')), now: () => T, allowedOrigins: [ORIGIN], staticDir: '/nonexistent' });
+    const app3 = buildApp({ query: () => Promise.reject(new Error('down')), now: () => T, allowedOrigins: [ORIGIN], staticDir: '/nonexistent', verifierFile: '/nonexistent.html' });
     const { body } = await challenge(app3);
     const res = await signIn(app3, body.nonce);
     expect(res.statusCode).toBe(200);

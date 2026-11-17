@@ -15,6 +15,7 @@ import { lookupByAddress, lookupByPubkey, type QueryFn } from '../src/core/disco
 import { parsePubkey, toNpub } from '../src/core/nostr.js';
 import { nodeRelayQuery } from '../src/node/relay.js';
 import { SessionStore, type Session } from './sessions.js';
+import { registerVerifier } from './verifier.js';
 
 export interface AppOptions {
   /** Relay query; defaults to the Node relay query (the `ws` package). Tests pass an in-process fake. */
@@ -26,6 +27,8 @@ export interface AppOptions {
   allowedOrigins?: string[];
   /** Directory with the built web app; skipped when it does not exist. */
   staticDir?: string;
+  /** The built one-file verifier; its routes are skipped when it does not exist. */
+  verifierFile?: string;
   logger?: boolean;
 }
 
@@ -53,7 +56,8 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
     if (req.url.startsWith('/api/')) reply.header('cache-control', 'no-store');
     else if (type.startsWith('text/html')) {
       reply.header('cache-control', 'no-cache, no-transform');
-      reply.header('content-security-policy', csp);
+      // Pages with their own policy (the verifier) keep it.
+      if (!reply.hasHeader('content-security-policy')) reply.header('content-security-policy', csp);
     }
     reply.header('x-content-type-options', 'nosniff');
     reply.header('referrer-policy', 'strict-origin-when-cross-origin');
@@ -150,6 +154,7 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
     return reply.type('application/did+json').send(didDocument(key.hex, binding, options.relays ? { relays: options.relays } : {}));
   });
 
+  registerVerifier(app, resolve(options.verifierFile ?? config.server.verifierFile));
   const root = resolve(options.staticDir ?? config.server.staticDir);
   if (existsSync(root)) {
     void app.register(fastifyStatic, { root, index: ['index.html'] });

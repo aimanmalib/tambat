@@ -63,6 +63,7 @@
     "port": 8080,
     "bodyLimitBytes": 65536,
     "staticDir": "dist/web",
+    "verifierFile": "dist-verifier/tambat-verify.html",
     "contentSecurityPolicy": {
       "default-src": [
         "'self'"

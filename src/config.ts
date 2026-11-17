@@ -39,6 +39,8 @@ export interface TambatConfig {
     bodyLimitBytes: number;
     /** Built web app served as static files, relative to the repository root. */
     staticDir: string;
+    /** Built one-file verifier served at /verify/, relative to the repository root. */
+    verifierFile: string;
     /**
      * Content-Security-Policy sent with the web app, one list of sources per directive. connect-src stays open to any
      * wss: and https: host because NIP-46 signers and NIP-05 names point at relays and domains the user chooses.
@@ -117,6 +119,9 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.server.port, 'server.port');
   positiveInt(c.server.bodyLimitBytes, 'server.bodyLimitBytes');
   if (typeof c.server.staticDir !== 'string') fail('server.staticDir', 'must be a string');
+  if (typeof c.server.verifierFile !== 'string' || !c.server.verifierFile.endsWith('.html')) {
+    fail('server.verifierFile', 'must be the path of an .html file');
+  }
   const csp = c.server.contentSecurityPolicy;
   if (!csp || typeof csp !== 'object' || !csp['default-src']) fail('server.contentSecurityPolicy', 'must be an object with default-src');
   for (const [name, sources] of Object.entries(csp)) {
