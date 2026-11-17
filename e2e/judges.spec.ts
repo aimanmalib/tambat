@@ -67,7 +67,7 @@ test('one screen with a green live check, the recorded proof and every requireme
   await expect(page.locator(`[data-proof="paytaca"] a[data-event="${config.judges.paytaca.eventId}"]`)).toHaveAttribute('href', `/lookup?q=${config.judges.paytaca.npub}`);
   await expect(page.locator(`[data-proof="revocation"] a[data-event="${config.judges.revocation.eventId}"]`)).toBeVisible();
   for (const name of [en.judges.signIn, en.judges.verifyYourself, en.judges.spec, en.judges.repo]) {
-    await expect(page.getByRole('link', { name })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('link', { name })).toBeVisible();
   }
   // Lists start open on a wide screen and closed on a phone; either way all five requirements and six criteria are there.
   const folds = page.locator('details.jfold');

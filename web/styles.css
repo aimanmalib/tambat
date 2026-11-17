@@ -28,8 +28,12 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
   background: var(--ink); color: var(--paper);
 }
 .banner a { color: var(--paper); }
-.banner .value { display: flex; gap: 0.5rem; align-items: center; min-width: 0; }
-.banner .value__text { color: var(--paper); }
+.banner__address { display: inline-flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; align-items: center; min-width: 0; }
+.banner__address code { color: var(--paper); overflow-wrap: anywhere; }
+.banner__copy {
+  font: inherit; color: var(--paper); background: none; cursor: pointer;
+  border: 1px solid var(--paper); border-radius: calc(var(--radius) / 2); padding: 0 0.5rem;
+}
 
 .top {
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem var(--gap);

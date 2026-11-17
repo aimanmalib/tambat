@@ -48,7 +48,7 @@ export function App() {
   return (
     <KeysProvider>
       <a className="skip" href="#main">{t('app.skip')}</a>
-      <Banner />
+      <Banner onJudges={route === '/judges'} />
       <header className={route === '/judges' ? 'top top--wide' : 'top'}>
         <a className="brand" href="/" onClick={(e) => { e.preventDefault(); navigate('/'); }}>{t('app.name')}</a>
         <nav className="nav" aria-label={t('nav.label')}>
