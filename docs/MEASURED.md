@@ -2,6 +2,48 @@
 
 Facts measured on a real run, failures included. Newest first.
 
+## Lookup
+
+Second demo identity (not the main demo below), 2026-11-17, from the host with `tambat lookup` and the same library calls. `ms`
+is the time of the whole look-up across the default relays. relay.damus.io returned nothing all session: it refused this host's
+connections on every publish and every query.
+
+| UTC | direction | query | relays answered | ms | result |
+| --- | --- | --- | --- | --- | --- |
+| 11:01:11 | npub→address | `npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql` | nos.lol, relay.primal.net | 1108 | ok: `bitcoincash:qpn5a800wqjmfvnkjqw6qmszctw3julmdsfparjhf7`, event `8d552e29246d...` |
+| 11:01:15 | address→npub | `bitcoincash:qpn5a800wqjmfvnkjqw6qmszctw3julmdsfparjhf7` | nos.lol, relay.primal.net | 2057 | ok: `npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql` |
+| 11:01:48 | npub→address | `npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql` (after the move) | nos.lol, relay.primal.net | 1302 | ok: `bitcoincash:qruxnv4dpr6ygdvv5czupa9dgrqy69vtjceqzzvzc9`, event `f918c39a4599...` |
+| 11:01:54 | address→npub | `bitcoincash:qpn5a800wqjmfvnkjqw6qmszctw3julmdsfparjhf7` (old address) | nos.lol and relay.primal.net hold no matching event | 2036 | none: the old address finds no npub |
+| 11:02:00 | address→npub | `bitcoincash:qruxnv4dpr6ygdvv5czupa9dgrqy69vtjceqzzvzc9` (new address) | nos.lol, relay.primal.net | 2416 | ok: `npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql` |
+| 11:02:30 | npub→address | `npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql` (after revoking) | nos.lol, relay.primal.net | 1021 | no current link: newest event `6aa1a2d0fe53...` names no address |
+| 11:02:40 | address→npub | `bitcoincash:qruxnv4dpr6ygdvv5czupa9dgrqy69vtjceqzzvzc9` | nos.lol and relay.primal.net hold no matching event | 1118 | none |
+| 11:02:50 | address→npub | `bitcoincash:qpn5a800wqjmfvnkjqw6qmszctw3julmdsfparjhf7` | nos.lol and relay.primal.net hold no matching event | 1011 | none |
+
+## Revocation
+
+The replacing events were published with `tambat rotate` and `tambat revoke` (`--keys` pointing at the second demo identity's
+phrase file). "Relays agreeing" are the relays whose newest kind 10011 event for the npub was the replacing event, asked a few
+seconds after publishing.
+
+| UTC | binding event | revoking event | relays agreeing | result |
+| --- | --- | --- | --- | --- |
+| 11:01:44 | `8d552e29246d89aa8ac47e061cfa0893da21b4d2b04f35d80733c78778f2198a` | `f918c39a459905fae64afa2faf552f228760e0a03b73737571a4722b63ba28f3` (move to `bitcoincash:qruxnv4dpr6ygdvv5czupa9dgrqy69vtjceqzzvzc9`) | nos.lol, relay.primal.net | moved: the old address finds no npub, the new one verifies |
+| 11:02:26 | `f918c39a459905fae64afa2faf552f228760e0a03b73737571a4722b63ba28f3` | `6aa1a2d0fe533d3a68a17d53c6a91d166ee01c339ee1827e5d6e125065909ae0` | nos.lol, relay.primal.net | revoked: the npub has no current link and neither address finds the npub |
+
+## 2026-11-17: revoke and move a binding on the live relays
+
+- Deployed `d62db4a`: the live browser checks passed 6 of 6 (Chromium desktop and WebKit iPhone 13). A new live check,
+  "a revoked binding shows no current link from either direction", passed on both engines against
+  https://tambat.sasateguh.com for the npub and both addresses above.
+- Second demo identity made by `scripts/demo-binding.ts keys` with `TAMBAT_DEMO_KEYS` pointing at a second state file:
+  npub `npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql`, first address `bitcoincash:qpn5a800wqjmfvnkjqw6qmszctw3julmdsfparjhf7`. Binding event `8d552e29246d89aa8ac47e061cfa0893da21b4d2b04f35d80733c78778f2198a` published at 11:00 UTC: accepted by nos.lol and relay.primal.net;
+  relay.damus.io: connection failure. `tambat lookup` of the address: VERIFIED, exit code 0.
+- `tambat rotate` picked the new address as the second receiving address of the same phrase and signed it fresh. `tambat
+  revoke` then removed it. Each command printed only the event id, the addresses and each relay's answer; each was accepted
+  by nos.lol and relay.primal.net and failed to connect to relay.damus.io.
+- After revoking, `tambat lookup <npub>` printed NOT VERIFIED (the newest event carries no claim) and `tambat lookup <address>`
+  printed "no verified binding found", exit code 1.
+
 ## 2026-11-17: a binding signed with a Paytaca wallet over WalletConnect
 
 - The BCH signature in this binding was signed with a Paytaca wallet over WalletConnect `bch_signMessage` (the wallet
