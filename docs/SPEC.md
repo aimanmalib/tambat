@@ -66,6 +66,10 @@ A NIP-39 identity event:
   answer. Reference: `createBindingEvent` in `src/core/binding.ts`.
 - **Revocation**: publish a newer kind `10011` event without the `bch:` tag (`createRevocationEvent`). The newer event replaces
   the claim on every relay that receives it.
+- **Rotation** (moving to a new address): publish one newer kind `10011` event in which the old `bch:` tag is gone and a tag for
+  the new address, with a fresh BCH signature from the new address over the same text, takes its place; other `i` tags are kept
+  (`createRotationEvent`). A writer must refuse to rotate from an address the current event does not claim.
+- A replacing event must have a `created_at` greater than the event it replaces, so ordering does not fall to the id tie-break.
 - The BCH key and the Nostr key must be different keys.
 
 ## 5. Verification algorithm

@@ -38,7 +38,7 @@ Where each required part of the "Decentralized Identity" bounty lives:
 
 | Requirement | Code | Try it or read it |
 | --- | --- | --- |
-| Identity creation and management | `src/core/binding.ts` (create, revoke), `web/pages/LinkPage.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com |
+| Identity creation and management | `src/core/binding.ts` (create, revoke, rotate), `src/node/manage.ts`, `web/pages/LinkPage.tsx`, `web/pages/OwnerActions.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com; **Revoke this link** and **Move to a new address** on your own look-up result; [revocation measured](docs/MEASURED.md) |
 | Cryptographic identity binding | `src/core/binding.ts`, `src/core/bchmsg.ts`, `src/core/verify.ts` | [SPEC.md](docs/SPEC.md), [vectors](examples/vectors.json) |
 | Decentralized discovery | `src/core/discover.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** on the live site, [MEASURED.md](docs/MEASURED.md) |
 | Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `server/`, `bin/tambat.ts` | **Demo app** on the live site, [VERIFY.md](docs/VERIFY.md) |
@@ -113,12 +113,19 @@ the author only when that event still claims the address and verifies.
 npx tsx bin/tambat.ts text <npub>                # the exact text the BCH wallet signs
 npx tsx bin/tambat.ts verify examples/binding-event.json
 npx tsx bin/tambat.ts lookup <npub|bitcoincash:...> [--json]
+npx tsx bin/tambat.ts revoke <bitcoincash:...> [--keys <file>]        # remove this address from your binding
+npx tsx bin/tambat.ts rotate <old address> <new address> [--keys <file>]   # move the binding in one event
 ```
 
 `verify` works offline. `lookup` asks the relays in `config/tambat.json` and verifies every event they return. Exit code 0 means
 verified, 1 not verified, 2 a usage error. Test vectors from the public BIP39 phrase `abandon ... about` are in
 [examples/vectors.json](examples/vectors.json). [examples/paytaca-binding.ts](examples/paytaca-binding.ts) writes a binding
 from a phrase with only `@bitauth/libauth` and `nostr-tools`.
+
+`revoke` and `rotate` sign with keys derived from a BIP39 phrase file (`{ "phrase": "..." }`, default `cli.keysFile` in the
+config, never tracked), on the paths a phrase wallet uses. `rotate` looks for the new address among the first
+`cli.addressSearchLimit` receiving addresses of that wallet and signs it fresh. Both publish one event that replaces the current
+binding, keep other identity tags, and print each relay's answer; nothing secret is printed.
 
 ## Server
 
@@ -171,8 +178,8 @@ everyone out.
 - **Paytaca over WalletConnect** (`bch_signMessage`) has been used once with a real Paytaca wallet, recorded in
   [the measurements](docs/MEASURED.md), but it is not covered by automated tests: they cannot drive a phone wallet. The paste
   path and the signature format are tested.
-- **Key rotation and recovery**: a lost Nostr key cannot revoke its binding; a stolen one can rebind. A future version could
-  require a BCH signature over a revocation, or a time-locked handover.
+- **Recovery**: a lost Nostr key cannot revoke or move its binding; a stolen one can. A future version could require a BCH
+  signature over a revocation, or a time-locked handover.
 - **One address per Nostr key**, P2PKH only. Multisig and P2SH addresses cannot sign a message; CashTokens are not covered.
 - **Credentials, reputation and selective disclosure** are out of scope. A binding says two keys belong together, not who the
   person is.
@@ -186,6 +193,9 @@ English by default with a Malay toggle; all text is in `lang/en.json` and `lang/
 
 - **Link** (`/`), **Look up** (`/lookup`), **Demo app** (`/demo`) and **Pay** (`/pay`) as in the demo above.
 - The demo app only talks to `/api/rp/*`; its server checks the signed challenge and reads the binding from relays on its own.
+- When the connected Nostr key is the author of a look-up result, the result offers **Revoke this link** (with a confirm
+  step) and **Move to a new address** (the Link page signs the new address and publishes one replacing event). A key whose
+  newest event carries no BCH address shows "no current BCH link".
 - Demo keys live in memory for the open tab only.
 
 ## Development
