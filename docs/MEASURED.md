@@ -2,6 +2,17 @@
 
 Facts measured on a real run, failures included. Newest first.
 
+## 2026-11-17: a binding made on the live site with a key that is not the demo key
+
+- Event `d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b` (kind 10011, created_at 1794907987, 09:33 UTC),
+  claiming one address that starts `bitcoincash:qp2n90ka` and is not the demo address above.
+- `tambat lookup <address>` and `tambat lookup <npub>` from the default relays: VERIFIED, every step passes (exit code 0).
+- Asking each relay by address tag: nos.lol and relay.primal.net return the event; relay.damus.io returns nothing, also when
+  asked by author, while it still returns the demo binding. Two of three relays were enough for both look-ups.
+- The site log for that visit shows the page loaded at 09:27 UTC and the WalletConnect client requested at 09:29 UTC. The
+  client loads only when a visitor picks the WalletConnect option. The event does not say which wallet signed, so this record
+  does not claim that the signature came over WalletConnect or from Paytaca.
+
 ## 2026-11-16: live demo at https://tambat.sasateguh.com with a binding on public relays
 
 - Demo identity made by `scripts/demo-binding.ts keys` (fresh BIP39 phrase, wallet paths):
