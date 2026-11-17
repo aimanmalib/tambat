@@ -93,6 +93,14 @@ export function createRevocationEvent(previous: Pick<Event, 'tags' | 'content'>,
 }
 
 /**
+ * created_at for an event that replaces `previous`: now, or one second after `previous` when that is not later. Two
+ * events in the same second are ordered by id (NIP-01), so without this a quick replacement is dropped half the time.
+ */
+export function replacingCreatedAt(previous: Pick<Event, 'created_at'> | null | undefined, now = Math.floor(Date.now() / 1000)): number {
+  return previous ? Math.max(now, previous.created_at + 1) : now;
+}
+
+/**
  * Builds one event that moves a binding from `oldAddress` to the address in `claim` (rotation): the old claim is
  * gone and the new one, with its own fresh BCH signature, takes its place; other identity tags are kept.
  */

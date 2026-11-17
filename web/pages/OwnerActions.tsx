@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { config } from '../../src/config';
-import { createRevocationEvent } from '../../src/core/binding';
+import { createRevocationEvent, replacingCreatedAt } from '../../src/core/binding';
 import { publishEvent, type RelayOutcome } from '../../src/core/publish';
 import type { BindingResult } from '../../src/core/verify';
 import { errorText } from '../../src/errors';
@@ -29,9 +29,7 @@ export function OwnerActions({ result, onChanged }: { result: BindingResult; onC
     setBusy(true);
     setError('');
     try {
-      // The replacing event must be newer than the one shown, even within the same second.
-      const createdAt = Math.max(Math.floor(Date.now() / 1000), previous.created_at + 1);
-      const event = await nostr.sign(createRevocationEvent(previous, createdAt));
+      const event = await nostr.sign(createRevocationEvent(previous, replacingCreatedAt(previous)));
       setOutcomes(await publishEvent(event, config.nostr.relays, config.nostr.publishTimeoutMs));
       setConfirming(false);
     } catch (e) {

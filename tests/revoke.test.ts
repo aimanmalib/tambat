@@ -6,7 +6,7 @@ import { finalizeEvent } from 'nostr-tools/pure';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 import { main } from '../bin/tambat.js';
 import { signMessage } from '../src/core/bchmsg.js';
-import { claimsOf, createBindingEvent, createRevocationEvent, createRotationEvent } from '../src/core/binding.js';
+import { claimsOf, createBindingEvent, createRevocationEvent, createRotationEvent, replacingCreatedAt } from '../src/core/binding.js';
 import { lookupByAddress, lookupByPubkey, type QueryFn } from '../src/core/discover.js';
 import { verificationText, type Event } from '../src/core/nostr.js';
 import { bchKeyAt } from '../src/core/paytaca.js';
@@ -136,6 +136,24 @@ describe('tambat revoke and rotate', () => {
       const { code, published } = await run(argv);
       expect(code).toBe(2);
       expect(published).toEqual([]);
+    }
+  });
+});
+
+describe('replacingCreatedAt', () => {
+  it('moves a replacement made in the same second (or earlier, on a slow clock) one second past the event it replaces', () => {
+    expect(replacingCreatedAt({ created_at: 1000 }, 1000)).toBe(1001);
+    expect(replacingCreatedAt({ created_at: 1005 }, 1000)).toBe(1006);
+    expect(replacingCreatedAt({ created_at: 1000 }, 1200)).toBe(1200);
+    expect(replacingCreatedAt(null, 1200)).toBe(1200);
+  });
+
+  it('keeps a replacement made in the same second newest, whatever the two ids', () => {
+    const first = finalizeEvent(createBindingEvent({ claim: { address: keys.address, signature: signMessage(keys.bchPrivateKey, verificationText(keys.npub)) }, createdAt: 1000 }), keys.nostrSecretKey);
+    for (let i = 0; i < 8; i++) {
+      const revocation = finalizeEvent(createRevocationEvent({ ...first, content: `n${i}` }, replacingCreatedAt(first, 1000)), keys.nostrSecretKey);
+      const step = verifyBinding(revocation, { sameAuthorEvents: [first] }).steps.find((s) => s.name === 'newest');
+      expect(step?.status).toBe('pass');
     }
   });
 });

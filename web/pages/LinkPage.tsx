@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { config } from '../../src/config';
-import { claimsOf, createBindingEvent, createRotationEvent, type BchClaim } from '../../src/core/binding';
+import { claimsOf, createBindingEvent, createRotationEvent, replacingCreatedAt, type BchClaim } from '../../src/core/binding';
 import { lookupByPubkey } from '../../src/core/discover';
 import type { Event } from '../../src/core/nostr';
 import { publishEvent, type RelayOutcome } from '../../src/core/publish';
@@ -59,8 +59,12 @@ export function LinkPage() {
     setBusy(true);
     setError('');
     try {
+      // The new event must be newer than the one it replaces, even within the same second.
+      const createdAt = replacingCreatedAt(previous);
       const template =
-        moving && previous && current ? createRotationEvent(previous, current, claim) : createBindingEvent({ claim, previous });
+        moving && previous && current
+          ? createRotationEvent(previous, current, claim, createdAt)
+          : createBindingEvent({ claim, previous, createdAt });
       const event = await nostr.sign(template);
       // The event found on relays before signing is the one this replaces; the new event must be newer.
       const checked = verifyBinding(event, { sameAuthorEvents: previous ? [previous] : [] });
