@@ -142,7 +142,12 @@ test('the owner previews the outputs and the fee, then the wallet signs and send
   const signed = parseExtended<{ transaction: TransactionCommon; sourceOutputs: (Input & Output)[] }>(requests[0]!.params);
   const bytes = signP2pkh(signed.transaction, signed.sourceOutputs, phraseKeys.bchPrivateKey);
   expect(shown).toBe(txidOf(bytes));
-  expect(commitmentFromTransaction(bytes, address)).toEqual(payload);
+  // The anchor commits to the binding this look-up verified. The e2e relay is shared by every spec and both browsers,
+  // so a newer binding by the same key may be the one shown; read its id from the page rather than the vector.
+  const card = page.locator('.result', { has: page.locator('.anchor .notice--ok') });
+  const verified = JSON.parse((await card.getByLabel(en.lookup.event, { exact: true }).textContent()) ?? '{}') as { id: string; pubkey: string };
+  expect(verified.pubkey).toBe(payload.pubkey);
+  expect(commitmentFromTransaction(bytes, address)).toEqual({ pubkey: payload.pubkey, eventId: verified.id });
 });
 
 test('in Malay at 320 px the anchor panel fits and reads in Malay', async ({ page }) => {
