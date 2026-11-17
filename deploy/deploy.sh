@@ -7,7 +7,9 @@
 # Chromium desktop and WebKit iPhone 13) against the public URL. A failed browser check rolls back.
 # Host values live in deploy/hos.env (not tracked; see deploy/hos.env.example). The container holds no keys.
 set -euo pipefail
-cd "$(dirname "$0")"
+# The script calls itself again to roll back, after moving into deploy/: keep a path that still works from there.
+SELF="$(realpath "$0")"
+cd "$(dirname "$SELF")"
 [ -r hos.env ] || { echo "deploy/hos.env missing (copy hos.env.example)"; exit 1; }
 # shellcheck disable=SC1091
 . ./hos.env
@@ -90,7 +92,7 @@ echo "tag $TAG · public /healthz $code"
 [ "$code" = 200 ] || { echo "public health is not 200: check the certificate and route; undo with deploy/deploy.sh --rollback"; exit 1; }
 
 if [ "$mode" = deploy ] && ! browser_check; then
-  if [ -r PREVIOUS_TAG ] && [ "$no_rollback" = 0 ]; then echo "browser check failed: rolling back"; exec "$0" --rollback; fi
+  if [ -r PREVIOUS_TAG ] && [ "$no_rollback" = 0 ]; then echo "browser check failed: rolling back"; exec "$SELF" --rollback; fi
   echo "browser check failed and there is no previous image to return to"; exit 1
 fi
 [ "$no_rollback" = 0 ] || { echo "live, but no rollback image is held (warning above)"; exit 1; }
