@@ -5,6 +5,7 @@
  * E2E_LIVE_REVOKED holds npubs and addresses of a binding that was revoked, the page must show no current link for each.
  */
 import { test as base } from '@playwright/test';
+import { npubEncode } from 'nostr-tools/nip19';
 import siteConfig from '../config/tambat.json' with { type: 'json' };
 import { en, expect, expectAccessible, expectNoOverflow, ms } from './fixtures.js';
 
@@ -111,4 +112,21 @@ test('the demo NIP-05 name is served and pays to its verified address from the r
   await page.getByRole('button', { name: en.pay.find, exact: true }).click();
   await expect(page.locator('.notice', { hasText: `${name}@${host}` })).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole('img', { name: en.pay.qr, exact: true })).toBeVisible();
+});
+
+test('the badge for the demo identity may be framed and verifies from the real relays; other pages may not', async ({ page, request }) => {
+  const key = Object.values(siteConfig.nip05.names as Record<string, string>)[0] ?? '';
+  const npub = npubEncode(key);
+  const frameAncestors = (csp: string | undefined) => (csp ?? '').split(';').map((d) => d.trim()).find((d) => d.startsWith('frame-ancestors'));
+  expect(frameAncestors((await request.get(`/embed/${npub}`)).headers()['content-security-policy'])).toBe(
+    `frame-ancestors ${siteConfig.embed.frameAncestors.join(' ')}`,
+  );
+  expect(frameAncestors((await request.get('/')).headers()['content-security-policy'])).toBe("frame-ancestors 'none'");
+  const script = await request.get('/embed.js');
+  expect(script.status()).toBe(200);
+  expect(await script.text()).toContain('data-tambat-id');
+
+  await page.goto(`/embed/${npub}?lang=ms`);
+  await expect(page.locator('.embed[data-state="verified"] .embed__state')).toHaveText(ms.embed.verified, { timeout: 20_000 });
+  await expect(page.locator('.embed__detail')).toContainText(npub.slice(0, 10));
 });
