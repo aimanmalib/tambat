@@ -41,7 +41,7 @@ Where each required part of the "Decentralized Identity" bounty lives:
 | Identity creation and management | `src/core/binding.ts` (create, revoke, rotate), `src/node/manage.ts`, `web/pages/LinkPage.tsx`, `web/pages/OwnerActions.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com; **Revoke this link** and **Move to a new address** on your own look-up result; [revocation measured](docs/MEASURED.md) |
 | Cryptographic identity binding | `src/core/binding.ts`, `src/core/bchmsg.ts`, `src/core/verify.ts` | [SPEC.md](docs/SPEC.md), [vectors](examples/vectors.json) |
 | Decentralized discovery | `src/core/discover.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** on the live site, [MEASURED.md](docs/MEASURED.md) |
-| Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `server/`, `bin/tambat.ts` | **Demo app** on the live site, [VERIFY.md](docs/VERIFY.md) |
+| Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `src/core/auth-bch.ts`, `server/`, `bin/tambat.ts` | **Demo app** on the live site: sign in with Nostr or with a BCH wallet only ([sign-in measured](docs/MEASURED.md)), [VERIFY.md](docs/VERIFY.md) |
 | Working demonstration and documentation | `web/`, `deploy/`, `examples/` | https://tambat.sasateguh.com, this README, [docs/](docs/) |
 
 ## Demo in 60 seconds
@@ -53,8 +53,10 @@ Where each required part of the "Decentralized Identity" bounty lives:
 3. **Look up**: paste the npub or the address. The browser asks the relays and verifies the result itself: the step list, the
    signed event and the DID document.
 4. **Pay**: an npub becomes a verified address, a BIP21 link and a QR code. Your own wallet sends the payment.
-5. **Demo app**: "Sign in with Nostr". The demo app's server checks a signed challenge, finds the binding on relays on its own,
-   and the session shows the verified BCH address.
+5. **Demo app**: "Sign in with Nostr", or "Sign in with a BCH wallet" (Paytaca over WalletConnect, or a signature pasted from
+   any wallet). The demo app's server checks the signed challenge, finds the binding on relays on its own, and the session shows
+   the npub and the verified BCH address. Signing in with the wallet alone works because the binding leads from the address
+   to the Nostr key.
 
 A binding made with a demo key is already on the public relays; its npub, address and event id are in
 [the measurements](docs/MEASURED.md). Try **Look up** with either.
@@ -155,7 +157,8 @@ What a verified binding proves: when the event was signed, whoever signed it hel
 | A relay serves an old event after a revocation | Look-up by address re-reads the author's newest event and drops the author when it no longer claims the address. |
 | A test-network address passed off as mainnet | `network` fails. |
 | One key used for both roles | `key_separation` fails, so a leak of one role's key is not a leak of both. |
-| A replayed or cross-site sign-in | Nonces are random, single-use, short-lived and bound to the origin; the NIP-98 event names the login URL and method. |
+| A replayed or cross-site sign-in | Nonces are random, single-use, short-lived and bound to the origin; the NIP-98 event names the login URL and method, and the BCH challenge text names the origin. |
+| Signing in with someone else's address | A BCH-only sign-in must recover to the key of the address before any relay is asked; the Nostr key then comes from the server's own look-up, and a missing or revoked link refuses the sign-in. |
 | A compromised demo server | It cannot change what a verifier sees: the browser, the CLI and any other client verify relay data themselves. It could lie in its own sessions only. |
 
 Not covered: a stolen key (the thief can publish a new binding; see known limits), a person who controls both keys on purpose
@@ -176,8 +179,9 @@ everyone out.
 ## Known limits and next steps
 
 - **Paytaca over WalletConnect** (`bch_signMessage`) has been used once with a real Paytaca wallet, recorded in
-  [the measurements](docs/MEASURED.md), but it is not covered by automated tests: they cannot drive a phone wallet. The paste
-  path and the signature format are tested.
+  [the measurements](docs/MEASURED.md). The app's WalletConnect calls are tested end to end against a fake wallet that answers
+  the way Paytaca does (`e2e/paytaca-login.spec.ts`), but the WalletConnect relay network and a real phone wallet are
+  not covered by automated tests. The paste path and the signature format are tested.
 - **Recovery**: a lost Nostr key cannot revoke or move its binding; a stolen one can. A future version could require a BCH
   signature over a revocation, or a time-locked handover.
 - **One address per Nostr key**, P2PKH only. Multisig and P2SH addresses cannot sign a message; CashTokens are not covered.
@@ -193,6 +197,7 @@ English by default with a Malay toggle; all text is in `lang/en.json` and `lang/
 
 - **Link** (`/`), **Look up** (`/lookup`), **Demo app** (`/demo`) and **Pay** (`/pay`) as in the demo above.
 - The demo app only talks to `/api/rp/*`; its server checks the signed challenge and reads the binding from relays on its own.
+  It offers two ways in: a Nostr key, or a BCH wallet alone (the server finds the Nostr key linked to the address).
 - When the connected Nostr key is the author of a look-up result, the result offers **Revoke this link** (with a confirm
   step) and **Move to a new address** (the Link page signs the new address and publishes one replacing event). A key whose
   newest event carries no BCH address shows "no current BCH link".

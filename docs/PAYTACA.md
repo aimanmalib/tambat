@@ -13,8 +13,9 @@ key). Any wallet with "Sign message" works the same way through the paste option
 
 This path has been used with a real Paytaca wallet: on 2026-11-17 a binding was signed with a Paytaca wallet over
 WalletConnect and published to public relays; [the measurements](MEASURED.md) give the event id, the address and the relays
-that return it. It is not covered by automated tests, because they cannot drive a phone wallet; the paste path and the
-signature format are.
+that return it. The app's WalletConnect calls (`bch_signMessage` with `{ message }`, a `bch:<cashaddr>` session account) are
+tested end to end against a fake wallet that answers the same way; the WalletConnect relay network and a real phone wallet are
+not covered by automated tests, because they cannot drive a phone. The paste path and the signature format are tested.
 
 ## Inside the wallet
 
@@ -71,6 +72,8 @@ Run it with the public test phrase: `npx tsx examples/paytaca-binding.ts | npx t
 - **Look-up before paying**: given an npub, fetch the newest kind `10011` event and show the address only when it verifies
   ([SPEC.md](SPEC.md) sections 5 and 6). The `bch:` tag is then a payment address the payer can trust as much as the npub.
 - **Sign-in**: a wallet that already signs NIP-98 events can answer a relying app's challenge ([SPEC.md](SPEC.md) section 7).
+  A wallet with only `bch_signMessage` can sign in too: it signs the challenge text, and the app finds the Nostr key linked to
+  the address on relays (the demo app's "Sign in with a BCH wallet").
 
 ## Notes for wallet authors
 

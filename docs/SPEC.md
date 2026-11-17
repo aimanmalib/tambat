@@ -130,6 +130,20 @@ The relying app's server proves that the visitor holds a Nostr key now, then rea
 5. The session cookie is `HttpOnly`, `SameSite=Strict` and `Secure` on https. The session holds the npub and, when verified, the
    address. The client never tells the server which address is bound.
 
+### Sign-in with a BCH key only
+
+A wallet that holds only the BCH key can sign in too; the binding leads from the address to the Nostr key.
+
+1. Get a challenge as in step 1. The wallet signs `bchText` exactly (WalletConnect `bch_signMessage` with `{"message": bchText}`,
+   or "Sign message" in any wallet).
+2. `POST /api/rp/login` with `{"type": "bch", "address": <cashaddr>, "signature": <base64>, "nonce": <nonce>}`.
+3. The server checks, in order: the three fields are present; the address is P2PKH on the configured network; the signature
+   over `Sign in to <request origin> with challenge <nonce>` recovers to the key of the address. No relay is asked before this
+   point. Then the nonce is consumed and must be unexpired and issued to the same origin.
+4. The server looks up the address with section 6 (address to npub, each match re-checked against its author's newest event).
+   No verified binding, or a revoked one, refuses the sign-in with `no_binding`. With several, the newest binding wins. The
+   session holds that npub and the address, and records the method `bch`.
+
 Limits (time to live, clock skew, allowed origins, cookie name) are in `config/tambat.json`.
 
 ## 8. DID document
