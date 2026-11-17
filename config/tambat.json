@@ -16,6 +16,12 @@
     "keysFile": "state/demo-keys.json",
     "addressSearchLimit": 20
   },
+  "nip05": {
+    "timeoutMs": 4000,
+    "names": {
+      "demo": "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4"
+    }
+  },
   "auth": {
     "challengeTtlSeconds": 120,
     "sessionTtlSeconds": 3600,

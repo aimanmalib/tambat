@@ -19,6 +19,12 @@ export interface TambatConfig {
     /** How many receiving addresses of the phrase `rotate` searches for the new address. */
     addressSearchLimit: number;
   };
+  nip05: {
+    /** How long a name lookup waits for the domain's /.well-known/nostr.json. */
+    timeoutMs: number;
+    /** The names this site answers for at /.well-known/nostr.json: name to hex public key. Only the demo identity. */
+    names: Record<string, string>;
+  };
   auth: {
     challengeTtlSeconds: number;
     sessionTtlSeconds: number;
@@ -98,6 +104,12 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.nostr.publishTimeoutMs, 'nostr.publishTimeoutMs');
   if (typeof c.cli?.keysFile !== 'string' || c.cli.keysFile === '') fail('cli.keysFile', 'must be a non-empty string');
   positiveInt(c.cli.addressSearchLimit, 'cli.addressSearchLimit');
+  positiveInt(c.nip05?.timeoutMs, 'nip05.timeoutMs');
+  if (!c.nip05.names || typeof c.nip05.names !== 'object') fail('nip05.names', 'must be an object');
+  for (const [name, key] of Object.entries(c.nip05.names)) {
+    if (!/^[a-z0-9._-]+$/.test(name)) fail(`nip05.names.${name}`, 'name must use a-z, 0-9 and ._- only (NIP-05)');
+    if (typeof key !== 'string' || !/^[0-9a-f]{64}$/.test(key)) fail(`nip05.names.${name}`, 'must be a 64-character lowercase hex key');
+  }
   positiveInt(c.auth?.challengeTtlSeconds, 'auth.challengeTtlSeconds');
   positiveInt(c.auth.sessionTtlSeconds, 'auth.sessionTtlSeconds');
   positiveInt(c.auth.clockSkewSeconds, 'auth.clockSkewSeconds');

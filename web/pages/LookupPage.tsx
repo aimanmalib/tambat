@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { didDocument } from '../../src/core/did';
-import { lookupInput } from '../../src/core/discover';
 import { hasNoCurrentLink, type BindingResult } from '../../src/core/verify';
+import { findIdentity, type Found } from '../find';
 import { useText } from '../i18n';
 import { navigate, queryParam } from '../router';
 import { BindingSummary } from '../ui/BindingSummary';
@@ -11,7 +11,7 @@ import { OwnerActions } from './OwnerActions';
 
 const VERIFIER_PATH = '/verify/';
 
-type State = { kind: 'idle' } | { kind: 'busy' } | { kind: 'done'; results: BindingResult[] } | { kind: 'error'; message: string };
+type State = { kind: 'idle' } | { kind: 'busy' } | ({ kind: 'done' } & Found) | { kind: 'error'; message: string };
 
 function Result({ result, onChanged }: { result: BindingResult; onChanged: () => void }) {
   const { t, lang } = useText();
@@ -45,8 +45,8 @@ export function LookupPage() {
   const [state, setState] = useState<State>(() => (queryParam('q') ? { kind: 'busy' } : { kind: 'idle' }));
 
   const settle = (value: string): Promise<State> =>
-    lookupInput(value.trim()).then(
-      (results): State => (results === 'bad_input' ? { kind: 'error', message: t('lookup.inputError') } : { kind: 'done', results }),
+    findIdentity(value).then(
+      (found): State => (found === 'bad_input' ? { kind: 'error', message: t('lookup.inputError') } : { kind: 'done', ...found }),
       (e: unknown): State => ({ kind: 'error', message: errorText(e, t) }),
     );
   const run = (value: string) => {
@@ -86,6 +86,7 @@ export function LookupPage() {
       </form>
       {state.kind === 'busy' ? <Notice>{t('lookup.searching')}</Notice> : null}
       {state.kind === 'error' ? <Notice tone="error">{state.message}</Notice> : null}
+      {state.kind === 'done' && state.via ? <Notice>{t('nip05.points', state.via)}</Notice> : null}
       {state.kind === 'done' && state.results.length === 0 ? <Notice>{t('lookup.none')}</Notice> : null}
       {state.kind === 'done' ? state.results.map((r) => <Result key={r.eventId} result={r} onChanged={() => run(input)} />) : null}
     </section>

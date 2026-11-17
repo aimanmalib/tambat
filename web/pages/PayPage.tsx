@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { lookupByPubkey } from '../../src/core/discover';
+import { parseNip05 } from '../../src/core/nip05';
 import { parsePubkey } from '../../src/core/nostr';
 import { amountProblem, paymentUri } from '../../src/core/pay';
+import { findIdentity } from '../find';
 import { useText } from '../i18n';
 import { queryParam } from '../router';
 import { CopyValue } from '../ui/Copy';
@@ -10,6 +11,8 @@ import { Notice } from '../ui/Notice';
 import { Qr } from '../ui/Qr';
 
 type Found = { address: string; npub: string } | 'none' | null;
+type Via = { name: string; npub: string } | null;
+type Resolved = { found: Found; error: string; via: Via };
 
 /** Pay to an identity: the address comes from a binding verified here; the user's wallet sends the payment. */
 export function PayPage() {
@@ -19,26 +22,31 @@ export function PayPage() {
   const [amount, setAmount] = useState('');
   const [busy, setBusy] = useState(() => queryParam('npub') !== '');
   const [error, setError] = useState('');
+  const [via, setVia] = useState<Via>(null);
 
-  const resolve = async (value: string): Promise<{ found: Found; error: string }> => {
-    const key = parsePubkey(value);
-    if ('error' in key) return { found: null, error: t('lookup.inputError') };
+  const resolve = async (value: string): Promise<Resolved> => {
+    // Pay takes a person (key or name), not an address: an address is already where the money goes.
+    if (!parseNip05(value) && 'error' in parsePubkey(value)) return { found: null, error: t('pay.inputError'), via: null };
     try {
-      const r = await lookupByPubkey(key.hex);
-      const claim = r?.ok ? r.claims.find((c) => c.ok) : undefined;
-      return { found: claim && r ? { address: claim.address, npub: r.npub } : 'none', error: '' };
+      const r = await findIdentity(value);
+      if (r === 'bad_input') return { found: null, error: t('pay.inputError'), via: null };
+      const binding = r.results[0];
+      const claim = binding?.ok ? binding.claims.find((c) => c.ok) : undefined;
+      return { found: claim && binding ? { address: claim.address, npub: binding.npub } : 'none', error: '', via: r.via ?? null };
     } catch (e) {
-      return { found: null, error: errorText(e, t) };
+      return { found: null, error: errorText(e, t), via: null };
     }
   };
-  const apply = (r: { found: Found; error: string }) => {
+  const apply = (r: Resolved) => {
     setFound(r.found);
+    setVia(r.via);
     setError(r.error);
     setBusy(false);
   };
   const find = (value: string) => {
     setBusy(true);
     setFound(null);
+    setVia(null);
     setError('');
     void resolve(value).then(apply);
   };
@@ -66,6 +74,7 @@ export function PayPage() {
       </form>
       {busy ? <Notice>{t('lookup.searching')}</Notice> : null}
       {error ? <Notice tone="error">{error}</Notice> : null}
+      {via ? <Notice>{t('nip05.points', via)}</Notice> : null}
       {found === 'none' ? <Notice>{t('pay.none')}</Notice> : null}
       {found && found !== 'none' ? (
         <div className="stack">

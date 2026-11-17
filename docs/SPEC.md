@@ -112,7 +112,13 @@ Relays are untrusted stores. A verifier asks several and checks everything it re
   a relay still serves after a revocation therefore does not count.
 - A relay that errors or does not answer within the timeout contributes nothing; the look-up continues with the others.
 
-Reference: `lookupByPubkey` and `lookupByAddress` in `src/core/discover.ts`.
+- **From a NIP-05 name** (`name@domain`): `GET https://<domain>/.well-known/nostr.json?name=<name>` with redirects refused, as
+  NIP-05 requires. The answer must have a `names` object that lists the lower-case name with a 64-character hex key; anything
+  else stops the look-up with a reason (`unreachable`, `bad_answer`, `unknown_name`, `bad_key`). The key then goes through the
+  npub look-up above. The domain only points to a key: it cannot make a binding verify for a key that did not sign one, and
+  the result shows which npub the name led to.
+
+Reference: `lookupByPubkey` and `lookupByAddress` in `src/core/discover.ts`, `lookupByNip05` in `src/core/nip05.ts`.
 
 ## 7. Sign-in for a relying app
 
@@ -155,7 +161,7 @@ document is rebuilt from relays on every request; anyone can rebuild it with the
 
 ## 9. Payment to an identity
 
-An npub is looked up with section 6; only a verified address is offered. The payment request is a BIP21 URI
+An npub or a NIP-05 name is looked up with section 6; only a verified address is offered. The payment request is a BIP21 URI
 (`bitcoincash:<address>?amount=<BCH>&label=...`) and its QR code. The payer's wallet builds and sends the transaction.
 
 ## 10. Test vectors

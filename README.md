@@ -40,7 +40,7 @@ Where each required part of the "Decentralized Identity" bounty lives:
 | --- | --- | --- |
 | Identity creation and management | `src/core/binding.ts` (create, revoke, rotate), `src/node/manage.ts`, `web/pages/LinkPage.tsx`, `web/pages/OwnerActions.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com; **Revoke this link** and **Move to a new address** on your own look-up result; [revocation measured](docs/MEASURED.md) |
 | Cryptographic identity binding | `src/core/binding.ts`, `src/core/bchmsg.ts`, `src/core/verify.ts` | [SPEC.md](docs/SPEC.md), [vectors](examples/vectors.json) |
-| Decentralized discovery | `src/core/discover.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** on the live site, the [one-file verifier](#one-file-verifier) at https://tambat.sasateguh.com/verify/, [MEASURED.md](docs/MEASURED.md) |
+| Decentralized discovery | `src/core/discover.ts`, `src/core/nip05.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** or **Pay** on the live site by npub, address or NIP-05 name (`demo@tambat.sasateguh.com`), the [one-file verifier](#one-file-verifier) at https://tambat.sasateguh.com/verify/, [MEASURED.md](docs/MEASURED.md) |
 | Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `src/core/auth-bch.ts`, `server/`, `bin/tambat.ts`, `verifier/` | **Demo app** on the live site: sign in with Nostr or with a BCH wallet only ([sign-in measured](docs/MEASURED.md)), [VERIFY.md](docs/VERIFY.md) |
 | Working demonstration and documentation | `web/`, `deploy/`, `examples/` | https://tambat.sasateguh.com, this README, [docs/](docs/) |
 
@@ -50,9 +50,9 @@ Where each required part of the "Decentralized Identity" bounty lives:
    demo key"), then a BCH key (Paytaca over WalletConnect, a signature pasted from any wallet with "Sign message", or a demo key).
 2. Sign. The page runs every verification step on the event before you publish, then publishes to three public relays and shows
    which ones accepted it.
-3. **Look up**: paste the npub or the address. The browser asks the relays and verifies the result itself: the step list, the
+3. **Look up**: paste the npub, the address or a NIP-05 name such as `demo@tambat.sasateguh.com`. The browser asks the relays and verifies the result itself: the step list, the
    signed event and the DID document.
-4. **Pay**: an npub becomes a verified address, a BIP21 link and a QR code. Your own wallet sends the payment.
+4. **Pay**: an npub or a NIP-05 name becomes a verified address, a BIP21 link and a QR code. Your own wallet sends the payment.
 5. **Demo app**: "Sign in with Nostr", or "Sign in with a BCH wallet" (Paytaca over WalletConnect, or a signature pasted from
    any wallet). The demo app's server checks the signed challenge, finds the binding on relays on its own, and the session shows
    the npub and the verified BCH address. Signing in with the wallet alone works because the binding leads from the address
@@ -140,6 +140,8 @@ Serves the built web app when `dist/` exists (`npm run build`) and:
 - `POST /api/rp/challenge`, `POST /api/rp/login`, `GET /api/rp/session`, `POST /api/rp/logout`: challenge and response sign-in
   with a NIP-98 event. The server finds the user's binding on relays itself and puts the verified BCH address in the session.
 - `GET /api/did/<npub>`: a `did:nostr` document with the verified BCH address as a CAIP-10 account.
+- `GET /.well-known/nostr.json?name=<name>`: NIP-05 for the one demo name in `config/tambat.json` (`nip05.names`), readable
+  from any origin. Other names get an empty list; the site is not a name service.
 - `GET /healthz`.
 
 Limits, origins, relays and the Content-Security-Policy are in `config/tambat.json`.
@@ -155,6 +157,7 @@ What a verified binding proves: when the event was signed, whoever signed it hel
 | A relay edits or forges an event | `event_id` and `nostr_sig` fail. |
 | A relay hides the newest event (for example a revocation) | Ask several relays; `newest` uses every result. A relay can only withhold, not forge, so one honest relay is enough. |
 | A relay serves an old event after a revocation | Look-up by address re-reads the author's newest event and drops the author when it no longer claims the address. |
+| A NIP-05 domain points a name at someone else's key | The name only leads to a key. The address still comes from that key's own signed binding, the page shows which npub the name led to, and redirects are refused. |
 | A test-network address passed off as mainnet | `network` fails. |
 | One key used for both roles | `key_separation` fails, so a leak of one role's key is not a leak of both. |
 | A replayed or cross-site sign-in | Nonces are random, single-use, short-lived and bound to the origin; the NIP-98 event names the login URL and method, and the BCH challenge text names the origin. |
@@ -176,7 +179,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-da47079275eb3c69a6c2fd013a80ae7a327b368b24f7f8dfcbbe6fc0007ae066  tambat-verify.html
+6a3b5c54cc8b800bccac1bbf6395eb0d9596cb21bebb397287170cf2e25e8076  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -210,6 +213,9 @@ request that is not the file itself.
   person is.
 - **Privacy**: a binding is public by design and links a payment address to a social identity. Users who want unlinkable
   payments should bind a separate address.
+- **NIP-05 names** depend on the domain that serves them: if it is down, or does not let browsers read its file, a name
+  cannot be looked up (the npub still can). The one-file verifier takes npubs and addresses only, since it talks to relays
+  and nothing else.
 - **Single sign-in instance**: nonces and sessions live in memory, so more than one server process needs a shared store.
 
 ## Web app
@@ -222,6 +228,8 @@ English by default with a Malay toggle; all text is in `lang/en.json` and `lang/
 - When the connected Nostr key is the author of a look-up result, the result offers **Revoke this link** (with a confirm
   step) and **Move to a new address** (the Link page signs the new address and publishes one replacing event). A key whose
   newest event carries no BCH address shows "no current BCH link".
+- **Look up** and **Pay** also take a NIP-05 name (`name@domain`): the browser asks the domain for the key, then verifies
+  that key's binding on the relays and says which npub the name led to.
 - Demo keys live in memory for the open tab only.
 - **Verify** (`/verify/`) is the [one-file verifier](#one-file-verifier), linked from Look up with a download link.
 

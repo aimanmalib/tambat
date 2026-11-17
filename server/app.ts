@@ -12,6 +12,7 @@ import { bchAnswerValid, ChallengeStore, LOGIN_METHOD, LOGIN_PATH, bchChallengeT
 import { isBchLogin, verifyBchLogin } from '../src/core/auth-bch.js';
 import { didDocument } from '../src/core/did.js';
 import { lookupByAddress, lookupByPubkey, type QueryFn } from '../src/core/discover.js';
+import { servedNames } from '../src/core/nip05.js';
 import { parsePubkey, toNpub } from '../src/core/nostr.js';
 import { nodeRelayQuery } from '../src/node/relay.js';
 import { SessionStore, type Session } from './sessions.js';
@@ -107,6 +108,12 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
   }
 
   app.get('/healthz', async () => ({ ok: true }));
+
+  // NIP-05 for the demo identity only (config nip05.names); any page may read it, as NIP-05 clients run in browsers.
+  app.get<{ Querystring: { name?: unknown } }>('/.well-known/nostr.json', async (req, reply) => {
+    void reply.header('access-control-allow-origin', '*');
+    return servedNames(req.query.name);
+  });
 
   app.post('/api/rp/challenge', async (req, reply) => {
     const origin = allowedOrigin(req, reply);

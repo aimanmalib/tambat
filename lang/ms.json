@@ -94,12 +94,12 @@
   },
   "lookup": {
     "title": "Cari identiti",
-    "help": "Masukkan npub atau alamat BCH. Pelayar anda bertanya relay terus dan menyemak setiap hasil sendiri.",
-    "label": "npub atau alamat BCH",
+    "help": "Masukkan npub, alamat BCH atau nama seperti ali@contoh.com. Pelayar anda bertanya relay secara terus dan menyemak setiap hasil sendiri.",
+    "label": "npub, alamat BCH atau nama@domain",
     "submit": "Cari",
     "searching": "Sedang bertanya relay",
     "none": "Tiada ikatan ditemui di relay.",
-    "inputError": "Masukkan npub, kunci hex 64 aksara atau alamat BCH dengan awalannya.",
+    "inputError": "Masukkan npub, kunci heks 64 aksara, alamat BCH dengan awalannya atau nama seperti ali@contoh.com.",
     "verified": "Disahkan",
     "failed": "Tidak disahkan",
     "nostrKey": "Kunci Nostr",
@@ -165,8 +165,8 @@
   },
   "pay": {
     "title": "Bayar identiti",
-    "help": "Masukkan npub. Alamat datang dari ikatan yang pelayar anda sahkan, dan dompet anda sendiri yang menghantar bayaran.",
-    "label": "npub",
+    "help": "Masukkan npub atau nama seperti ali@contoh.com. Alamat datang daripada ikatan yang disahkan oleh pelayar anda, dan dompet anda sendiri menghantar bayaran.",
+    "label": "npub atau nama@domain",
     "find": "Cari alamat",
     "amount": "Amaun dalam BCH (pilihan)",
     "none": "Kunci ini tiada alamat BCH disahkan.",
@@ -174,7 +174,8 @@
     "open": "Buka dalam dompet",
     "qr": "Kod QR bayaran",
     "amountFormat": "Masukkan amaun dalam BCH dengan paling banyak 8 tempat perpuluhan, contohnya 0.001.",
-    "amountZero": "Amaun mesti lebih daripada sifar."
+    "amountZero": "Amaun mesti lebih daripada sifar.",
+    "inputError": "Masukkan npub, kunci heks 64 aksara atau nama seperti ali@contoh.com."
   },
   "footer": {
     "built": "Dibina untuk BCH BLAZE 2026.",
@@ -239,5 +240,12 @@
     "download": "Muat turun pengesah satu fail",
     "downloadHelp": "Semak ikatan tanpa laman ini: satu fail HTML yang hanya berhubung dengan relay.",
     "open": "Buka"
+  },
+  "nip05": {
+    "points": "{name} menunjuk kepada {npub}. Alamat BCH yang dipaparkan di sini datang daripada ikatan yang ditandatangani oleh kunci itu sendiri.",
+    "unreachable": "{name} tidak dapat disemak: domain tidak menjawab, atau ia tidak membenarkan pelayar membaca fail NIP-05nya.",
+    "bad_answer": "{name} tidak dapat disemak: domain menjawab tanpa senarai nama.",
+    "unknown_name": "Domain itu tidak menyenaraikan nama {name}.",
+    "bad_key": "Domain itu menyenaraikan {name} dengan kunci yang tidak sah."
   }
 }

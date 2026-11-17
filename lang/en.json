@@ -94,12 +94,12 @@
   },
   "lookup": {
     "title": "Look up an identity",
-    "help": "Enter an npub or a BCH address. Your browser asks the relays directly and checks every result itself.",
-    "label": "npub or BCH address",
+    "help": "Enter an npub, a BCH address or a name like alice@example.com. Your browser asks the relays directly and checks every result itself.",
+    "label": "npub, BCH address or name@domain",
     "submit": "Look up",
     "searching": "Asking relays",
     "none": "No binding was found on the relays.",
-    "inputError": "Enter an npub, a 64-character hex key or a BCH address with its prefix.",
+    "inputError": "Enter an npub, a 64-character hex key, a BCH address with its prefix or a name like alice@example.com.",
     "verified": "Verified",
     "failed": "Not verified",
     "nostrKey": "Nostr key",
@@ -165,8 +165,8 @@
   },
   "pay": {
     "title": "Pay an identity",
-    "help": "Enter an npub. The address comes from a binding your browser verifies, and your own wallet sends the payment.",
-    "label": "npub",
+    "help": "Enter an npub or a name like alice@example.com. The address comes from a binding your browser verifies, and your own wallet sends the payment.",
+    "label": "npub or name@domain",
     "find": "Find address",
     "amount": "Amount in BCH (optional)",
     "none": "This key has no verified BCH address.",
@@ -174,7 +174,8 @@
     "open": "Open in wallet",
     "qr": "Payment QR code",
     "amountFormat": "Enter the amount in BCH with at most 8 decimals, for example 0.001.",
-    "amountZero": "The amount must be more than zero."
+    "amountZero": "The amount must be more than zero.",
+    "inputError": "Enter an npub, a 64-character hex key or a name like alice@example.com."
   },
   "footer": {
     "built": "Built for BCH BLAZE 2026.",
@@ -239,5 +240,12 @@
     "download": "Download the one-file verifier",
     "downloadHelp": "Check bindings without this site: one HTML file that talks only to relays.",
     "open": "Open it"
+  },
+  "nip05": {
+    "points": "{name} points to {npub}. Any BCH address shown here comes from that key's own signed binding.",
+    "unreachable": "{name} could not be checked: the domain did not answer, or it does not let browsers read its NIP-05 file.",
+    "bad_answer": "{name} could not be checked: the domain answered without a list of names.",
+    "unknown_name": "The domain does not list the name {name}.",
+    "bad_key": "The domain lists {name} with a key that is not valid."
   }
 }
