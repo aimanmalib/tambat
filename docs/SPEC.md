@@ -60,7 +60,7 @@ A NIP-39 identity event:
 - The claim is an `i` tag whose second element starts with `bch:` followed by the full CashAddr with its prefix. The third
   element is the BCH signature from section 3 over the text from section 2.
 - Only P2PKH addresses can be bound: a signed message proves control of one public key. P2SH and token-aware address types
-  must be rejected.
+  must be rejected, and so must a type `0` CashAddr whose hash is not 20 bytes (the CashAddr format allows longer hashes).
 - Kind `10011` is replaceable: relays keep the newest event of each author. A writer must keep the author's other `i` tags (for
   example `github:`) and should replace an earlier `bch:` tag, so one Nostr key claims one address and a look-up by npub has one
   answer. Reference: `createBindingEvent` in `src/core/binding.ts`.
@@ -183,3 +183,8 @@ All keys come from the public BIP39 phrase
 The full event is [examples/binding-event.json](../examples/binding-event.json); every value is in
 [examples/vectors.json](../examples/vectors.json), which `scripts/make-vectors.ts` regenerates. The BCH signature is
 deterministic (RFC 6979); BIP-340 signatures use random auxiliary data, so `sig` differs on every signing while `id` does not.
+
+Third-party vectors, copied as data with a source pinned to a commit and a license, are in
+[examples/third-party-vectors.json](../examples/third-party-vectors.json): the BIP-340 test vectors, the CashAddr specification
+examples and the Electron Cash signed-message tests. `tests/third-party-vectors.test.ts` runs every one through `src/core/`. The
+`bch` platform is also written up as a NIP-39 extension draft in [NIP-39-bch.md](NIP-39-bch.md).

@@ -9,6 +9,7 @@ Live demo: https://tambat.sasateguh.com
 
 - [Protocol specification](docs/SPEC.md): the protocol, the verification algorithm, sign-in and test vectors.
 - [Verify it yourself](docs/VERIFY.md): check a binding with the command line or by hand.
+- [NIP-39 `bch` platform draft](docs/NIP-39-bch.md): the claim format written up as a NIP-39 extension.
 - [Wallet guide for Paytaca](docs/PAYTACA.md): how a wallet that holds a BIP39 phrase publishes a binding.
 - [Measurements](docs/MEASURED.md): what was measured on real relays and the live site, failures included.
 - [docs/decisions/](docs/decisions/): why each choice was made.

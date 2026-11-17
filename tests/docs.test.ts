@@ -39,8 +39,20 @@ describe('docs', () => {
     }
   });
 
+  it('the NIP-39 draft gives the claim format, the exact text, every step and the example vector', () => {
+    const nip = read('docs/NIP-39-bch.md');
+    expect(nip).toContain('["i", "bch:<cashaddr>", "<proof>"]');
+    expect(nip).toContain('Verifying that I control the following Nostr public key: <npub>');
+    for (const step of ['event_id', 'nostr_sig', 'newest', 'bch_sig', 'address_match', 'network', 'key_separation']) {
+      expect(nip).toContain(`\`${step}\``);
+    }
+    for (const value of [vectors.bch.address.bitcoincash, vectors.bchSignature, vectors.nostr.npub]) expect(nip).toContain(value);
+    expect(nip).toContain('examples/third-party-vectors.json');
+    for (const doc of ['docs/SPEC.md', 'docs/VERIFY.md']) expect(read(doc)).toContain('NIP-39-bch.md');
+  });
+
   it('README and the docs link files that exist', () => {
-    for (const doc of ['README.md', 'docs/SPEC.md', 'docs/VERIFY.md', 'docs/PAYTACA.md']) {
+    for (const doc of ['README.md', 'docs/SPEC.md', 'docs/VERIFY.md', 'docs/PAYTACA.md', 'docs/NIP-39-bch.md']) {
       for (const [, target] of read(doc).matchAll(/\]\(((?:\.\.\/|[A-Za-z])[^)#:]*)(?:#[^)]*)?\)/g)) {
         expect(existsSync(new URL(target ?? '', new URL(`../${doc}`, import.meta.url))), `${doc} -> ${target}`).toBe(true);
       }

@@ -94,6 +94,13 @@ address over the text for this author.
 - The BCH key is not the Nostr key. A wallet message verifier does not show the recovered key; `tambat verify --json` prints it
   as `bchPublicKey`. Its 32 bytes after the first byte must differ from the event `pubkey`.
 
+## Check the checker
+
+The reference code that all three ways rely on is tested against vectors from outside this project: the BIP-340 test vectors,
+the CashAddr specification examples and the Electron Cash signed-message tests, each pinned to a commit in
+[examples/third-party-vectors.json](../examples/third-party-vectors.json). Run them with
+`npx vitest run tests/third-party-vectors.test.ts`. The claim format is written up as [NIP-39-bch.md](NIP-39-bch.md).
+
 ## What a pass means
 
 A verified binding proves that, when the event was signed, one person held the private key of the address and the private key
