@@ -269,5 +269,18 @@
     "unreachable": "Tiada relay menjawab. Dinding tidak dapat disemak.",
     "open": "Semak dalam Cari",
     "hidden": "Disorok: {count} gagal pengesahan"
+  },
+  "tamper": {
+    "title": "Cuba ubah suai",
+    "help": "Ubah satu medan dalam salinan event ini di pelayar anda dan semak semula. Tiada apa-apa diterbitkan, dan event sebenar tidak berubah.",
+    "choose": "Medan untuk diubah",
+    "field": {
+      "content": "Kandungan",
+      "tag": "Alamat BCH dalam tag i",
+      "sig": "Tandatangan Nostr"
+    },
+    "try": "Cuba ubah suai",
+    "caught": "Tidak disahkan. Gagal: {steps}",
+    "reset": "Set semula"
   }
 }

@@ -52,6 +52,8 @@ Where each required part of the "Decentralized Identity" bounty lives:
    which ones accepted it.
 3. **Look up**: paste the npub, the address or a NIP-05 name such as `demo@tambat.sasateguh.com`. The browser asks the relays and verifies the result itself: the step list, the
    signed event and the DID document.
+   **Try tampering** on a verified result edits one field of a local copy (content, the BCH address in the `i` tag, or the Nostr
+   signature) and checks it again, showing which named steps catch the edit (`src/core/tamper.ts`). Nothing is published.
 4. **Pay**: an npub or a NIP-05 name becomes a verified address, a BIP21 link and a QR code. Your own wallet sends the payment.
 5. **Demo app**: "Sign in with Nostr", or "Sign in with a BCH wallet" (Paytaca over WalletConnect, or a signature pasted from
    any wallet). The demo app's server checks the signed challenge, finds the binding on relays on its own, and the session shows
@@ -180,7 +182,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-92a299ff933dc23c29ba3a4e213093b520dfa31a2ee8137114f82b2e4fa424d0  tambat-verify.html
+d8773194c3db654ff26285016348d00f9439afa5df737e48eca92ae59068943b  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;

@@ -269,5 +269,18 @@
     "unreachable": "No relay answered. The wall could not be checked.",
     "open": "Check in Look up",
     "hidden": "Hidden: {count} failed verification"
+  },
+  "tamper": {
+    "title": "Try tampering",
+    "help": "Change one field of a copy of this event in your browser and check it again. Nothing is published, and the real event is unchanged.",
+    "choose": "Field to change",
+    "field": {
+      "content": "Content",
+      "tag": "BCH address in the i tag",
+      "sig": "Nostr signature"
+    },
+    "try": "Try tampering",
+    "caught": "Not verified. Failed: {steps}",
+    "reset": "Reset"
   }
 }

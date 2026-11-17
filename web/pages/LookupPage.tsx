@@ -7,6 +7,7 @@ import { navigate, queryParam } from '../router';
 import { BindingSummary } from '../ui/BindingSummary';
 import { errorText } from '../../src/errors';
 import { Notice } from '../ui/Notice';
+import { Tamper } from '../ui/Tamper';
 import { OwnerActions } from './OwnerActions';
 
 const VERIFIER_PATH = '/verify/';
@@ -26,6 +27,7 @@ function Result({ result, onChanged }: { result: BindingResult; onChanged: () =>
       {result.ok ? (
         <button type="button" className="btn" onClick={() => navigate('/pay', `?npub=${result.npub}`)}>{t('lookup.pay')}</button>
       ) : null}
+      {result.ok ? <Tamper result={result} /> : null}
       <details className="more">
         <summary>{t('lookup.event')}</summary>
         <pre className="json" tabIndex={0} aria-label={t('lookup.event')}>{JSON.stringify(result.event, null, 2)}</pre>
