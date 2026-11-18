@@ -120,8 +120,8 @@ A binding made with a demo key is already on the public relays; its npub, addres
 Private keys stay in the wallet, the signer or the open browser tab. The server never receives a key and never tells a client
 which address is bound: every reader checks the event itself.
 
-Receipts and the optional anchor also read BCH transactions from public Fulcrum servers (`anchor.electrum` in
-`config/tambat.json`). That access is read-only: the server and the web app never broadcast a transaction; a wallet does.
+Payment receipts also read BCH transactions from public Fulcrum servers listed in `config/tambat.json`. That access is
+read-only: the server and the web app never broadcast a transaction; a wallet does.
 
 ## How verification works
 
