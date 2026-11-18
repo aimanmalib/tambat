@@ -46,7 +46,13 @@
       "bch_getAddresses",
       "bch_signMessage",
       "bch_signTransaction"
-    ]
+    ],
+    "errorCodes": {
+      "rejected": [5000, 5002, 4001],
+      "unsupported": [5100, 5101, 5103, 10001, -32601],
+      "sessionEnded": [6000, 6]
+    },
+    "errorDetailMaxChars": 200
   },
   "site": {
     "publicUrl": "https://tambat.sasateguh.com",

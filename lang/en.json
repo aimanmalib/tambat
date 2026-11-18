@@ -221,6 +221,13 @@
       "no_binding": "No Nostr identity is linked to this address on the relays. Link one first, or check that the link was not revoked.",
       "input": "Fill in the address, the signature and the challenge.",
       "address": "That is not a P2PKH BCH address on this network."
+    },
+    "wallet": {
+      "rejected": "You declined the request in your wallet. Nothing was signed.",
+      "unsupported": "Your wallet does not support this request. Try another BCH wallet that speaks WalletConnect.",
+      "sessionEnded": "The wallet connection has ended. Connect your wallet again and retry.",
+      "other": "The wallet refused: {message} (code {code}).",
+      "otherCode": "The wallet refused with code {code} and gave no reason."
     }
   },
   "owner": {

@@ -61,6 +61,10 @@ export interface TambatConfig {
     projectId: string;
     chains: Record<Network, string>;
     methods: string[];
+    /** Wallet error codes by name; `errors.wallet.<name>` in lang/ is the text shown for any code in the list. */
+    errorCodes: Record<string, number[]>;
+    /** The longest raw detail of an unknown wallet error shown inside the generic error sentence. */
+    errorDetailMaxChars: number;
   };
   site: {
     publicUrl: string;
@@ -241,6 +245,8 @@ export function parseConfig(input: unknown): TambatConfig {
     if (typeof c.walletConnect.chains?.[n] !== 'string') fail(`walletConnect.chains.${n}`, 'must be a string');
   }
   nonEmptyStrings(c.walletConnect.methods, 'walletConnect.methods');
+  parseWalletErrorCodes(c.walletConnect.errorCodes);
+  positiveInt(c.walletConnect.errorDetailMaxChars, 'walletConnect.errorDetailMaxChars');
   for (const n of NETWORKS) {
     if (!/^bip122:[0-9a-f]{32}$/.test(c.did?.chains?.[n] ?? '')) fail(`did.chains.${n}`, 'must be a CAIP-2 bip122 chain id');
   }
@@ -273,6 +279,21 @@ export function parseConfig(input: unknown): TambatConfig {
   parseAttest(c.attest, c.receipt);
   parseJudges(c.judges);
   return c;
+}
+
+/** Each name maps to a non-empty list of integer codes, and no code appears under two names. */
+function parseWalletErrorCodes(codes: unknown): void {
+  if (!codes || typeof codes !== 'object' || Array.isArray(codes)) fail('walletConnect.errorCodes', 'must be an object of name to codes');
+  const seen = new Set<number>();
+  for (const [name, list] of Object.entries(codes as Record<string, unknown>)) {
+    if (!/^[a-zA-Z]+$/.test(name)) fail(`walletConnect.errorCodes.${name}`, 'name must use letters only');
+    if (!Array.isArray(list) || list.length === 0) fail(`walletConnect.errorCodes.${name}`, 'must be a non-empty list of integers');
+    for (const code of list as unknown[]) {
+      if (!Number.isInteger(code)) fail(`walletConnect.errorCodes.${name}`, 'must hold integers only');
+      if (seen.has(code as number)) fail(`walletConnect.errorCodes.${name}`, `code ${String(code)} is listed twice`);
+      seen.add(code as number);
+    }
+  }
 }
 
 export const config: TambatConfig = parseConfig(raw);

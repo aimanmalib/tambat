@@ -221,6 +221,13 @@
       "no_binding": "Tiada identiti Nostr diikat pada alamat ini di relay. Ikat dahulu, atau pastikan ikatan itu tidak dibatalkan.",
       "input": "Isi alamat, tandatangan dan cabaran.",
       "address": "Itu bukan alamat BCH P2PKH pada rangkaian ini."
+    },
+    "wallet": {
+      "rejected": "Anda menolak permintaan ini dalam dompet. Tiada apa-apa ditandatangani.",
+      "unsupported": "Dompet anda tidak menyokong permintaan ini. Cuba dompet BCH lain yang boleh berhubung melalui WalletConnect.",
+      "sessionEnded": "Sambungan dompet sudah tamat. Sambungkan dompet anda semula dan cuba lagi.",
+      "other": "Dompet menolak: {message} (kod {code}).",
+      "otherCode": "Dompet menolak dengan kod {code} tanpa memberi sebab."
     }
   },
   "owner": {

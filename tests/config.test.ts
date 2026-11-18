@@ -25,6 +25,17 @@ describe('config/tambat.json', () => {
     expect(config.attest.kind).toBe(NIP32_LABEL_KIND);
   });
 
+  it('rejects wallet error codes that are not integers, are empty, or repeat across names', () => {
+    for (const codes of [{ rejected: ['5000'] }, { rejected: [] }, { rejected: [5000], other: [5000] }, [5000]]) {
+      const c = fresh();
+      c.walletConnect.errorCodes = codes;
+      expect(() => parseConfig(c)).toThrow(/walletConnect.errorCodes/);
+    }
+    const c = fresh();
+    c.walletConnect.errorDetailMaxChars = 0;
+    expect(() => parseConfig(c)).toThrow(/walletConnect.errorDetailMaxChars/);
+  });
+
   it('rejects a relay that is not wss', () => {
     const c = fresh();
     c.nostr.relays = ['ws://relay.example'];
