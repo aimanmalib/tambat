@@ -244,7 +244,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-2e834195cc3b29487b7c0ad14a0380397a5e6ec3f50a165636f18f09560bc169  tambat-verify.html
+776dcd54bffac04fcd1228513f8ed75617b4cabf64b281c2e53c4abccf93b3f3  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
