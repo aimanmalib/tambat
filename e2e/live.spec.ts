@@ -71,6 +71,10 @@ test('a published binding verifies from the real relays', async ({ page }) => {
     await expect(page.locator('.result[data-ok="true"]').first()).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('.result[data-ok="false"]')).toHaveCount(0);
   }
+  // The anchor and attestation panels above the tamper demo load from the chain and the relays after the result shows;
+  // wait for them so the page does not move under the click (WebKit then clicks where the radio used to be).
+  await expect(page.locator('.anchor[data-anchor="checking"]')).toHaveCount(0, { timeout: 30_000 });
+  await expect(page.locator('.attest[data-attest="checking"]')).toHaveCount(0, { timeout: 30_000 });
   // Tampering edits a local copy only: the edited signature is caught and the real result stays verified.
   const tamper = page.getByRole('region', { name: en.tamper.title, exact: true }).first();
   await tamper.getByRole('radio', { name: en.tamper.field.sig, exact: true }).check();
