@@ -8,7 +8,8 @@ Attestations (SPEC "Attestations"), 2026-11-18. The second demo Nostr key ran `t
 command read the main identity's current binding from the relays, checked it, and published a NIP-32 label (kind 1985) pinned
 to that binding event's id. Relays: relay.damus.io refused the connection; nos.lol and relay.primal.net accepted. A few
 seconds later `tambat attestations` on the main identity found the attestation, checked it against the current binding and
-printed "verified by" the second demo key, exit code 0. Dropping an attestation when the binding is replaced is covered by
+printed "verified by" the second demo key, exit code 0. After the deploy of `b3f6f59`, the live look-up page of the main
+identity (WebKit, iPhone 13) showed the same attestation under **Attestations**, with no horizontal overflow at 390 px. Dropping an attestation when the binding is replaced is covered by
 tests (`tests/attest*.test.ts`, `e2e/attest.spec.ts`); the main demo binding was not replaced for this.
 
 | UTC | attestation event | attester | subject | pinned binding event | relays accepting | reading | result |
