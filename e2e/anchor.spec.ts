@@ -31,6 +31,12 @@ const coins: FakeChain = {
   headers: {},
   unspent: { [scripthashOf(address)]: [{ tx_hash: '44'.repeat(32), tx_pos: 1, value: 20_000, height: 900_000 }] },
 };
+/** The coins are still in the mempool (Electrum height 0), as after a fresh payment to the bound address. */
+const pendingCoins: FakeChain = {
+  history: {},
+  headers: {},
+  unspent: { [scripthashOf(address)]: [{ tx_hash: '45'.repeat(32), tx_pos: 0, value: 50_000, height: 0 }] },
+};
 
 async function publishBinding(): Promise<void> {
   const ws = new WebSocket(E2E.relayUrl);
@@ -53,14 +59,17 @@ function parseExtended<T>(value: unknown): T {
   }) as T;
 }
 
-/** A WalletConnect wallet holding the test phrase's BCH key; it signs transactions with that key and records requests. */
-async function fakeWallet(page: Page) {
+/**
+ * A WalletConnect wallet holding the test phrase's BCH key; it signs transactions with that key and records requests.
+ * With `refuse`, it answers a signing request with that plain JSON-RPC error object, as Paytaca does when you reject.
+ */
+async function fakeWallet(page: Page, refuse?: { code: number; message: string }) {
   await page.exposeFunction('__walletSignTx', (params: unknown) => {
     const p = parseExtended<{ transaction: TransactionCommon; sourceOutputs: (Input & Output)[] }>(params);
     const bytes = signP2pkh(p.transaction, p.sourceOutputs, phraseKeys.bchPrivateKey);
     return { signedTransaction: hexOf(bytes), signedTransactionHash: txidOf(bytes) };
   });
-  await page.addInitScript((account: string) => {
+  await page.addInitScript(({ account, refuse }: { account: string; refuse: { code: number; message: string } | null }) => {
     const w = window as unknown as Record<string, unknown> & { __walletSignTx: (p: unknown) => Promise<unknown> };
     const requests: unknown[] = [];
     w.__requests = requests;
@@ -76,12 +85,30 @@ async function fakeWallet(page: Page) {
         request: async (req: { request: { method: string; params: unknown } }) => {
           requests.push(req.request);
           if (req.request.method !== 'bch_signTransaction') throw new Error('unsupported method');
+          if (refuse) throw refuse;
           return w.__walletSignTx(req.request.params);
         },
       }),
     };
-  }, address);
+  }, { account: address, refuse: refuse ?? null });
 }
+
+/** Links the fake wallet on the Link page, then looks up the binding in the language of `text`. */
+async function lookUpAsOwner(page: Page, text: typeof en) {
+  await page.goto('/');
+  if (text === ms) await page.getByLabel(en.lang.label).selectOption('ms');
+  await page.getByRole('button', exact(text.nostr.demo)).click();
+  await page.getByRole('button', exact(text.bch.wcStart)).click();
+  await page.evaluate(() => (window as unknown as { __approve: () => void }).__approve());
+  await expect(page.locator('.keybadge__value').last()).toHaveText(address);
+  await page.getByRole('link', exact(text.nav.lookup)).click();
+  await page.getByLabel(text.lookup.label, { exact: true }).fill(vectors.nostr.npub);
+  await page.getByRole('button', exact(text.lookup.submit)).click();
+  // WebKit can take more than 5 s to read the relays and the chain on a shared host.
+  await expect(page.getByText(text.anchor.none)).toBeVisible({ timeout: 20_000 });
+}
+
+const walletRequests = (page: Page) => page.evaluate(() => (window as unknown as { __requests: unknown[] }).__requests);
 
 test.beforeAll(publishBinding);
 
@@ -108,16 +135,8 @@ test('chain servers that close at once leave the binding verified and say so', a
 test('the owner previews the outputs and the fee, then the wallet signs and sends the anchor', async ({ page }) => {
   await routeChain(page, coins);
   await fakeWallet(page);
-  await page.goto('/');
   // The Link page asks for the BCH key after a Nostr key; any Nostr key will do, the offer follows the BCH address.
-  await page.getByRole('button', exact(en.nostr.demo)).click();
-  await page.getByRole('button', exact(en.bch.wcStart)).click();
-  await page.evaluate(() => (window as unknown as { __approve: () => void }).__approve());
-  await expect(page.locator('.keybadge__value').last()).toHaveText(address);
-  await page.getByRole('link', exact(en.nav.lookup)).click();
-  await page.getByLabel(en.lookup.label, { exact: true }).fill(vectors.nostr.npub);
-  await page.getByRole('button', exact(en.lookup.submit)).click();
-  await expect(page.getByText(en.anchor.none)).toBeVisible();
+  await lookUpAsOwner(page, en);
 
   await page.getByRole('button', exact(en.anchor.offer)).click();
   await expect(page.getByText(before(en.anchor.preview))).toBeVisible();
@@ -130,7 +149,7 @@ test('the owner previews the outputs and the fee, then the wallet signs and send
 
   await page.getByRole('button', exact(en.anchor.ask)).click();
   await expect(page.getByText(en.anchor.sent)).toBeVisible();
-  const requests = (await page.evaluate(() => (window as unknown as { __requests: unknown[] }).__requests)) as {
+  const requests = (await walletRequests(page)) as {
     method: string;
     params: { broadcast: boolean; userPrompt: string; sourceOutputs: unknown[]; transaction: { outputs: unknown[] } };
   }[];
@@ -154,18 +173,38 @@ test('in Malay at 320 px the anchor panel fits and reads in Malay', async ({ pag
   await routeChain(page, coins);
   await fakeWallet(page);
   await page.setViewportSize({ width: 320, height: 700 });
-  await page.goto('/');
-  await page.getByLabel(en.lang.label).selectOption('ms');
-  await page.getByRole('button', exact(ms.nostr.demo)).click();
-  await page.getByRole('button', exact(ms.bch.wcStart)).click();
-  await page.evaluate(() => (window as unknown as { __approve: () => void }).__approve());
-  await page.getByRole('link', exact(ms.nav.lookup)).click();
-  await page.getByLabel(ms.lookup.label, { exact: true }).fill(vectors.nostr.npub);
-  await page.getByRole('button', exact(ms.lookup.submit)).click();
-  await expect(page.getByText(ms.anchor.none)).toBeVisible();
+  await lookUpAsOwner(page, ms);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.getByRole('button', exact(ms.anchor.offer)).click();
   await expect(page.getByText(before(ms.anchor.preview))).toBeVisible();
   await expectNoOverflow(page);
   await expectAccessible(page);
+});
+
+test('in Malay at 320 px, coins not yet in a block mean wait for a confirmation, and the wallet is not asked', async ({ page }) => {
+  await routeChain(page, pendingCoins);
+  await fakeWallet(page);
+  await page.setViewportSize({ width: 320, height: 700 });
+  await lookUpAsOwner(page, ms);
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.getByRole('button', exact(ms.anchor.offer)).click();
+  await expect(page.locator('.anchor .notice--error')).toHaveText(ms.anchor.unconfirmed.replace('{address}', address));
+  await expect(page.getByRole('button', exact(ms.anchor.ask))).toHaveCount(0);
+  expect(await walletRequests(page)).toEqual([]);
+  await expectNoOverflow(page);
+  await expectAccessible(page);
+});
+
+test('a wallet that rejects the anchor is named, never "[object Object]"', async ({ page }) => {
+  await routeChain(page, coins);
+  await fakeWallet(page, { code: 5000, message: 'User rejected' });
+  await lookUpAsOwner(page, en);
+  await page.getByRole('button', exact(en.anchor.offer)).click();
+  await page.getByRole('button', exact(en.anchor.ask)).click();
+  const error = page.locator('.anchor .notice--error');
+  await expect(error).toHaveText(en.errors.wallet.rejected);
+  await expect(error).not.toContainText('[object Object]');
+  expect(await walletRequests(page)).toHaveLength(1);
+  // The preview stays, so the owner can ask again.
+  await expect(page.getByRole('button', exact(en.anchor.ask))).toBeEnabled();
 });

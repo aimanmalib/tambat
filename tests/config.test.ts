@@ -36,6 +36,15 @@ describe('config/tambat.json', () => {
     expect(() => parseConfig(c)).toThrow(/walletConnect.errorDetailMaxChars/);
   });
 
+  it('spends only confirmed coins for the anchor by default and rejects a value that is not a boolean', () => {
+    expect(config.anchor.confirmedCoinsOnly).toBe(true);
+    for (const value of ['true', 1, undefined]) {
+      const c = fresh();
+      c.anchor.confirmedCoinsOnly = value;
+      expect(() => parseConfig(c)).toThrow(/anchor.confirmedCoinsOnly/);
+    }
+  });
+
   it('rejects a relay that is not wss', () => {
     const c = fresh();
     c.nostr.relays = ['ws://relay.example'];

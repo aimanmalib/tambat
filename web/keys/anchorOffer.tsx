@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { AnchorPayload, UnsignedAnchor } from '../../src/core/anchor';
+import type { AnchorPayload, PreparedAnchor } from '../../src/core/anchor';
 import type { BindingResult } from '../../src/core/verify';
 import { errorText } from '../../src/errors';
 import { useText } from '../i18n';
@@ -7,7 +7,10 @@ import { Notice } from '../ui/Notice';
 import { canAnchor, prepareAnchor, requestAnchor } from './anchor';
 import { useKeys } from './KeysContext';
 
-type Step = { kind: 'offer' } | { kind: 'busy' } | { kind: 'preview'; unsigned: UnsignedAnchor } | { kind: 'asking' } | { kind: 'sent'; txid: string };
+/** Set through the CSSOM, which the style-src policy allows, so a long address breaks instead of widening the page. */
+const WRAP = { overflowWrap: 'anywhere' } as const;
+
+type Step = { kind: 'offer' } | { kind: 'busy' } | { kind: 'preview'; unsigned: PreparedAnchor } | { kind: 'asking' } | { kind: 'sent'; txid: string };
 
 /**
  * "Anchor this link on BCH", shown only to the person whose wallet holds the bound address over WalletConnect.
@@ -21,13 +24,14 @@ export function AnchorOffer({ result, anchored }: { result: BindingResult; ancho
   const address = result.claims[0]?.address ?? '';
   if (!result.ok || !canAnchor(bch) || bch.address !== address) return null;
   const payload: AnchorPayload = { pubkey: result.pubkey, eventId: result.eventId };
-  const attempt = async (busy: Step, work: () => Promise<Step>, back: Step) => {
+  /** `hint` is a text key added after the error, such as the note on coins not yet in a block. */
+  const attempt = async (busy: Step, work: () => Promise<Step>, back: Step, hint?: string) => {
     setError('');
     setStep(busy);
     try {
       setStep(await work());
     } catch (e) {
-      setError(errorText(e, t));
+      setError(hint ? `${errorText(e, t)} ${t(hint)}` : errorText(e, t));
       setStep(back);
     }
   };
@@ -36,7 +40,8 @@ export function AnchorOffer({ result, anchored }: { result: BindingResult; ancho
     <div className="stack">
       {step.kind === 'offer' || step.kind === 'busy' ? (
         <>
-          <p className="option__help">{t(anchored ? 'anchor.helpAgain' : 'anchor.help', { address })}</p>
+          {/* The help names the 54-character address, which must wrap at 320 px (docs/decisions/0012-wallet-errors.md). */}
+          <p className="option__help" style={WRAP}>{t(anchored ? 'anchor.helpAgain' : 'anchor.help', { address })}</p>
           <button type="button" className="btn" disabled={step.kind === 'busy'}
             onClick={() => void attempt({ kind: 'busy' }, async () => ({ kind: 'preview', unsigned: await prepareAnchor(address, payload) }), { kind: 'offer' })}>
             {step.kind === 'busy' ? t('anchor.preparing') : t('anchor.offer')}
@@ -53,7 +58,8 @@ export function AnchorOffer({ result, anchored }: { result: BindingResult; ancho
               onClick={() => {
                 if (step.kind !== 'preview') return;
                 const unsigned = step.unsigned;
-                void attempt({ kind: 'asking' }, async () => ({ kind: 'sent', txid: await requestAnchor(bch, unsigned, payload, t('anchor.prompt')) }), step);
+                const hint = unsigned.unconfirmed ? 'anchor.hintUnconfirmed' : undefined;
+                void attempt({ kind: 'asking' }, async () => ({ kind: 'sent', txid: await requestAnchor(bch, unsigned, payload, t('anchor.prompt')) }), step, hint);
               }}>
               {t('anchor.ask')}
             </button>

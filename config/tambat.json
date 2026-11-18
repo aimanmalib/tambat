@@ -140,7 +140,8 @@
       "wss://fulcrum.greyh.at:50004"
     ],
     "timeoutMs": 8000,
-    "historyLimit": 200
+    "historyLimit": 200,
+    "confirmedCoinsOnly": true
   },
   "judges": {
     "repoUrl": "https://github.com/aimanmalib/tambat",

@@ -4,7 +4,15 @@
  * sends it (wc2-bch-bcr `bch_signTransaction` with `broadcast: true`). Nothing here holds a key or sends a transaction.
  */
 import { hexToBin, stringify } from '@bitauth/libauth';
-import { buildAnchorTransaction, commitmentFromTransaction, txidOf, type AnchorPayload, type UnsignedAnchor } from '../../src/core/anchor';
+import {
+  anchorFromCoins,
+  commitmentFromTransaction,
+  txidOf,
+  type AnchorPayload,
+  type AnchorRefusal,
+  type PreparedAnchor,
+  type UnsignedAnchor,
+} from '../../src/core/anchor';
 import { electrumChain, scripthashOf, type OpenChain } from '../../src/core/anchor-chain';
 import { config } from '../../src/config';
 import { TextError } from '../../src/errors';
@@ -16,8 +24,19 @@ export const SIGN_METHOD = 'bch_signTransaction';
 export const canAnchor = (signer: BchSigner | null): signer is BchSigner & Required<Pick<BchSigner, 'request'>> =>
   signer?.kind === 'walletconnect' && typeof signer.request === 'function' && config.walletConnect.methods.includes(SIGN_METHOD);
 
-/** Builds the commitment from the address's coins, read from the chain. Throws a TextError the page can show. */
-export async function prepareAnchor(address: string, payload: AnchorPayload, open: OpenChain = electrumChain()): Promise<UnsignedAnchor> {
+/** Text keys for the reasons no anchor can be built from the coins. */
+const REFUSAL: Record<AnchorRefusal, string> = {
+  no_coins: 'anchor.noCoins',
+  unconfirmed: 'anchor.unconfirmed',
+  too_little: 'anchor.tooLittle',
+  fee_high: 'anchor.feeHigh',
+};
+
+/**
+ * Builds the commitment from the address's coins, read from the chain, before the wallet is asked. Coins not yet in a
+ * block are left out (config anchor.confirmedCoinsOnly). Throws a TextError the page can show.
+ */
+export async function prepareAnchor(address: string, payload: AnchorPayload, open: OpenChain = electrumChain()): Promise<PreparedAnchor> {
   let chain;
   try {
     chain = await open();
@@ -28,14 +47,14 @@ export async function prepareAnchor(address: string, payload: AnchorPayload, ope
     const utxos = await chain.unspent(scripthashOf(address)).catch(() => {
       throw new TextError('anchor.unreachable');
     });
-    if (utxos.length === 0) throw new TextError('anchor.noCoins', { address });
+    let prepared: PreparedAnchor | AnchorRefusal;
     try {
-      return buildAnchorTransaction(address, utxos, payload);
-    } catch (e) {
-      const message = (e as Error).message;
-      if (message.includes('above the limit')) throw new TextError('anchor.feeHigh', { max: config.anchor.maxFeeSats });
-      throw new TextError('anchor.tooLittle', { address });
+      prepared = anchorFromCoins(address, utxos, payload);
+    } catch {
+      prepared = 'too_little';
     }
+    if (typeof prepared === 'string') throw new TextError(REFUSAL[prepared], { address, max: config.anchor.maxFeeSats });
+    return prepared;
   } finally {
     await chain.close();
   }

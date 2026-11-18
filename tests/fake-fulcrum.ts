@@ -66,7 +66,13 @@ export function fakeSource(data: FakeChain, closed: { count: number } = { count:
     history: async (s) => call('blockchain.scripthash.get_history', s) as never,
     transaction: async (t) => call('blockchain.transaction.get', t) as never,
     header: async (h) => call('blockchain.block.header', h) as never,
-    unspent: async () => [],
+    unspent: async (s) =>
+      (call('blockchain.scripthash.listunspent', s) as { tx_hash: string; tx_pos: number; value: number; height: number }[]).map((u) => ({
+        txid: u.tx_hash,
+        vout: u.tx_pos,
+        satoshis: u.value,
+        height: u.height,
+      })),
     close: async () => {
       closed.count += 1;
     },

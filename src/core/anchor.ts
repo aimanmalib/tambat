@@ -118,6 +118,8 @@ export interface Utxo {
   txid: string;
   vout: number;
   satoshis: number;
+  /** Block height of the coin; 0 or less, or missing, means not yet in a block. */
+  height?: number;
 }
 
 /** What the wallet is asked to sign: the transaction without signatures and the outputs it spends (wc2-bch-bcr). */
@@ -163,6 +165,45 @@ export function buildAnchorTransaction(address: string, utxos: Utxo[], payload: 
   ];
   const sourceOutputs = utxos.map((u, i) => ({ ...inputs[i]!, lockingBytecode: locking.bytecode, valueSatoshis: BigInt(u.satoshis) }));
   return { transaction: { version: 2, inputs, outputs, locktime: 0 }, sourceOutputs, feeSats, changeSats };
+}
+
+/** The transaction to ask the wallet for, and whether it spends a coin not yet in a block. */
+export interface PreparedAnchor extends UnsignedAnchor {
+  unconfirmed: boolean;
+}
+
+/** Why no anchor can be built from the coins: none, only coins not yet in a block, too little, or the fee limit. */
+export type AnchorRefusal = 'no_coins' | 'unconfirmed' | 'too_little' | 'fee_high';
+
+const confirmed = (u: Utxo): boolean => (u.height ?? 0) > 0;
+
+function tryBuild(address: string, coins: Utxo[], payload: AnchorPayload): UnsignedAnchor | 'too_little' | 'fee_high' {
+  try {
+    return buildAnchorTransaction(address, coins, payload);
+  } catch (e) {
+    if ((e as Error).message.includes('above the limit')) return 'fee_high';
+    if (coins.length === 0 || (e as Error).message.includes('too little')) return 'too_little';
+    throw e;
+  }
+}
+
+/**
+ * The anchor from an address's coins. With `confirmedOnly` (config anchor.confirmedCoinsOnly) coins not yet in a block
+ * are left out, and when only they would pay the fee the answer is 'unconfirmed': wait for one block, then try again,
+ * rather than ask a wallet that may not know those coins yet.
+ */
+export function anchorFromCoins(
+  address: string,
+  utxos: Utxo[],
+  payload: AnchorPayload,
+  confirmedOnly: boolean = config.anchor.confirmedCoinsOnly,
+): PreparedAnchor | AnchorRefusal {
+  if (utxos.length === 0) return 'no_coins';
+  const coins = confirmedOnly ? utxos.filter(confirmed) : utxos;
+  const built = tryBuild(address, coins, payload);
+  if (typeof built !== 'string') return { ...built, unconfirmed: !coins.every(confirmed) };
+  if (coins.length < utxos.length && typeof tryBuild(address, utxos, payload) !== 'string') return 'unconfirmed';
+  return built;
 }
 
 /** Transaction id (UI byte order) of an encoded transaction. */

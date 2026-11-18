@@ -57,10 +57,11 @@ function electrumSource(client: ElectrumClient<never>, timeoutMs: number): Chain
     transaction: (txid) => call<string>('blockchain.transaction.get', txid, false),
     header: (height) => call<string>('blockchain.block.header', height),
     unspent: async (s) =>
-      (await call<{ tx_hash: string; tx_pos: number; value: number }[]>('blockchain.scripthash.listunspent', s)).map((u) => ({
+      (await call<{ tx_hash: string; tx_pos: number; value: number; height: number }[]>('blockchain.scripthash.listunspent', s)).map((u) => ({
         txid: u.tx_hash,
         vout: u.tx_pos,
         satoshis: u.value,
+        height: u.height,
       })),
     close: async () => {
       await client.disconnect(true).catch(() => false);

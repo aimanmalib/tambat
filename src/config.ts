@@ -104,6 +104,8 @@ export interface TambatConfig {
     timeoutMs: number;
     /** How many transactions of an address are read when looking for commitments. */
     historyLimit: number;
+    /** Spend only coins already in a block; when only unconfirmed coins would pay, the page says to wait. */
+    confirmedCoinsOnly: boolean;
   };
   /**
    * Payment receipts (docs/SPEC.md "Payment receipts"): a NIP-32 label event naming the paid key and, as a NIP-73
@@ -173,6 +175,7 @@ function parseAnchor(a: TambatConfig['anchor']): void {
   nonEmptyStrings(a.electrum, 'anchor.electrum', (s) => /^wss?:\/\/[^\s/:]+(:\d+)?\/?$/.test(s));
   positiveInt(a.timeoutMs, 'anchor.timeoutMs');
   positiveInt(a.historyLimit, 'anchor.historyLimit');
+  if (typeof a.confirmedCoinsOnly !== 'boolean') fail('anchor.confirmedCoinsOnly', 'must be true or false');
 }
 
 /** NIP-32 label event kind. Receipts and attestations reuse it; Tambat defines no new kinds. */

@@ -3,6 +3,7 @@ import { binToHex, cashAddressToLockingBytecode, decodeTransaction, encodeDataPu
 import raw from '../config/tambat.json' with { type: 'json' };
 import { parseConfig } from '../src/config.js';
 import {
+  anchorFromCoins,
   buildAnchorTransaction,
   commitmentFromTransaction,
   decodeAnchorScript,
@@ -97,6 +98,39 @@ describe('unsigned commitment transaction', () => {
     expect(() => buildAnchorTransaction(keys.address, many, payload)).toThrow(/above the limit/);
     expect(() => buildAnchorTransaction(keys.address, [{ ...utxo, satoshis: 700 }], payload)).toThrow(/too little/);
     expect(() => buildAnchorTransaction(keys.address, [], payload)).toThrow(/no unspent/);
+  });
+});
+
+describe('coins for the anchor', () => {
+  const coin = (vout: number, satoshis: number, height: number) => ({ txid: '55'.repeat(32), vout, satoshis, height });
+  const spent = (a: ReturnType<typeof anchorFromCoins>) => (typeof a === 'string' ? a : a.sourceOutputs.map((s) => s.outpointIndex));
+
+  it('spends only coins already in a block and never sends unconfirmed ones to the wallet', () => {
+    const mixed = [coin(0, 9000, 0), coin(1, 20_000, 900_000), coin(2, 9000, -1)];
+    const prepared = anchorFromCoins(keys.address, mixed, payload, true);
+    expect(spent(prepared)).toEqual([1]);
+    expect(prepared).toMatchObject({ unconfirmed: false });
+    expect(anchorFromCoins(keys.address, [coin(0, 20_000, 900_000)], payload, true)).toMatchObject({ unconfirmed: false });
+  });
+
+  it('says to wait for a confirmation when only unconfirmed coins would pay the fee', () => {
+    expect(anchorFromCoins(keys.address, [coin(0, 50_000, 0)], payload, true)).toBe('unconfirmed');
+    expect(anchorFromCoins(keys.address, [coin(0, 600, 900_000), coin(1, 50_000, 0)], payload, true)).toBe('unconfirmed');
+    // Missing height is treated as not yet in a block.
+    expect(anchorFromCoins(keys.address, [{ txid: '55'.repeat(32), vout: 0, satoshis: 50_000 }], payload, true)).toBe('unconfirmed');
+  });
+
+  it('names no coins, too little and a fee above the limit', () => {
+    expect(anchorFromCoins(keys.address, [], payload, true)).toBe('no_coins');
+    expect(anchorFromCoins(keys.address, [coin(0, 600, 900_000), coin(1, 100, 0)], payload, true)).toBe('too_little');
+    const many = Array.from({ length: 10 }, (_, vout) => coin(vout, 10_000, 900_000));
+    expect(anchorFromCoins(keys.address, many, payload, true)).toBe('fee_high');
+  });
+
+  it('with confirmedCoinsOnly off, spends every coin and marks the anchor as spending unconfirmed ones', () => {
+    const prepared = anchorFromCoins(keys.address, [coin(0, 9000, 0), coin(1, 9000, 900_000)], payload, false);
+    expect(spent(prepared)).toEqual([0, 1]);
+    expect(prepared).toMatchObject({ unconfirmed: true });
   });
 });
 

@@ -373,6 +373,8 @@
     "sent": "Sent. It counts from the block that confirms it. Transaction",
     "noCoins": "{address} has no coins to pay the fee. Anchoring needs a small amount of BCH at the bound address.",
     "tooLittle": "{address} holds too little BCH to pay the fee and keep the change.",
+    "unconfirmed": "The coins at {address} are not in a block yet, and a wallet may refuse coins it has not seen confirmed. Wait for one confirmation (about 10 minutes), then try again. The wallet was not asked.",
+    "hintUnconfirmed": "This anchor spends coins not yet in a block; waiting for one confirmation may help.",
     "feeHigh": "The fee would be above {max} sat, so this page will not ask the wallet.",
     "badReply": "The wallet's answer is not this anchor from this address. Nothing was recorded.",
     "needWallet": "Connect the wallet that holds the bound address over WalletConnect first."

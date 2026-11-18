@@ -373,6 +373,8 @@
     "sent": "Dihantar. Ia dikira dari blok yang mengesahkannya. Transaksi",
     "noCoins": "{address} tiada syiling untuk membayar yuran. Sauh memerlukan sedikit BCH pada alamat yang terikat.",
     "tooLittle": "{address} memegang terlalu sedikit BCH untuk membayar yuran dan menyimpan baki.",
+    "unconfirmed": "Syiling di {address} belum masuk ke dalam blok, dan dompet mungkin menolak syiling yang belum disahkan. Tunggu satu pengesahan (lebih kurang 10 minit), kemudian cuba lagi. Dompet belum diminta apa-apa.",
+    "hintUnconfirmed": "Sauh ini membelanjakan syiling yang belum masuk ke dalam blok; menunggu satu pengesahan mungkin membantu.",
     "feeHigh": "Yuran akan melebihi {max} sat, jadi halaman ini tidak akan meminta dompet.",
     "badReply": "Jawapan dompet bukan sauh ini dari alamat ini. Tiada apa-apa direkod.",
     "needWallet": "Sambungkan dahulu dompet yang memegang alamat terikat melalui WalletConnect."

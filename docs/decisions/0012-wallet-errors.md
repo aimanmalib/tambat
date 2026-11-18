@@ -1,6 +1,6 @@
 # 0012: Named wallet errors, and no wallet request for unconfirmed coins
 
-Status: accepted (part 1 shipped; part 2, the confirmed-coins check, follows)
+Status: accepted (both parts)
 
 ## Context
 
@@ -31,10 +31,17 @@ and the one-file verifier go through `errorText`, so the fix lives there.
 - No "unknown coins" reason: Paytaca reports an input it cannot sign under the generic `-32603`, so there is no stable
   code to map. Its message is still shown through `errors.wallet.other`.
 - No new package (an error serializer was considered): the fix is a few lines and the release is pinned.
-- Part 2 (planned): the anchor offer builds its transaction from confirmed coins only (`anchor.confirmedCoinsOnly`,
-  default `true`) and says "wait for one confirmation" before asking the wallet, since a wallet or its indexer may refuse
-  coins it has not seen yet. With the setting `false`, a refusal while unconfirmed coins are present adds a hint.
+- Confirmed coins only: the chain server's `listunspent` height (0 or less is the mempool) is kept on each coin, and
+  `anchorFromCoins` (`src/core/anchor.ts`) builds the transaction from coins already in a block when
+  `anchor.confirmedCoinsOnly` is `true` (the default). When only unconfirmed coins would pay the fee, the page says
+  `anchor.unconfirmed` (wait for one confirmation, about 10 minutes) and the wallet is not asked: BCH allows spending
+  unconfirmed coins, but a wallet or its indexer may refuse coins it has not seen yet, and one block is cheaper than an
+  approval that fails. With the setting `false`, every coin is spent and a wallet error while unconfirmed coins are in
+  the transaction gets the hint `anchor.hintUnconfirmed`.
+- The anchor help paragraph names the 54-character address. It wraps through a CSSOM style on the element (allowed by
+  the `style-src` policy), so the offer fits at 320 px. It can move to `web/styles.css` as `.option__help` later.
 
 ## Rollback
 
-`git revert` the commit, or redeploy the previous image. Codes can be removed from the config without a code change.
+`git revert` the commits, or redeploy the previous image. Codes can be removed from the config without a code change,
+and `anchor.confirmedCoinsOnly: false` turns the confirmed-coins check off.

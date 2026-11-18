@@ -21,6 +21,7 @@ const forged = { ...commitmentTx(3, other.bchPrivateKey), height: 899_000 };
 const chain: FakeChain = {
   history: { [scripthashOf(keys.address)]: [later, pending, forged, early] },
   headers: { 900_010: headerWithTime(1_763_000_000), 900_200: headerWithTime(1_763_100_000) },
+  unspent: { [scripthashOf(keys.address)]: [{ tx_hash: '44'.repeat(32), tx_pos: 1, value: 50_000, height: 0 }] },
 };
 
 describe('chain helpers', () => {
@@ -80,6 +81,15 @@ describe('Electrum client over WebSocket', () => {
     const open = electrumChain(['ws://127.0.0.1:9', url], 3000);
     const status = await anchorStatus(keys.address, payload.pubkey, payload.eventId, open);
     expect(status).toMatchObject({ kind: 'anchored', commitment: { txid: early.txid, blockTime: 1_763_000_000 } });
+  });
+
+  it('keeps the block height of each unspent coin, so unconfirmed coins are known before the wallet is asked', async () => {
+    const source = await electrumChain([url], 3000)();
+    try {
+      expect(await source.unspent(scripthashOf(keys.address))).toEqual([{ txid: '44'.repeat(32), vout: 1, satoshis: 50_000, height: 0 }]);
+    } finally {
+      await source.close();
+    }
   });
 });
 
