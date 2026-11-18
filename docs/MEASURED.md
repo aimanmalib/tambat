@@ -11,7 +11,8 @@ address) ran `tambat receipt-publish` naming the main demo identity as the payee
 connection; nos.lol and relay.primal.net accepted. A few seconds later `tambat receipt <txid>` found the receipt on the
 relays, read the transaction and its input's previous transaction from a Fulcrum server in `config.anchor.electrum` (both
 hashed to the ids asked for), and printed "transaction found on BCH, pays no address bound to the payee" and "payer not
-proven", exit code 1. That is the expected reading: the receipt is only the author's claim. The "from a bound address" reading
+proven", exit code 1. After the deploy of `0ed8a3b`, **Check receipts** on the live Pay page (WebKit, iPhone 13) showed the same
+receipt with the same reading and no horizontal overflow at 390 px. That is the expected reading: the receipt is only the author's claim. The "from a bound address" reading
 is covered by tests against a fake chain (`tests/receipt*.test.ts`, `e2e/receipt.spec.ts`), not by a live payment.
 
 | UTC | receipt event | author | payee | txid | relays accepting | reading | result |
