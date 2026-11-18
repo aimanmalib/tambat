@@ -4,6 +4,8 @@
     "bindingKind": 10011,
     "authKind": 27235,
     "platform": "bch",
+    "recoveryTag": "replaces",
+    "recoveryText": "replaces {npub}",
     "relays": [
       "wss://relay.damus.io",
       "wss://nos.lol",

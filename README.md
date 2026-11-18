@@ -46,7 +46,7 @@ screen at 1440 x 900 and on an iPhone 13.
 
 | Requirement | Code | Try it or read it |
 | --- | --- | --- |
-| Identity creation and management | `src/core/binding.ts` (create, revoke, rotate), `src/node/manage.ts`, `web/pages/LinkPage.tsx`, `web/pages/OwnerActions.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com; **Revoke this link** and **Move to a new address** on your own look-up result; [revocation measured](docs/MEASURED.md) |
+| Identity creation and management | `src/core/binding.ts` (create, revoke, rotate), `src/core/recover.ts` (recover a lost Nostr key), `src/node/manage.ts`, `web/pages/LinkPage.tsx`, `web/pages/OwnerActions.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com; **Revoke this link** and **Move to a new address** on your own look-up result; [revocation measured](docs/MEASURED.md) |
 | Cryptographic identity binding | `src/core/binding.ts`, `src/core/bchmsg.ts`, `src/core/verify.ts` | [SPEC.md](docs/SPEC.md), [vectors](examples/vectors.json), [third-party vectors](examples/third-party-vectors.json) |
 | Decentralized discovery | `src/core/discover.ts`, `src/core/nip05.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** or **Pay** on the live site by npub, address or NIP-05 name (`demo@tambat.sasateguh.com`), the [one-file verifier](#one-file-verifier) at https://tambat.sasateguh.com/verify/, [MEASURED.md](docs/MEASURED.md) |
 | Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `src/core/auth-bch.ts`, `server/`, `bin/tambat.ts`, `verifier/` | **Demo app** on the live site: sign in with Nostr or with a BCH wallet only ([sign-in measured](docs/MEASURED.md)), [VERIFY.md](docs/VERIFY.md) |
@@ -127,6 +127,7 @@ npx tsx bin/tambat.ts verify examples/binding-event.json
 npx tsx bin/tambat.ts lookup <npub|bitcoincash:...> [--json]
 npx tsx bin/tambat.ts revoke <bitcoincash:...> [--keys <file>]        # remove this address from your binding
 npx tsx bin/tambat.ts rotate <old address> <new address> [--keys <file>]   # move the binding in one event
+npx tsx bin/tambat.ts recover <old npub> --keys <new key file> --bch-keys <wallet file>   # lost Nostr key: hand the binding to a new key
 ```
 
 `verify` works offline. `lookup` asks the relays in `config/tambat.json` and verifies every event they return. Exit code 0 means
@@ -139,7 +140,11 @@ from a phrase with only `@bitauth/libauth` and `nostr-tools`.
 `revoke` and `rotate` sign with keys derived from a BIP39 phrase file (`{ "phrase": "..." }`, default `cli.keysFile` in the
 config, never tracked), on the paths a phrase wallet uses. `rotate` looks for the new address among the first
 `cli.addressSearchLimit` receiving addresses of that wallet and signs it fresh. Both publish one event that replaces the current
-binding, keep other identity tags, and print each relay's answer; nothing secret is printed.
+binding, keep other identity tags, and print each relay's answer; nothing secret is printed. `recover` is for a lost Nostr key:
+the wallet that holds the bound address signs `replaces <old npub>`, and the new key (from `--keys`) publishes a binding for that
+address with the signature in a `replaces` tag ([SPEC](docs/SPEC.md#recovery-from-a-lost-nostr-key),
+[ADR 0009](docs/decisions/0009-recovery-tag.md)). Look-ups then show "Recovered from <old npub>" on the new key, and an address
+look-up marks the old key as moved.
 
 ## Server
 
@@ -172,6 +177,7 @@ What a verified binding proves: when the event was signed, whoever signed it hel
 | A relay serves an old event after a revocation | Look-up by address re-reads the author's newest event and drops the author when it no longer claims the address. |
 | A NIP-05 domain points a name at someone else's key | The name only leads to a key. The address still comes from that key's own signed binding, the page shows which npub the name led to, and redirects are refused. |
 | A test-network address passed off as mainnet | `network` fails. |
+| A lost Nostr key | The bound BCH key signs `replaces <old npub>` for a new key; the recovery is accepted only while the old key's newest binding still claims the address, and a copied recovery tag fails because the copier cannot sign its own claim for that address. |
 | One key used for both roles | `key_separation` fails, so a leak of one role's key is not a leak of both. |
 | A replayed or cross-site sign-in | Nonces are random, single-use, short-lived and bound to the origin; the NIP-98 event names the login URL and method, and the BCH challenge text names the origin. |
 | Signing in with someone else's address | A BCH-only sign-in must recover to the key of the address before any relay is asked; the Nostr key then comes from the server's own look-up, and a missing or revoked link refuses the sign-in. |
@@ -192,7 +198,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-5f18369ee9aaf93895c684ba19a4ddd8106d2bab62f03b4326449b0ea8fca350  tambat-verify.html
+7b59f14238a0fbbb1bb6218ebd36539cdddbbb76f8d3855dfb37ab635f1314a7  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -236,8 +242,9 @@ outage never reads as "not linked"), or not an npub or address. Only `/embed/` m
   [the measurements](docs/MEASURED.md). The app's WalletConnect calls are tested end to end against a fake wallet that answers
   the way Paytaca does (`e2e/paytaca-login.spec.ts`), but the WalletConnect relay network and a real phone wallet are
   not covered by automated tests. The paste path and the signature format are tested.
-- **Recovery**: a lost Nostr key cannot revoke or move its binding; a stolen one can. A future version could require a BCH
-  signature over a revocation, or a time-locked handover.
+- **Recovery** covers a lost Nostr key, not a stolen one: a thief holding the old key can publish a newer event without the
+  claim, and the recovery then fails its `old_binding` step. Publishing a recovery is a CLI command (`tambat recover`); the web
+  app shows recoveries but has no form to make one.
 - **One address per Nostr key**, P2PKH only. Multisig and P2SH addresses cannot sign a message; CashTokens are not covered.
 - **Credentials, reputation and selective disclosure** are out of scope. A binding says two keys belong together, not who the
   person is.

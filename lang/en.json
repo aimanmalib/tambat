@@ -123,6 +123,11 @@
     "address_match": "Address matches the signer",
     "network": "Network",
     "key_separation": "Separate keys",
+    "recovery_tag": "Recovery tag",
+    "recovery_claim": "New key's own claim",
+    "recovery_sig": "Recovery signature",
+    "old_binding": "Old key still bound",
+    "no_cycle": "No recovery loop",
     "pass": "passed",
     "fail": "failed",
     "skip": "skipped",
@@ -138,7 +143,13 @@
       "no_public_key": "Skipped because no key could be read from the BCH signature.",
       "wrong_signer": "The signature was not made by the key of {address} for {npub}.",
       "wrong_network": "The address is on {prefix}; this site expects {network}.",
-      "same_key": "The BCH key and the Nostr key are the same key. Use separate keys."
+      "same_key": "The BCH key and the Nostr key are the same key. Use separate keys.",
+      "recovery_malformed": "The recovery tag cannot be read: it needs an npub, a bch: address and a signature.",
+      "recovery_unclaimed": "This binding has no verified claim of its own for {address}.",
+      "recovery_wrong_signer": "The recovery signature was not made by the key of {address} over \"replaces {npub}\".",
+      "old_not_bound": "The newest binding of {npub} does not claim {address}.",
+      "recovery_self": "A key cannot recover from itself.",
+      "recovery_cycle": "{npub} in turn claims to recover from this key, so neither recovery is accepted."
     }
   },
   "demo": {
@@ -358,5 +369,11 @@
     "feeHigh": "The fee would be above {max} sat, so this page will not ask the wallet.",
     "badReply": "The wallet's answer is not this anchor from this address. Nothing was recorded.",
     "needWallet": "Connect the wallet that holds the bound address over WalletConnect first."
+  },
+  "recovery": {
+    "title": "Recovery",
+    "from": "Recovered from {npub}",
+    "refused": "Recovery from {npub} not accepted",
+    "by": "The owner of this address has moved to a new key: {npub}"
   }
 }

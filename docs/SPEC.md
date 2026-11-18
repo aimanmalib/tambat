@@ -189,6 +189,35 @@ Third-party vectors, copied as data with a source pinned to a commit and a licen
 examples and the Electron Cash signed-message tests. `tests/third-party-vectors.test.ts` runs every one through `src/core/`. The
 `bch` platform is also written up as a NIP-39 extension draft in [NIP-39-bch.md](NIP-39-bch.md).
 
+## Recovery from a lost Nostr key
+
+A Nostr key that is lost cannot sign a revocation or a rotation, but the BCH key it is bound to still exists. Recovery lets
+that BCH key hand the binding to a new Nostr key, using the same kind `10011` event and one extra tag (no new kind):
+
+```json
+["replaces", "<old npub>", "bch:<cashaddr>", "<base64 BCH signature over: replaces <old npub>>"]
+```
+
+The new key publishes an ordinary binding for the same address (its own `bch:` claim, signed over the verification text of the
+NEW npub, section 2) and adds this tag. The signed text is exactly `replaces ` followed by the old npub, with no trailing
+space or newline, signed as in section 3. A verifier that looks the new key up from relays runs five more named steps
+(`RECOVERY_STEPS` in `src/core/binding.ts`), which never change whether the binding itself verifies:
+
+| Step | Passes when |
+|---|---|
+| `recovery_tag` | The tag has an npub, a `bch:` P2PKH CashAddr and a non-empty signature. |
+| `recovery_claim` | The new key's binding verifies, with its own claim for the same address. A recovery tag copied into another key's event fails here, since that key cannot sign the claim. |
+| `recovery_sig` | The signature over `replaces <old npub>` recovers to the key of the address. |
+| `old_binding` | The old key's newest binding on the relays verifies and still claims the address. |
+| `no_cycle` | The old key is not the new key, and the old key's newest event does not itself recover from the new key (A to B to A refuses both). |
+
+Only one hop is checked: the old key's own recovery tag is not followed. An address look-up returns both keys, since the old
+event stays on the relays; the old one is marked as recovered by the new npub. Reference: `verifyRecovery` in
+`src/core/recover.ts`, `tambat recover <old npub>` in the CLI.
+
+Recovery covers a lost key, not a stolen one: a thief who holds the old Nostr key can publish a newer event without the claim,
+which makes `old_binding` fail. The optional anchor below is the stronger proof for that case.
+
 ## Optional BCH anchor
 
 The binding above needs no blockchain transaction. An anchor is an optional extra: an ordinary BCH transaction, signed by

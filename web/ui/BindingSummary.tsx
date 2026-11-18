@@ -1,6 +1,7 @@
 import type { BindingResult } from '../../src/core/verify';
 import { useText } from '../i18n';
 import { Checklist } from './Checklist';
+import { Recovery } from './Recovery';
 
 /** Verdict, the keys a binding names, when it was published and every verification step. Shared by look-up and the verifier. */
 export function BindingSummary({ result }: { result: BindingResult }) {
@@ -18,6 +19,7 @@ export function BindingSummary({ result }: { result: BindingResult }) {
         <dt>{t('lookup.published')}</dt>
         <dd>{new Date(result.createdAt * 1000).toLocaleString(lang)}</dd>
       </dl>
+      <Recovery result={result} />
       <Checklist result={result} />
     </>
   );

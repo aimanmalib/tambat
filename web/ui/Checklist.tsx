@@ -17,7 +17,11 @@ function StepRow({ step }: { step: Step }) {
 
 /** Every named verification step of a binding, event steps first, then the steps of each BCH claim. */
 export function Checklist({ result }: { result: BindingResult }) {
-  const steps = [...result.steps, ...result.claims.flatMap((c) => c.steps)];
+  return <StepList steps={[...result.steps, ...result.claims.flatMap((c) => c.steps)]} />;
+}
+
+/** A list of named steps with their status and reason. */
+export function StepList({ steps }: { steps: Step[] }) {
   return (
     <ol className="checklist">
       {steps.map((s, i) => (

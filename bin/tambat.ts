@@ -7,7 +7,9 @@
  *   tambat revoke <cashaddr>           publish an event that removes this address from your binding
  *   tambat rotate <old> <new>          publish one event that moves your binding to another address of the wallet
  *   tambat anchor-lookup <cashaddr>    read the BCH chain only (no relays): Nostr keys this address committed to
- * revoke and rotate sign with the phrase in --keys <file> (default from config: cli.keysFile).
+ *   tambat recover <old npub>          bind the address of a lost Nostr key to the key in --keys, signed by --bch-keys
+ * revoke and rotate sign with the phrase in --keys <file> (default from config: cli.keysFile). recover takes the new
+ * Nostr key from --keys and the wallet phrase that holds the bound address from --bch-keys.
  * Add --json for machine-readable output. Exit code 0 = verified, 1 = not verified, 2 = usage error.
  */
 import { readFileSync } from 'node:fs';
@@ -16,7 +18,8 @@ import { nodeRelayQuery } from '../src/node/relay.js';
 import { config } from '../src/config.js';
 import { parsePubkey, toNpub, verificationText } from '../src/core/nostr.js';
 import { publishEvent } from '../src/core/publish.js';
-import { readPhrase, revokeAddress, rotateAddress, type ManageDeps } from '../src/node/manage.js';
+import { readPhrase, recoverFrom, revokeAddress, rotateAddress, type ManageDeps } from '../src/node/manage.js';
+import { verifyRecovery } from '../src/core/recover.js';
 import { RelaySocket } from '../src/node/relay.js';
 import { verifyBinding, type BindingResult } from '../src/core/verify.js';
 import { electrumChain, readCommitments, type OpenChain } from '../src/core/anchor-chain.js';
@@ -25,7 +28,8 @@ import { parseP2pkhAddress } from '../src/core/cashaddr.js';
 const USAGE =
   'usage: tambat text <npub> | verify <event.json|-> | lookup <npub|cashaddr> [--json]\n' +
   '       tambat revoke <cashaddr> | rotate <old cashaddr> <new cashaddr> [--keys <file>]\n' +
-  '       tambat anchor-lookup <cashaddr> [--json]';
+  '       tambat anchor-lookup <cashaddr> [--json]\n' +
+  '       tambat recover <old npub> --keys <new key file> --bch-keys <wallet phrase file>';
 
 const nodeDeps: ManageDeps = {
   query: nodeRelayQuery,
@@ -40,6 +44,13 @@ function render(result: BindingResult): string {
   for (const c of result.claims) {
     lines.push(`  claim ${c.address}`);
     for (const s of c.steps) lines.push(`    ${s.status.padEnd(4)} ${s.name}${s.reason ? `: ${s.reason}` : ''}`);
+  }
+  if (result.recoveredBy) lines.push(`  note: the owner of this address recovered to ${result.recoveredBy}`);
+  if (result.recovery) {
+    const r = result.recovery;
+    const verdict = r.ok ? 'recovered from' : r.steps.some((s) => s.status === 'fail') ? 'recovery not accepted from' : 'recovery not checked (run lookup) from';
+    lines.push(`  ${verdict} ${r.from || '(unreadable)'}`);
+    for (const s of r.steps) lines.push(`    ${s.status.padEnd(4)} ${s.name}${s.reason ? `: ${s.reason}` : ''}`);
   }
   return lines.join('\n');
 }
@@ -83,9 +94,14 @@ async function anchorLookup(address: string, json: boolean, open: OpenChain): Pr
 
 export async function main(argv: string[], deps: ManageDeps = nodeDeps, openChain: OpenChain = electrumChain()): Promise<number> {
   const json = argv.includes('--json');
-  const k = argv.indexOf('--keys');
-  const keysFile = k >= 0 ? argv[k + 1] : config.cli.keysFile;
-  const [command, arg, arg2] = argv.filter((a, i) => a !== '--json' && (k < 0 || (i !== k && i !== k + 1)));
+  const flags = new Map<string, number>(['--keys', '--bch-keys'].map((f) => [f, argv.indexOf(f)]));
+  const valueOf = (flag: string) => {
+    const i = flags.get(flag) ?? -1;
+    return i >= 0 ? argv[i + 1] : undefined;
+  };
+  const keysFile = valueOf('--keys') ?? config.cli.keysFile;
+  const flagged = new Set([...flags.values()].filter((i) => i >= 0).flatMap((i) => [i, i + 1]));
+  const [command, arg, arg2] = argv.filter((a, i) => a !== '--json' && !flagged.has(i));
   if (!command || !arg) {
     console.error(USAGE);
     return 2;
@@ -103,7 +119,9 @@ export async function main(argv: string[], deps: ManageDeps = nodeDeps, openChai
     } catch (err) {
       return usageError(`cannot read event: ${(err as Error).message}`);
     }
-    return out(json, [verifyBinding(event)], '');
+    const result = verifyBinding(event);
+    const recovery = verifyRecovery(result);
+    return out(json, [recovery ? { ...result, recovery } : result], '');
   }
   if (command === 'lookup') {
     if (arg.includes(':')) {
@@ -125,6 +143,17 @@ export async function main(argv: string[], deps: ManageDeps = nodeDeps, openChai
       const phrase = readPhrase(keysFile);
       const result =
         command === 'revoke' ? await revokeAddress(phrase, arg, deps) : await rotateAddress(phrase, arg, arg2 ?? '', deps);
+      console.log(JSON.stringify(result, null, 2));
+      return result.outcomes.some((o) => o.ok) ? 0 : 1;
+    } catch (err) {
+      return usageError((err as Error).message);
+    }
+  }
+  if (command === 'recover') {
+    const bchKeys = valueOf('--bch-keys');
+    if (!keysFile || !bchKeys) return usageError('recover needs --keys <new key file> and --bch-keys <wallet phrase file>');
+    try {
+      const result = await recoverFrom(readPhrase(keysFile), readPhrase(bchKeys), arg, deps);
       console.log(JSON.stringify(result, null, 2));
       return result.outcomes.some((o) => o.ok) ? 0 : 1;
     } catch (err) {

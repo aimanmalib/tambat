@@ -8,6 +8,7 @@ import { config, type Network } from '../config.js';
 import { recoverSigner } from './bchmsg.js';
 import { claimsOf, type StepName } from './binding.js';
 import { keyControlsPayload, parseP2pkhAddress } from './cashaddr.js';
+import type { RecoveryResult } from './recover.js';
 import { eventShapeError, idMatches, plainEvent, signatureValid, toNpub, verificationText, type Event } from './nostr.js';
 
 export type { StepName };
@@ -26,6 +27,12 @@ export const REASON_CODES = [
   'wrong_signer',
   'wrong_network',
   'same_key',
+  'recovery_malformed',
+  'recovery_unclaimed',
+  'recovery_wrong_signer',
+  'old_not_bound',
+  'recovery_self',
+  'recovery_cycle',
 ] as const;
 
 export type ReasonCode = (typeof REASON_CODES)[number];
@@ -61,6 +68,10 @@ export interface BindingResult {
   claims: ClaimResult[];
   /** The checked event (NIP-01 fields only), so callers can show it or keep its other tags. */
   event?: Event;
+  /** Present when the event carries a recovery claim: whether this key took over the binding of a lost key. */
+  recovery?: RecoveryResult;
+  /** Set by an address look-up when another key found for the same address recovered this one: that key's npub. */
+  recoveredBy?: string;
 }
 
 export interface VerifyOptions {
@@ -72,12 +83,12 @@ export interface VerifyOptions {
   sameAuthorEvents?: Event[];
 }
 
-const pass = (name: StepName): Step => ({ name, status: 'pass' });
+export const pass = (name: StepName): Step => ({ name, status: 'pass' });
 const explained = (name: StepName, status: 'fail' | 'skip', code: ReasonCode, reason: string, vars?: ReasonVars): Step =>
   vars ? { name, status, reason, code, vars } : { name, status, reason, code };
-const fail = (name: StepName, code: ReasonCode, reason: string, vars?: ReasonVars): Step =>
+export const fail = (name: StepName, code: ReasonCode, reason: string, vars?: ReasonVars): Step =>
   explained(name, 'fail', code, reason, vars);
-const skip = (name: StepName, code: ReasonCode, reason: string): Step => explained(name, 'skip', code, reason);
+export const skip = (name: StepName, code: ReasonCode, reason: string): Step => explained(name, 'skip', code, reason);
 const allPass = (steps: Step[]) => steps.every((s) => s.status !== 'fail');
 
 /** NIP-01 replaceable ordering: newer created_at wins, ties go to the lower id. */

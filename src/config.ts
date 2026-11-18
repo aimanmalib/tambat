@@ -9,6 +9,10 @@ export interface TambatConfig {
     bindingKind: number;
     authKind: number;
     platform: string;
+    /** Tag name of a recovery claim in a binding event (docs/SPEC.md "Recovery"). */
+    recoveryTag: string;
+    /** Text the bound BCH key signs to hand its binding to a new Nostr key; `{npub}` is the old key. */
+    recoveryText: string;
     relays: string[];
     queryTimeoutMs: number;
     publishTimeoutMs: number;
@@ -217,6 +221,8 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.embed.height, 'embed.height');
   nonEmptyStrings(c.embed.frameAncestors, 'embed.frameAncestors', (s) => !/[\s;,]/.test(s) && s !== "'none'");
   positiveInt(c.wall?.limit, 'wall.limit');
+  if (typeof c.nostr?.recoveryTag !== 'string' || !/^[a-z_]{2,}$/.test(c.nostr.recoveryTag)) fail('nostr.recoveryTag', 'must be a lower-case tag name of two or more letters');
+  if (typeof c.nostr.recoveryText !== 'string' || !c.nostr.recoveryText.includes('{npub}')) fail('nostr.recoveryText', 'must contain {npub}');
   parseAnchor(c.anchor);
   parseJudges(c.judges);
   return c;

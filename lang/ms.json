@@ -123,6 +123,11 @@
     "address_match": "Alamat sepadan dengan penandatangan",
     "network": "Rangkaian",
     "key_separation": "Kunci berasingan",
+    "recovery_tag": "Tag pemulihan",
+    "recovery_claim": "Tuntutan kunci baharu sendiri",
+    "recovery_sig": "Tandatangan pemulihan",
+    "old_binding": "Kunci lama masih terikat",
+    "no_cycle": "Tiada gelung pemulihan",
     "pass": "lulus",
     "fail": "gagal",
     "skip": "dilangkau",
@@ -138,7 +143,13 @@
       "no_public_key": "Dilangkau kerana tiada kunci dapat dibaca dari tandatangan BCH.",
       "wrong_signer": "Tandatangan ini tidak dibuat oleh kunci {address} untuk {npub}.",
       "wrong_network": "Alamat ini di rangkaian {prefix}; laman ini menjangka {network}.",
-      "same_key": "Kunci BCH dan kunci Nostr ialah kunci yang sama. Guna kunci berasingan."
+      "same_key": "Kunci BCH dan kunci Nostr ialah kunci yang sama. Guna kunci berasingan.",
+      "recovery_malformed": "Tag pemulihan tidak dapat dibaca: ia memerlukan npub, alamat bch: dan tandatangan.",
+      "recovery_unclaimed": "Ikatan ini tiada tuntutan sah sendiri untuk {address}.",
+      "recovery_wrong_signer": "Tandatangan pemulihan bukan dibuat oleh kunci {address} atas \"replaces {npub}\".",
+      "old_not_bound": "Ikatan terbaharu {npub} tidak menuntut {address}.",
+      "recovery_self": "Kunci tidak boleh memulihkan daripada dirinya sendiri.",
+      "recovery_cycle": "{npub} pula mendakwa memulihkan daripada kunci ini, jadi kedua-dua pemulihan ditolak."
     }
   },
   "demo": {
@@ -358,5 +369,11 @@
     "feeHigh": "Yuran akan melebihi {max} sat, jadi halaman ini tidak akan meminta dompet.",
     "badReply": "Jawapan dompet bukan sauh ini dari alamat ini. Tiada apa-apa direkod.",
     "needWallet": "Sambungkan dahulu dompet yang memegang alamat terikat melalui WalletConnect."
+  },
+  "recovery": {
+    "title": "Pemulihan",
+    "from": "Dipulihkan daripada {npub}",
+    "refused": "Pemulihan daripada {npub} tidak diterima",
+    "by": "Pemilik alamat ini telah berpindah ke kunci baharu: {npub}"
   }
 }

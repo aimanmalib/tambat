@@ -21,7 +21,13 @@ export const VERIFY_STEPS = [
   'key_separation',
 ] as const;
 
-export type StepName = (typeof VERIFY_STEPS)[number];
+/**
+ * The named checks of a recovery claim (a new Nostr key taking over the binding of a lost one), run only when the
+ * event carries one. They never change whether the binding itself verifies. The checks live in `recover.ts`.
+ */
+export const RECOVERY_STEPS = ['recovery_tag', 'recovery_claim', 'recovery_sig', 'old_binding', 'no_cycle'] as const;
+
+export type StepName = (typeof VERIFY_STEPS)[number] | (typeof RECOVERY_STEPS)[number];
 
 export interface BchClaim {
   /** Full CashAddr with prefix. */
@@ -48,6 +54,14 @@ export function claimsOf(event: Pick<Event, 'tags'>, platform = config.nostr.pla
   return event.tags.map((t) => claimFromTag(t, platform)).filter((c): c is BchClaim => c !== null);
 }
 
+/**
+ * The tags a replacing event keeps: everything except BCH claims and a recovery claim. A recovery claim is signed for
+ * one address and one moment, so it is never carried into a later event.
+ */
+function keptTags(tags: readonly (readonly string[])[]): string[][] {
+  return tags.filter((t) => claimFromTag(t) === null && t[0] !== config.nostr.recoveryTag).map((t) => [...t]);
+}
+
 export interface CreateBindingInput {
   claim: BchClaim;
   /** The author's current kind 10011 event, if any. Its other identity tags are kept. */
@@ -63,7 +77,7 @@ export function createBindingEvent(input: CreateBindingInput): EventTemplate {
   const parsed = parseP2pkhAddress(input.claim.address);
   if (typeof parsed === 'string') throw new Error(parsed);
   if (input.claim.signature.trim() === '') throw new Error('signature is empty');
-  const kept = (input.previous?.tags ?? []).filter((t) => claimFromTag(t) === null).map((t) => [...t]);
+  const kept = keptTags(input.previous?.tags ?? []);
   return {
     kind: config.nostr.bindingKind,
     created_at: input.createdAt ?? Math.floor(Date.now() / 1000),
@@ -88,7 +102,7 @@ export function createRevocationEvent(previous: Pick<Event, 'tags' | 'content'>,
     kind: config.nostr.bindingKind,
     created_at: createdAt ?? Math.floor(Date.now() / 1000),
     content: previous.content,
-    tags: previous.tags.filter((t) => claimFromTag(t) === null).map((t) => [...t]),
+    tags: keptTags(previous.tags),
   };
 }
 

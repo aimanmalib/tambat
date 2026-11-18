@@ -8,6 +8,7 @@ import { verifyEvent } from 'nostr-tools/pure';
 import { config } from '../config.js';
 import { claimIdentity } from './binding.js';
 import { parseP2pkhAddress } from './cashaddr.js';
+import { markRecovered, parseRecoveryTag, recoveryTagOf, verifyRecovery } from './recover.js';
 import { eventShapeError, idMatches, parsePubkey, signatureValid, type Event } from './nostr.js';
 import { isNewer, verifyBinding, type BindingResult, type VerifyOptions } from './verify.js';
 
@@ -46,6 +47,8 @@ export const relayQuery: QueryFn = createRelayQuery();
 
 export interface DiscoverOptions extends Pick<VerifyOptions, 'network'> {
   relays?: string[];
+  /** Look up the old key named by a recovery tag (default true). Turned off for that one look-up, so only one hop is followed. */
+  followRecovery?: boolean;
   timeoutMs?: number;
   query?: QueryFn;
 }
@@ -98,7 +101,13 @@ export async function lookupByPubkey(pubkey: string, options: DiscoverOptions = 
   if (!top) return null;
   const verifyOptions: VerifyOptions = { sameAuthorEvents: events };
   if (options.network) verifyOptions.network = options.network;
-  return verifyBinding(top, verifyOptions);
+  const result = verifyBinding(top, verifyOptions);
+  const tag = options.followRecovery === false ? null : recoveryTagOf(top);
+  if (!tag) return result;
+  const claim = parseRecoveryTag(tag);
+  const old = typeof claim === 'string' ? null : await lookupByPubkey(claim.pubkey, { ...options, followRecovery: false });
+  const recovery = verifyRecovery(result, old);
+  return recovery ? { ...result, recovery } : result;
 }
 
 /** Nostr keys whose newest binding still claims this address and passes every step. */
@@ -113,8 +122,8 @@ export async function lookupByAddress(address: string, options: DiscoverOptions 
   );
   const authors = [...new Set(validEvents(raw).map((e) => e.pubkey))];
   const results = await Promise.all(authors.map((a) => lookupByPubkey(a, options)));
-  return results.filter(
-    (r): r is BindingResult => r !== null && r.ok && r.claims.some((c) => c.address.toLowerCase() === parsed.address),
+  return markRecovered(
+    results.filter((r): r is BindingResult => r !== null && r.ok && r.claims.some((c) => c.address.toLowerCase() === parsed.address)),
   );
 }
 
