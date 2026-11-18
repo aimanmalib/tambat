@@ -2,6 +2,18 @@
 
 Facts measured on a real run, failures included. Newest first.
 
+## Anchor
+
+Optional BCH anchor (SPEC "Optional BCH anchor"), 2026-11-18. The demo BCH address
+`bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77` was read from a Fulcrum server in `config.anchor.electrum` with the
+library's own chain reader: no unspent outputs and no transaction history. An anchor needs a funded address, so no anchor
+transaction was made from the demo key. `tambat anchor-lookup` on the same address printed "No commitment found on BCH".
+"not funded" means no transaction was built or broadcast.
+
+| UTC | address | txid | block | event | signer | result |
+| --- | --- | --- | --- | --- | --- | --- |
+| 00:01:46 | demo address | - | - | - | demo key | not funded |
+
 ## Wall
 
 The wall's own code (`loadWall` in `src/core/wall.ts`, with the query that keeps events whose signature fails) run from the
