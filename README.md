@@ -226,6 +226,7 @@ What a verified binding proves: when the event was signed, whoever signed it hel
 | One key used for both roles | `key_separation` fails, so a leak of one role's key is not a leak of both. |
 | A replayed or cross-site sign-in | Nonces are random, single-use, short-lived and bound to the origin; the NIP-98 event names the login URL and method, and the BCH challenge text names the origin. |
 | Signing in with someone else's address | A BCH-only sign-in must recover to the key of the address before any relay is asked; the Nostr key then comes from the server's own look-up, and a missing or revoked link refuses the sign-in. |
+| Injected script or style in the web app | The pages send `script-src 'self'` and `style-src 'self'` with no `'unsafe-inline'`; every page is loaded in Chromium and WebKit and any policy violation fails the test (`e2e/csp.spec.ts`, and against the deployed site in `e2e/live.spec.ts`). |
 | A compromised demo server | It cannot change what a verifier sees: the browser, the CLI and any other client verify relay data themselves. It could lie in its own sessions only. |
 
 Not covered: a stolen key (the thief can publish a new binding; see known limits), a person who controls both keys on purpose

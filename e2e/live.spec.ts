@@ -7,6 +7,7 @@
 import { test as base } from '@playwright/test';
 import { npubEncode } from 'nostr-tools/nip19';
 import siteConfig from '../config/tambat.json' with { type: 'json' };
+import { PAGES, visit, watchPolicy } from './csp.js';
 import { en, expect, expectAccessible, expectNoOverflow, ms } from './fixtures.js';
 
 const list = (value: string | undefined) => (value ?? '').split(/\s+/).filter(Boolean);
@@ -45,6 +46,13 @@ test('health, headers and the home page in both languages', async ({ page, reque
   await page.mouse.move(10, 10);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await expectNoOverflow(page);
+});
+
+test('no page of the deployed site breaks its content security policy', async ({ page }) => {
+  const violations = await watchPolicy(page);
+  const key = Object.values(siteConfig.nip05.names as Record<string, string>)[0] ?? '';
+  for (const path of [...PAGES, `/embed/${npubEncode(key)}`]) await visit(page, path, 2000);
+  expect(violations).toEqual([]);
 });
 
 test('the demo app and the look-up page load', async ({ page }) => {

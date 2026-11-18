@@ -77,6 +77,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
 .option { display: grid; gap: 0.375rem; justify-items: start; min-width: 0; }
 .option__title { font-family: var(--font-text); font-size: 1rem; }
 .option__help { margin: 0; color: var(--ink-soft); font-size: 0.9375rem; }
+.option__help--wrap { overflow-wrap: anywhere; }
 .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: end; min-width: 0; }
 .row--form > .btn { flex: 0 0 auto; }
 

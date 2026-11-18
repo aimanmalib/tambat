@@ -8,7 +8,6 @@ import { canAnchor, prepareAnchor, requestAnchor } from './anchor';
 import { useKeys } from './KeysContext';
 
 /** Set through the CSSOM, which the style-src policy allows, so a long address breaks instead of widening the page. */
-const WRAP = { overflowWrap: 'anywhere' } as const;
 
 type Step = { kind: 'offer' } | { kind: 'busy' } | { kind: 'preview'; unsigned: PreparedAnchor } | { kind: 'asking' } | { kind: 'sent'; txid: string };
 
@@ -41,7 +40,7 @@ export function AnchorOffer({ result, anchored }: { result: BindingResult; ancho
       {step.kind === 'offer' || step.kind === 'busy' ? (
         <>
           {/* The help names the 54-character address, which must wrap at 320 px (docs/decisions/0012-wallet-errors.md). */}
-          <p className="option__help" style={WRAP}>{t(anchored ? 'anchor.helpAgain' : 'anchor.help', { address })}</p>
+          <p className="option__help option__help--wrap">{t(anchored ? 'anchor.helpAgain' : 'anchor.help', { address })}</p>
           <button type="button" className="btn" disabled={step.kind === 'busy'}
             onClick={() => void attempt({ kind: 'busy' }, async () => ({ kind: 'preview', unsigned: await prepareAnchor(address, payload) }), { kind: 'offer' })}>
             {step.kind === 'busy' ? t('anchor.preparing') : t('anchor.offer')}
