@@ -68,6 +68,9 @@ Beyond the required parts, each live and tested:
 - Sign in to the demo app with a BCH wallet alone: https://tambat.sasateguh.com/demo ([sign-in measured](docs/MEASURED.md#sign-in)).
 - Payment receipts checked on chain ([receipt measured](docs/MEASURED.md#receipt)) and attestations by other keys
   ([attestation measured](docs/MEASURED.md#attestation)).
+- An optional BCH anchor ([SPEC](docs/SPEC.md#optional-bch-anchor), [ADR 0008](docs/decisions/0008-optional-bch-anchor.md)):
+  the Paytaca binding is anchored on BCH since block 977901, signed by the Paytaca wallet that holds the address
+  ([anchor measured](docs/MEASURED.md#anchor)). `tambat anchor-lookup <address>` reads it from the chain alone, no relays.
 - A wall of verified links read from the relays: https://tambat.sasateguh.com/wall ([wall measured](docs/MEASURED.md#wall)).
 - A NIP-05 name for the demo identity, an [embeddable badge](#embeddable-badge), a [one-file verifier](#one-file-verifier)
   and a "Try tampering" demo on every verified look-up.
@@ -298,10 +301,8 @@ outage never reads as "not linked"), or not an npub or address. Only `/embed/` m
 - **The badge** is served by this site and checks in the visitor's browser, so a host page trusts this site for the badge
   code (not for the result, which comes from relays). Sites that want no such dependency can run the CLI or the one-file
   verifier themselves.
-- **Optional BCH anchor** ([SPEC](docs/SPEC.md#optional-bch-anchor), [ADR 0008](docs/decisions/0008-optional-bch-anchor.md)):
-  the OP_RETURN format, the chain reader, `tambat anchor-lookup <address>` (chain only, no relays), the look-up page's status
-  line and its wallet request (`bch_signTransaction`) are built and tested against a fake chain server and a fake wallet. No
-  anchor transaction has been made yet, so no binding here is shown as anchored.
+- **Optional BCH anchor**: one anchor exists, for the Paytaca binding, made by its owner; the demo key has none yet. The
+  wallet request (`bch_signTransaction`) is tested end to end against a fake wallet only.
 - **Single sign-in instance**: nonces and sessions live in memory, so more than one server process needs a shared store.
 
 ## Web app

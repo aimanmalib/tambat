@@ -17,6 +17,11 @@ that return it. The app's WalletConnect calls (`bch_signMessage` with `{ message
 tested end to end against a fake wallet that answers the same way; the WalletConnect relay network and a real phone wallet are
 not covered by automated tests, because they cannot drive a phone. The paste path and the signature format are tested.
 
+An anchor (an optional BCH transaction recording the binding, [SPEC.md](SPEC.md#optional-bch-anchor)) goes the same way:
+**Anchor this link on BCH** on the look-up page sends the unsigned transaction with `bch_signTransaction`. On 2026-11-18 the
+Paytaca binding above was anchored in block 977901 by a transaction that spends from its address, so the Paytaca wallet
+holding that address signed it; [the measurements](MEASURED.md#anchor) give the txid and the reading from the chain.
+
 ## Inside the wallet
 
 1. Build the verification text from the wallet's own npub:

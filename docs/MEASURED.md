@@ -41,9 +41,18 @@ library's own chain reader: no unspent outputs and no transaction history. An an
 transaction was made from the demo key. `tambat anchor-lookup` on the same address printed "No commitment found on BCH".
 "not funded" means no transaction was built or broadcast.
 
+On 2026-11-18 the owner of the Paytaca binding (`bitcoincash:qp2n90karn7qnp7thtqzsgj2hfjze6ktgs8r2mm56u`, see Paytaca below)
+made an anchor for it. The transaction spends from that address, so it was signed by the Paytaca wallet that holds the
+address; the look-up page's **Anchor this link on BCH** asks the wallet for it over WalletConnect (`bch_signTransaction`).
+At 16:03 UTC `tambat anchor-lookup` on that address, reading the chain only, printed block 977901 (2026-11-18 15:23:03 UTC), the Paytaca binding's npub, event
+`d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b` and the transaction below. `tambat lookup` on the same
+address from the default relays still returned that event as the newest binding (every check `pass`), so the anchor counts
+for the pair (SPEC "Optional BCH anchor", check 3).
+
 | UTC | address | txid | block | event | signer | result |
 | --- | --- | --- | --- | --- | --- | --- |
 | 00:01:46 | demo address | - | - | - | demo key | not funded |
+| 16:03 | qp2n90ka…m56u | a3cf6e76c990b851d2de0381d547eb9cde043454b4420bdde8270f7a69b74263 | 977901 | d7c03eee… | Paytaca (owner) | ok |
 
 ## Wall
 
