@@ -41,16 +41,36 @@ Where each required part of the "Decentralized Identity" bounty lives:
 
 The same map is one screen on the live site at https://tambat.sasateguh.com/judges, in English and Malay: it looks up the
 demo identity on the relays when it opens and shows every check, links the Paytaca binding and a revoked link from
-[MEASURED.md](docs/MEASURED.md), and opens each requirement and judging criterion. `e2e/judges.spec.ts` holds it to one
+[the measurements](docs/MEASURED.md), and opens each requirement and judging criterion. `e2e/judges.spec.ts` holds it to one
 screen at 1440 x 900 and on an iPhone 13.
 
 | Requirement | Code | Try it or read it |
 | --- | --- | --- |
 | Identity creation and management | `src/core/binding.ts` (create, revoke, rotate), `src/core/recover.ts` (recover a lost Nostr key), `src/node/manage.ts`, `web/pages/LinkPage.tsx`, `web/pages/OwnerActions.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com; **Revoke this link** and **Move to a new address** on your own look-up result; [revocation measured](docs/MEASURED.md) |
 | Cryptographic identity binding | `src/core/binding.ts`, `src/core/bchmsg.ts`, `src/core/verify.ts` | [SPEC.md](docs/SPEC.md), [vectors](examples/vectors.json), [third-party vectors](examples/third-party-vectors.json) |
-| Decentralized discovery | `src/core/discover.ts`, `src/core/nip05.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** or **Pay** on the live site by npub, address or NIP-05 name (`demo@tambat.sasateguh.com`), the [one-file verifier](#one-file-verifier) at https://tambat.sasateguh.com/verify/, [MEASURED.md](docs/MEASURED.md) |
-| Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `src/core/auth-bch.ts`, `server/`, `bin/tambat.ts`, `verifier/` | **Demo app** on the live site: sign in with Nostr or with a BCH wallet only ([sign-in measured](docs/MEASURED.md)), [VERIFY.md](docs/VERIFY.md) |
+| Decentralized discovery | `src/core/discover.ts`, `src/core/nip05.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** or **Pay** on the live site by npub, address or NIP-05 name (`demo@tambat.sasateguh.com`), the [one-file verifier](#one-file-verifier) at https://tambat.sasateguh.com/verify/, [the measurements](docs/MEASURED.md) |
+| Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `src/core/auth-bch.ts`, `server/`, `bin/tambat.ts`, `verifier/` | **Demo app** on the live site: sign in with Nostr or with a BCH wallet only ([sign-in measured](docs/MEASURED.md)), [the verification guide](docs/VERIFY.md) |
 | Working demonstration and documentation | `web/`, `deploy/`, `examples/` | https://tambat.sasateguh.com, this README, [docs/](docs/) |
+
+| Judging criterion | Where to check it |
+| --- | --- |
+| Technical correctness | Every verification step is named and reported (`src/core/verify.ts`); `tests/verify.test.ts` and `tests/tamper.test.ts` check that each kind of bad input fails the step meant to catch it. Vectors from outside the project pass (`tests/third-party-vectors.test.ts`). |
+| Security | `key_separation` refuses one key in both roles; sign-in nonces are single-use, short-lived and origin-bound (`tests/auth.test.ts`, `tests/server.test.ts`). See [the threat model](#security-and-threat-model). |
+| Decentralization | Relays are untrusted stores and every reader verifies for itself. Look-ups in [the measurements](docs/MEASURED.md#lookup) were answered by two of the three relays and still verified. |
+| Interoperability | NIP-39 kind 10011, the Bitcoin signed-message format, NIP-98, NIP-05, NIP-32 labels, `did:nostr`, BIP21. No new event kind. |
+| Usability | English and Malay throughout; end-to-end tests run in Chromium and in WebKit on an iPhone 13 at 320 px and up; a binding signed with a Paytaca wallet over WalletConnect is in [the measurements](docs/MEASURED.md). |
+| Demo quality | Live at https://tambat.sasateguh.com on public relays; [the measurements](docs/MEASURED.md) records each live reading, failures included. |
+
+Beyond the required parts, each live and tested:
+
+- Revoke and rotate a link, from the look-up page or the CLI ([revocation measured](docs/MEASURED.md#revocation)).
+- Recover from a lost Nostr key with the BCH wallet ([recovery measured](docs/MEASURED.md#recovery)).
+- Sign in to the demo app with a BCH wallet alone: https://tambat.sasateguh.com/demo ([sign-in measured](docs/MEASURED.md#sign-in)).
+- Payment receipts checked on chain ([receipt measured](docs/MEASURED.md#receipt)) and attestations by other keys
+  ([attestation measured](docs/MEASURED.md#attestation)).
+- A wall of verified links read from the relays: https://tambat.sasateguh.com/wall ([wall measured](docs/MEASURED.md#wall)).
+- A NIP-05 name for the demo identity, an [embeddable badge](#embeddable-badge), a [one-file verifier](#one-file-verifier)
+  and a "Try tampering" demo on every verified look-up.
 
 ## Demo in 60 seconds
 
@@ -100,6 +120,9 @@ A binding made with a demo key is already on the public relays; its npub, addres
 Private keys stay in the wallet, the signer or the open browser tab. The server never receives a key and never tells a client
 which address is bound: every reader checks the event itself.
 
+Receipts and the optional anchor also read BCH transactions from public Fulcrum servers (`anchor.electrum` in
+`config/tambat.json`). That access is read-only: the server and the web app never broadcast a transaction; a wallet does.
+
 ## How verification works
 
 For each event a verifier runs named steps and reports `pass`, `fail` or `skip` with a reason ([specification](docs/SPEC.md)
@@ -148,20 +171,20 @@ binding, keep other identity tags, and print each relay's answer; nothing secret
 the wallet that holds the bound address signs `replaces <old npub>`, and the new key (from `--keys`) publishes a binding for that
 address with the signature in a `replaces` tag ([SPEC](docs/SPEC.md#recovery-from-a-lost-nostr-key),
 [ADR 0009](docs/decisions/0009-recovery-tag.md)). Look-ups then show "Recovered from <old npub>" on the new key, and an address
-look-up marks the old key as moved. A recovery of the demo identity on the public relays is in [MEASURED.md](docs/MEASURED.md#recovery).
+look-up marks the old key as moved. A recovery of the demo identity on the public relays is in [the measurements](docs/MEASURED.md#recovery).
 
 After paying an identity, the payer can publish a receipt: a NIP-32 label (kind 1985) naming the paid key and the
 transaction as a NIP-73 id `bitcoincash:tx:<txid>` ([SPEC](docs/SPEC.md#payment-receipts),
 [ADR 0010](docs/decisions/0010-payment-receipts.md)). The **Pay** page and `tambat receipt` read the transaction from a chain
 server and say "from a bound address" only when every input spends from an address bound to the receipt's author; otherwise
-"payer not proven". A receipt published on the public relays is in [MEASURED.md](docs/MEASURED.md#receipt).
+"payer not proven". A receipt published on the public relays is in [the measurements](docs/MEASURED.md#receipt).
 
 Another key can attest a binding: `tambat attest <npub>` publishes a NIP-32 label (kind 1985) that names the subject key and
 pins the id of its current binding event ([SPEC](docs/SPEC.md#attestations),
 [ADR 0011](docs/decisions/0011-attestations.md)). The look-up page and `tambat attestations` list only attestations of the
 current binding: once the subject rotates, recovers, revokes or publishes any newer binding, older attestations no longer
 count. An attestation is the attester's word, not a proof. One published on the public relays is in
-[MEASURED.md](docs/MEASURED.md#attestation).
+[the measurements](docs/MEASURED.md#attestation).
 
 ## Server
 
@@ -328,7 +351,8 @@ The read-only live checks also run by hand: `E2E_BASE_URL=https://your.host npx 
 ## Third-party licenses
 
 - `nostr-tools`: Unlicense.
-- `@bitauth/libauth`, `qrcode-generator`, `fastify`, `react`: MIT.
+- `@bitauth/libauth`, `@noble/curves`, `@electrum-cash/network`, `@electrum-cash/web-socket`, `qrcode-generator`, `fastify`,
+  `@fastify/cookie`, `@fastify/static`, `react`, `react-dom`, `ws`, `tsx`: MIT.
 - `@walletconnect/sign-client` 2.21.8 with `@walletconnect/core`, `types`, `utils` 2.21.8: Apache-2.0. Later versions use a
   non-OSI licence, so this version is pinned. See [docs/decisions/0001-protocol.md](docs/decisions/0001-protocol.md).
 

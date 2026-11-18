@@ -44,6 +44,16 @@ VERIFIED  npub1az708q3kd9zy6z6f44zav5ygvdwelkzspf6mtusttx47lft2z38sghk0w7
 
 `newest` is skipped offline because only relays can tell whether a newer event replaced this one. `lookup` runs it.
 
+The same CLI reads the records that build on a binding, each with its own checks ([SPEC](SPEC.md)):
+
+```
+npx tsx bin/tambat.ts attestations <npub>                # attestations that pin the current binding event
+npx tsx bin/tambat.ts receipt <txid>                     # receipts for a transaction, inputs read from a chain server
+npx tsx bin/tambat.ts anchor-lookup bitcoincash:<address>  # optional BCH anchor, read from the chain only, no relays
+```
+
+A recovered binding needs no extra command: `lookup` checks the `replaces` tag and prints where the binding came from.
+
 ## By hand
 
 ### 1. Fetch the event
