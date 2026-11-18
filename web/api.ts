@@ -41,5 +41,6 @@ export const loginWithBch = (address: string, signature: string, nonce: string) 
     method: 'POST',
     body: JSON.stringify({ type: 'bch', address: address.trim(), signature: signature.trim(), nonce }),
   });
-export const getSession = () => call<{ session: SessionView }>('/api/rp/session');
+/** The current session, or null when nobody is signed in (the server answers 200 either way). */
+export const getSession = () => call<{ session: SessionView | null }>('/api/rp/session');
 export const logout = () => call<null>('/api/rp/logout', { method: 'POST', body: '{}' });

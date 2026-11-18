@@ -142,10 +142,10 @@ export function buildApp(options: AppOptions = {}): FastifyInstance {
     return { session, binding };
   });
 
-  app.get('/api/rp/session', async (req, reply) => {
+  // Asking whether anyone is signed in is not a refused request: no session answers 200 with null, so a page load logs no error.
+  app.get('/api/rp/session', async (req) => {
     const s = sessions.get(req.cookies[config.auth.cookieName], now());
-    if (!s) return reply.code(401).send({ error: 'no_session', reason: 'not signed in' });
-    return { session: sessionView(s) };
+    return { session: s ? sessionView(s) : null };
   });
 
   app.post('/api/rp/logout', async (req, reply) => {

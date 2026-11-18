@@ -111,3 +111,17 @@ test('Malay text and no sideways scroll at 320 px on every page', async ({ page 
   await page.getByRole('button', exact(ms.lookup.submit)).click();
   await expect(page.getByRole('alert')).toHaveText(ms.lookup.inputError);
 });
+
+test('the demo app loads signed out without a refused request or a console error', async ({ page }) => {
+  const refused: string[] = [];
+  page.on('response', (r) => {
+    if (r.status() >= 400) refused.push(`${r.status()} ${r.url()}`);
+  });
+  const session = page.waitForResponse((r) => r.url().endsWith('/api/rp/session'));
+  await page.goto('/demo');
+  expect((await session).status()).toBe(200);
+  expect(await (await session).json()).toEqual({ session: null });
+  await expect(page.getByRole('heading', exact(en.demo.nostrTitle))).toBeVisible();
+  await expect(page.getByTestId('session')).toHaveCount(0);
+  expect(refused).toEqual([]);
+});

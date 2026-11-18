@@ -135,6 +135,8 @@ The relying app's server proves that the visitor holds a Nostr key now, then rea
    `bchSignature` is present it must recover to the key of the verified address.
 5. The session cookie is `HttpOnly`, `SameSite=Strict` and `Secure` on https. The session holds the npub and, when verified, the
    address. The client never tells the server which address is bound.
+6. `GET /api/rp/session` answers `200` with `{"session": <session>}` when signed in and `{"session": null}` when not; asking
+   who is signed in is not a refused request. A sign-in without a valid fresh answer is refused with `401`.
 
 ### Sign-in with a BCH key only
 

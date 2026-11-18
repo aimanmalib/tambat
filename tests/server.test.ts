@@ -62,7 +62,8 @@ describe('relying app server', () => {
     });
     expect(out.statusCode).toBe(204);
     const gone = await app.inject({ url: '/api/rp/session', cookies: { [config.auth.cookieName]: cookie?.value ?? '' } });
-    expect(gone.statusCode).toBe(401);
+    expect(gone.statusCode).toBe(200);
+    expect(gone.json()).toEqual({ session: null });
   });
 
   it('rejects a replayed answer', async () => {

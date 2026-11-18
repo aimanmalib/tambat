@@ -20,10 +20,9 @@ const test = base.extend<{ consoleErrors: string[] }>({
       const errors: string[] = [];
       page.on('pageerror', (e) => errors.push(e.message));
       page.on('console', (msg) => {
-        // Asking for the session before signing in answers 401 by design; browsers log that as a failed load.
         // Public relays sometimes refuse a connection; the app reports that per relay, the browser also logs it.
         const relayRefused = /^WebSocket connection to 'wss:\/\//.test(msg.text());
-        if (msg.type() === 'error' && !relayRefused && !msg.location().url.endsWith('/api/rp/session')) errors.push(msg.text());
+        if (msg.type() === 'error' && !relayRefused) errors.push(msg.text());
       });
       await use(errors);
       expect(errors).toEqual([]);
@@ -55,9 +54,16 @@ test('no page of the deployed site breaks its content security policy', async ({
   expect(violations).toEqual([]);
 });
 
-test('the demo app and the look-up page load', async ({ page }) => {
-  await page.goto('/demo');
+test('the demo app and the look-up page load', async ({ page, baseURL }) => {
+  const refused: string[] = [];
+  page.on('response', (r) => {
+    if (r.status() >= 400 && r.url().startsWith(baseURL ?? '')) refused.push(`${r.status()} ${r.url()}`);
+  });
+  await page.goto('/demo', { waitUntil: 'networkidle' });
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.demo.title);
+  await expect(page.getByRole('heading', { name: en.demo.nostrTitle })).toBeVisible();
+  await expect(page.getByTestId('session')).toHaveCount(0);
+  expect(refused).toEqual([]);
   await expect(page.getByRole('heading', { name: en.nostr.title })).toBeVisible();
   await page.goto('/lookup');
   await expect(page.getByRole('heading', { name: en.lookup.title })).toBeVisible();

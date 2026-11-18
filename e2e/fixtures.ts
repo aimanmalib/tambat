@@ -86,8 +86,7 @@ export const test = base.extend<{ consoleErrors: string[] }>({
       const errors: string[] = [];
       page.on('pageerror', (e) => errors.push(e.message));
       page.on('console', (msg) => {
-        // Asking for the session before signing in answers 401 by design; browsers log that as a failed load.
-        const allowed = ['/api/rp/session', ...(allowedFailedLoads.get(page) ?? [])];
+        const allowed = allowedFailedLoads.get(page) ?? [];
         if (msg.type() === 'error' && !allowed.some((path) => msg.location().url.endsWith(path))) errors.push(msg.text());
       });
       await routeRelays(page);

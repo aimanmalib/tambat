@@ -202,6 +202,8 @@ Serves the built web app when `dist/` exists (`npm run build`) and:
 
 - `POST /api/rp/challenge`, `POST /api/rp/login`, `GET /api/rp/session`, `POST /api/rp/logout`: challenge and response sign-in
   with a NIP-98 event. The server finds the user's binding on relays itself and puts the verified BCH address in the session.
+  `GET /api/rp/session` answers `{"session": null}` with status 200 when nobody is signed in, so the demo page loads without a
+  refused request; a sign-in without a valid fresh signature is refused with 401.
 - `GET /api/did/<npub>`: a `did:nostr` document with the verified BCH address as a CAIP-10 account.
 - `GET /.well-known/nostr.json?name=<name>`: NIP-05 for the one demo name in `config/tambat.json` (`nip05.names`), readable
   from any origin. Other names get an empty list; the site is not a name service.
