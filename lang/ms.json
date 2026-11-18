@@ -375,5 +375,26 @@
     "from": "Dipulihkan daripada {npub}",
     "refused": "Pemulihan daripada {npub} tidak diterima",
     "by": "Pemilik alamat ini telah berpindah ke kunci baharu: {npub}"
+  },
+  "receipt": {
+    "title": "Resit selepas anda membayar",
+    "help": "Selepas dompet anda menghantar bayaran, tampal id transaksi. Anda boleh menerbitkan resit yang ditandatangani kunci Nostr anda, menamakan identiti ini dan transaksi itu. Sesiapa boleh menyemaknya: ia berkata \"dari alamat terikat\" hanya bila setiap syiling dalam transaksi itu datang dari alamat yang terikat pada kunci anda.",
+    "txid": "Id transaksi",
+    "txidFormat": "Id transaksi ialah 64 aksara heks.",
+    "publish": "Terbitkan resit",
+    "check": "Semak resit",
+    "checking": "Membaca relay dan rantaian BCH",
+    "none": "Tiada resit untuk transaksi ini di relay.",
+    "fromBound": "Dari alamat terikat: setiap input transaksi ini dibelanja dari alamat yang terikat pada pengarang resit.",
+    "notProven": "Pembayar tidak terbukti: resit ialah dakwaan pengarangnya, dan rantaian tidak menunjukkan syiling itu datang dari alamat yang terikat pada kunci itu.",
+    "chain": {
+      "found": "Transaksi ditemui di BCH.",
+      "missing": "Transaksi tidak ditemui di BCH.",
+      "unreachable": "Pelayan rantaian tidak dapat dihubungi, jadi transaksi tidak dapat dibaca."
+    },
+    "paysPayee": "Ia membayar alamat yang terikat pada identiti yang dinamakan dalam resit.",
+    "notPayee": "Ia tidak membayar mana-mana alamat yang terikat pada identiti yang dinamakan dalam resit.",
+    "by": "Resit oleh",
+    "event": "Event resit"
   }
 }

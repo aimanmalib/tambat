@@ -375,5 +375,26 @@
     "from": "Recovered from {npub}",
     "refused": "Recovery from {npub} not accepted",
     "by": "The owner of this address has moved to a new key: {npub}"
+  },
+  "receipt": {
+    "title": "Receipt after you pay",
+    "help": "After your wallet has sent the payment, paste the transaction id. You can publish a receipt signed by your Nostr key, naming this identity and the transaction. Anyone can check it: it says \"from a bound address\" only when every coin in the transaction came from an address bound to your key.",
+    "txid": "Transaction id",
+    "txidFormat": "A transaction id is 64 hex characters.",
+    "publish": "Publish a receipt",
+    "check": "Check receipts",
+    "checking": "Reading the relays and the BCH chain",
+    "none": "No receipt for this transaction on the relays.",
+    "fromBound": "From a bound address: every input of this transaction spends from an address bound to the receipt's author.",
+    "notProven": "Payer not proven: the receipt is the author's claim, and the chain does not show the coins came from an address bound to that key.",
+    "chain": {
+      "found": "Transaction found on BCH.",
+      "missing": "Transaction not found on BCH.",
+      "unreachable": "Chain servers unreachable, so the transaction could not be read."
+    },
+    "paysPayee": "It pays an address bound to the identity named in the receipt.",
+    "notPayee": "It pays no address bound to the identity named in the receipt.",
+    "by": "Receipt by",
+    "event": "Receipt event"
   }
 }

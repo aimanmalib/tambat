@@ -3,6 +3,8 @@
  * `answer` maps one request line to one response line, so a Node WebSocket server (unit tests) and a Playwright
  * WebSocket route (e2e) can both use it.
  */
+import type { ChainSource } from '../src/core/anchor-chain.js';
+
 export interface FakeChainTx {
   hex: string;
   txid: string;
@@ -50,4 +52,23 @@ export function answer(chain: FakeChain, line: string): string {
     default:
       return fail(`unknown method ${request.method}`);
   }
+}
+
+/** The same answers as a ChainSource, without a socket. `closed` counts close() calls. */
+export function fakeSource(data: FakeChain, closed: { count: number } = { count: 0 }): ChainSource {
+  let id = 0;
+  const call = (method: string, ...params: unknown[]) => {
+    const response = JSON.parse(answer(data, JSON.stringify({ id: ++id, method, params }))) as { result?: unknown; error?: unknown };
+    if (response.error) throw new Error(JSON.stringify(response.error));
+    return response.result;
+  };
+  return {
+    history: async (s) => call('blockchain.scripthash.get_history', s) as never,
+    transaction: async (t) => call('blockchain.transaction.get', t) as never,
+    header: async (h) => call('blockchain.block.header', h) as never,
+    unspent: async () => [],
+    close: async () => {
+      closed.count += 1;
+    },
+  };
 }

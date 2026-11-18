@@ -3,9 +3,9 @@ import { main } from '../bin/tambat.js';
 import { WebSocketServer } from 'ws';
 import type { AddressInfo } from 'node:net';
 import { buildAnchorTransaction, txidOf } from '../src/core/anchor.js';
-import { anchorStatus, electrumChain, headerTime, readCommitments, scripthashOf, type ChainSource } from '../src/core/anchor-chain.js';
+import { anchorStatus, electrumChain, headerTime, readCommitments, scripthashOf } from '../src/core/anchor-chain.js';
 import { signP2pkh, hexOf } from './anchor-wallet.js';
-import { answer, headerWithTime, type FakeChain } from './fake-fulcrum.js';
+import { answer, fakeSource as source, headerWithTime, type FakeChain } from './fake-fulcrum.js';
 import { keys, other, vectors } from './helpers.js';
 
 const payload = { pubkey: keys.nostrPubkey, eventId: vectors.bindingEvent.id };
@@ -22,24 +22,6 @@ const chain: FakeChain = {
   history: { [scripthashOf(keys.address)]: [later, pending, forged, early] },
   headers: { 900_010: headerWithTime(1_763_000_000), 900_200: headerWithTime(1_763_100_000) },
 };
-
-function source(data: FakeChain, closed: { count: number } = { count: 0 }): ChainSource {
-  let id = 0;
-  const call = (method: string, ...params: unknown[]) => {
-    const response = JSON.parse(answer(data, JSON.stringify({ id: ++id, method, params }))) as { result?: unknown; error?: unknown };
-    if (response.error) throw new Error(JSON.stringify(response.error));
-    return response.result;
-  };
-  return {
-    history: async (s) => call('blockchain.scripthash.get_history', s) as never,
-    transaction: async (t) => call('blockchain.transaction.get', t) as never,
-    header: async (h) => call('blockchain.block.header', h) as never,
-    unspent: async () => [],
-    close: async () => {
-      closed.count += 1;
-    },
-  };
-}
 
 describe('chain helpers', () => {
   it('computes the Electrum script hash of an address (genesis coinbase address)', () => {

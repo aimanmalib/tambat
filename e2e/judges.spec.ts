@@ -6,10 +6,9 @@
 import { join } from 'node:path';
 import type { Page, TestInfo } from '@playwright/test';
 import type { Event } from 'nostr-tools/pure';
-import WebSocket from 'ws';
 import config from '../config/tambat.json' with { type: 'json' };
 import demoEvent from './demo-binding-event.json' with { type: 'json' };
-import { startFakeRelay } from './fake-relay.js';
+import { routeToRelay, startFakeRelay } from './fake-relay.js';
 import { en, expect, expectAccessible, expectNoOverflow, ms, test } from './fixtures.js';
 import { E2E } from './ports.js';
 
@@ -23,16 +22,7 @@ test.beforeAll(() => {
 test.afterAll(() => relay.close());
 
 async function useJudgesRelay(page: Page) {
-  await page.routeWebSocket(/^wss:\/\//, (ws) => {
-    const upstream = new WebSocket(`ws://127.0.0.1:${JUDGES_RELAY_PORT}`);
-    const queue: string[] = [];
-    upstream.on('open', () => queue.splice(0).forEach((m) => upstream.send(m)));
-    upstream.on('message', (data) => ws.send(String(data)));
-    upstream.on('close', () => ws.close());
-    upstream.on('error', () => ws.close());
-    ws.onMessage((m) => (upstream.readyState === WebSocket.OPEN ? upstream.send(String(m)) : queue.push(String(m))));
-    ws.onClose(() => upstream.close());
-  });
+  await routeToRelay(page, JUDGES_RELAY_PORT);
 }
 
 /** The page is one screen: the document is no taller than the window. */

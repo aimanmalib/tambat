@@ -1,5 +1,6 @@
 /** A minimal in-memory NIP-01 relay for end-to-end tests: EVENT, REQ (with limit), CLOSE. No network access. */
-import { WebSocketServer, type WebSocket } from 'ws';
+import type { Page } from '@playwright/test';
+import { WebSocket, WebSocketServer } from 'ws';
 import { matchFilter, type Filter } from 'nostr-tools/filter';
 import { verifyEvent, type Event } from 'nostr-tools/pure';
 
@@ -39,4 +40,18 @@ export function startFakeRelay(port: number, host = '127.0.0.1'): { close: () =>
       server.close(() => resolve());
     });
   return { events, close };
+}
+
+/** Sends every wss: connection of the page to the fake relay on `port`. Register chain routes after this so they win. */
+export async function routeToRelay(page: Page, port: number) {
+  await page.routeWebSocket(/^wss:\/\//, (ws) => {
+    const upstream = new WebSocket(`ws://127.0.0.1:${port}`);
+    const queue: string[] = [];
+    upstream.on('open', () => queue.splice(0).forEach((m) => upstream.send(m)));
+    upstream.on('message', (data) => ws.send(String(data)));
+    upstream.on('close', () => ws.close());
+    upstream.on('error', () => ws.close());
+    ws.onMessage((m) => (upstream.readyState === WebSocket.OPEN ? upstream.send(String(m)) : queue.push(String(m))));
+    ws.onClose(() => upstream.close());
+  });
 }

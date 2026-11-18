@@ -6,13 +6,12 @@
 import { secp256k1 } from '@bitauth/libauth';
 import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import type { Page } from '@playwright/test';
-import WebSocket from 'ws';
 import { signMessage } from '../src/core/bchmsg.js';
 import { createBindingEvent } from '../src/core/binding.js';
 import { addressFromPublicKey } from '../src/core/cashaddr.js';
 import { toNpub, verificationText } from '../src/core/nostr.js';
 import { createRecoveryEvent, recoveryText } from '../src/core/recover.js';
-import { startFakeRelay } from './fake-relay.js';
+import { routeToRelay, startFakeRelay } from './fake-relay.js';
 import { en, expect, expectAccessible, expectNoOverflow, ms, routeChain, test } from './fixtures.js';
 import { E2E } from './ports.js';
 
@@ -46,16 +45,7 @@ test.afterAll(() => relay.close());
 
 /** Sends relay connections to this spec's relay; the chain servers are routed again afterwards so they keep their fake. */
 async function useRecoverRelay(page: Page) {
-  await page.routeWebSocket(/^wss:\/\//, (ws) => {
-    const upstream = new WebSocket(`ws://127.0.0.1:${RECOVER_RELAY_PORT}`);
-    const queue: string[] = [];
-    upstream.on('open', () => queue.splice(0).forEach((m) => upstream.send(m)));
-    upstream.on('message', (data) => ws.send(String(data)));
-    upstream.on('close', () => ws.close());
-    upstream.on('error', () => ws.close());
-    ws.onMessage((m) => (upstream.readyState === WebSocket.OPEN ? upstream.send(String(m)) : queue.push(String(m))));
-    ws.onClose(() => upstream.close());
-  });
+  await routeToRelay(page, RECOVER_RELAY_PORT);
   await routeChain(page);
 }
 

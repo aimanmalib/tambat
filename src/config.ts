@@ -101,6 +101,18 @@ export interface TambatConfig {
     /** How many transactions of an address are read when looking for commitments. */
     historyLimit: number;
   };
+  /**
+   * Payment receipts (docs/SPEC.md "Payment receipts"): a NIP-32 label event naming the paid key and, as a NIP-73
+   * `i` tag, the BCH transaction. Read and checked against the chain; the server never touches them.
+   */
+  receipt: {
+    kind: number;
+    /** NIP-32 namespace (`L` tag) and label value (`l` tag) of a receipt. */
+    namespace: string;
+    label: string;
+    /** A transaction with more inputs than this is not read input by input; its payer stays not proven. */
+    inputLimit: number;
+  };
   /** The one-screen page for judges at /judges. Event ids and keys come from docs/MEASURED.md. */
   judges: {
     repoUrl: string;
@@ -147,6 +159,13 @@ function parseAnchor(a: TambatConfig['anchor']): void {
   nonEmptyStrings(a.electrum, 'anchor.electrum', (s) => /^wss?:\/\/[^\s/:]+(:\d+)?\/?$/.test(s));
   positiveInt(a.timeoutMs, 'anchor.timeoutMs');
   positiveInt(a.historyLimit, 'anchor.historyLimit');
+}
+
+function parseReceipt(r: TambatConfig['receipt']): void {
+  positiveInt(r?.kind, 'receipt.kind');
+  if (typeof r.namespace !== 'string' || !/^[a-z0-9.-]+$/.test(r.namespace)) fail('receipt.namespace', 'must use a-z, 0-9 and .- only');
+  if (typeof r.label !== 'string' || !/^[a-z0-9_-]+$/.test(r.label)) fail('receipt.label', 'must use a-z, 0-9 and _- only');
+  positiveInt(r.inputLimit, 'receipt.inputLimit');
 }
 
 function parseJudges(j: TambatConfig['judges']): void {
@@ -224,6 +243,7 @@ export function parseConfig(input: unknown): TambatConfig {
   if (typeof c.nostr?.recoveryTag !== 'string' || !/^[a-z_]{2,}$/.test(c.nostr.recoveryTag)) fail('nostr.recoveryTag', 'must be a lower-case tag name of two or more letters');
   if (typeof c.nostr.recoveryText !== 'string' || !c.nostr.recoveryText.includes('{npub}')) fail('nostr.recoveryText', 'must contain {npub}');
   parseAnchor(c.anchor);
+  parseReceipt(c.receipt);
   parseJudges(c.judges);
   return c;
 }

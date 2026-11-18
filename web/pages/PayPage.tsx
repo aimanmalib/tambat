@@ -9,6 +9,7 @@ import { CopyValue } from '../ui/Copy';
 import { errorText } from '../../src/errors';
 import { Notice } from '../ui/Notice';
 import { Qr } from '../ui/Qr';
+import { ReceiptPanel } from './ReceiptPanel';
 
 type Found = { address: string; npub: string } | 'none' | null;
 type Via = { name: string; npub: string } | null;
@@ -91,6 +92,7 @@ export function PayPage() {
               <a className="btn" href={uri}>{t('pay.open')}</a>
             </div>
           ) : null}
+          <ReceiptPanel payeeNpub={found.npub} />
         </div>
       ) : null}
     </section>

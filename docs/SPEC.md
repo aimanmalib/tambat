@@ -164,6 +164,31 @@ document is rebuilt from relays on every request; anyone can rebuild it with the
 An npub or a NIP-05 name is looked up with section 6; only a verified address is offered. The payment request is a BIP21 URI
 (`bitcoincash:<address>?amount=<BCH>&label=...`) and its QR code. The payer's wallet builds and sends the transaction.
 
+### Payment receipts
+
+After paying, the payer may publish a receipt ([ADR 0010](decisions/0010-payment-receipts.md)): a NIP-32 label event, kind
+`1985`, content empty, with these tags:
+
+```
+["L", "cash.tambat.receipt"]
+["l", "paid", "cash.tambat.receipt"]
+["p", <hex key of the identity that was paid>]
+["i", "bitcoincash:tx:<txid, 64 lower-case hex>"]
+["k", "bitcoincash:tx"]
+```
+
+The `i` and `k` tags are NIP-73 blockchain transaction ids. A reader:
+
+1. checks the event (id, signature, kind, label, exactly one `p` and one `bitcoincash:tx:` id);
+2. looks up the newest verified binding of the author and of the `p` key (section 6);
+3. fetches the transaction and the previous transaction of every input from a chain server, and rejects any whose hash is
+   not the id asked for;
+4. reports **from a bound address** only when every input spends from an address in the author's binding, otherwise
+   **payer not proven**; and separately whether an output pays an address in the `p` key's binding.
+
+A transaction no chain server knows is reported as not found. Look-up: `tambat receipt <txid>`; publish:
+`tambat receipt-publish <payee npub> <txid> --keys <file>`.
+
 ## 10. Test vectors
 
 All keys come from the public BIP39 phrase

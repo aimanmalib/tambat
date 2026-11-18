@@ -37,7 +37,7 @@ export const other = account(1);
 
 export const clone = (e: Event): Event => JSON.parse(JSON.stringify(e)) as Event;
 
-/** An in-process relay: answers authors and #i filters from a fixed list, like a NIP-01 relay would. */
+/** An in-process relay: answers authors and tag (#i, #p, #L) filters from a fixed list, like a NIP-01 relay would. */
 export function fakeRelay(events: unknown[]): QueryFn {
   return async (_relays: string[], filter: Filter) =>
     events.filter((raw) => {
@@ -45,7 +45,8 @@ export function fakeRelay(events: unknown[]): QueryFn {
       if (!e || typeof e !== 'object' || !Array.isArray(e.tags)) return true; // relays may return junk
       if (filter.kinds && !filter.kinds.includes(e.kind)) return false;
       if (filter.authors && !filter.authors.includes(e.pubkey)) return false;
-      const wanted = filter['#i'];
-      return !wanted || e.tags.some((t) => t[0] === 'i' && wanted.includes(t[1] ?? ''));
+      return Object.entries(filter)
+        .filter(([name]) => name.startsWith('#'))
+        .every(([name, wanted]) => e.tags.some((t) => t[0] === name.slice(1) && (wanted as string[]).includes(t[1] ?? '')));
     });
 }

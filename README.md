@@ -128,6 +128,8 @@ npx tsx bin/tambat.ts lookup <npub|bitcoincash:...> [--json]
 npx tsx bin/tambat.ts revoke <bitcoincash:...> [--keys <file>]        # remove this address from your binding
 npx tsx bin/tambat.ts rotate <old address> <new address> [--keys <file>]   # move the binding in one event
 npx tsx bin/tambat.ts recover <old npub> --keys <new key file> --bch-keys <wallet file>   # lost Nostr key: hand the binding to a new key
+npx tsx bin/tambat.ts receipt <txid> [--json]                        # payment receipts for a BCH transaction, checked on chain
+npx tsx bin/tambat.ts receipt-publish <payee npub> <txid> [--keys <file>]   # publish a receipt for a payment you made
 ```
 
 `verify` works offline. `lookup` asks the relays in `config/tambat.json` and verifies every event they return. Exit code 0 means
@@ -145,6 +147,12 @@ the wallet that holds the bound address signs `replaces <old npub>`, and the new
 address with the signature in a `replaces` tag ([SPEC](docs/SPEC.md#recovery-from-a-lost-nostr-key),
 [ADR 0009](docs/decisions/0009-recovery-tag.md)). Look-ups then show "Recovered from <old npub>" on the new key, and an address
 look-up marks the old key as moved. A recovery of the demo identity on the public relays is in [MEASURED.md](docs/MEASURED.md#recovery).
+
+After paying an identity, the payer can publish a receipt: a NIP-32 label (kind 1985) naming the paid key and the
+transaction as a NIP-73 id `bitcoincash:tx:<txid>` ([SPEC](docs/SPEC.md#payment-receipts),
+[ADR 0010](docs/decisions/0010-payment-receipts.md)). The **Pay** page and `tambat receipt` read the transaction from a chain
+server and say "from a bound address" only when every input spends from an address bound to the receipt's author; otherwise
+"payer not proven". A receipt published on the public relays is in [MEASURED.md](docs/MEASURED.md#receipt).
 
 ## Server
 
@@ -198,7 +206,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-7b59f14238a0fbbb1bb6218ebd36539cdddbbb76f8d3855dfb37ab635f1314a7  tambat-verify.html
+a9f8df422b2dcba751b96a87102a071760cf8b460928c62dfaf56fee7b4bb9fe  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;

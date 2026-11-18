@@ -152,5 +152,11 @@
       "npub": "npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql"
     },
     "openFromWidth": "60rem"
+  },
+  "receipt": {
+    "kind": 1985,
+    "namespace": "cash.tambat.receipt",
+    "label": "paid",
+    "inputLimit": 50
   }
 }

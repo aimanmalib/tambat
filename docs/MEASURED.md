@@ -2,6 +2,22 @@
 
 Facts measured on a real run, failures included. Newest first.
 
+## Receipt
+
+Payment receipts (SPEC "Payment receipts"), 2026-11-18. No payment was made for this: the transaction is an existing public
+mainnet transaction, `dff40f79cef322369d1d7ab9dc20f71a75dd333dc30eb2d77c08dafdbd1a7e86` (block 478559, the first block of
+BCH, position 1), not made by any key of this project. The second demo Nostr key (its binding revoked, so it has no bound
+address) ran `tambat receipt-publish` naming the main demo identity as the payee. Relays: relay.damus.io refused the
+connection; nos.lol and relay.primal.net accepted. A few seconds later `tambat receipt <txid>` found the receipt on the
+relays, read the transaction and its input's previous transaction from a Fulcrum server in `config.anchor.electrum` (both
+hashed to the ids asked for), and printed "transaction found on BCH, pays no address bound to the payee" and "payer not
+proven", exit code 1. That is the expected reading: the receipt is only the author's claim. The "from a bound address" reading
+is covered by tests against a fake chain (`tests/receipt*.test.ts`, `e2e/receipt.spec.ts`), not by a live payment.
+
+| UTC | receipt event | author | payee | txid | relays accepting | reading | result |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 00:49:25 | `f036fb9d796eef42fd388fb90de668c2e8ec8851d69648649cde72511b98e506` | `npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql` | `npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt` | `dff40f79…7e86` | nos.lol, relay.primal.net | payer not proven | ok |
+
 ## Anchor
 
 Optional BCH anchor (SPEC "Optional BCH anchor"), 2026-11-18. The demo BCH address
