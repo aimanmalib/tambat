@@ -13,7 +13,7 @@ const probe = createProbe();
 
 /** Loads the wall; when nothing came back it asks whether any relay answered, so an outage never reads as "empty". */
 async function load(): Promise<State> {
-  const wall = await loadWall().catch((): Wall => ({ entries: [], hidden: 0 }));
+  const wall = await loadWall().catch((): Wall => ({ entries: [], hidden: 0, scanned: 0 }));
   const empty = wall.entries.length === 0 && wall.hidden === 0;
   const reachable = !empty || (await probe(config.nostr.relays, config.nostr.queryTimeoutMs)) > 0;
   return { kind: 'done', reachable, ...wall };
@@ -64,6 +64,9 @@ export function WallPage() {
             </li>
           ))}
         </ol>
+      ) : null}
+      {state.kind === 'done' && state.reachable ? (
+        <p className="wall__scanned" data-scanned={state.scanned}>{t('wall.scanned', { shown: state.entries.length, scanned: state.scanned })}</p>
       ) : null}
       {state.kind === 'done' ? <p className="wall__hidden" data-hidden={state.hidden}>{t('wall.hidden', { count: state.hidden })}</p> : null}
     </section>

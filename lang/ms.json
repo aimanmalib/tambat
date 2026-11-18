@@ -280,7 +280,8 @@
   },
   "wall": {
     "title": "Ikatan terkini",
-    "help": "{limit} event identiti terbaharu di relay, disemak satu demi satu dalam pelayar anda. Ikatan disenaraikan hanya bila setiap langkah lulus; selebihnya dikira di bawah dan tidak pernah dipaparkan sebagai sah.",
+    "help": "Event identiti di relay, terbaharu dahulu, disemak satu demi satu dalam pelayar anda. Relay tidak dapat memilih ikatan BCH sahaja, jadi dinding membaca event lebih lama sehingga menemui {limit}. Ikatan disenaraikan hanya bila setiap langkah lulus; selebihnya dikira di bawah dan tidak pernah dipaparkan sebagai sah.",
+    "scanned": "Memaparkan {shown} ikatan yang ditemui dalam {scanned} event identiti terbaharu.",
     "refresh": "Semak semula",
     "loading": "Bertanya kepada relay",
     "listLabel": "Ikatan yang disahkan",

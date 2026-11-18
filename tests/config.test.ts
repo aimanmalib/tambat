@@ -45,6 +45,14 @@ describe('config/tambat.json', () => {
     }
   });
 
+  it('rejects a wall page size or page count that is not a positive integer', () => {
+    for (const [key, value] of [['pageSize', 0], ['pageSize', 2.5], ['maxPages', 0], ['maxPages', '5']] as const) {
+      const c = fresh();
+      c.wall[key] = value;
+      expect(() => parseConfig(c)).toThrow(new RegExp(`wall.${key}`));
+    }
+  });
+
   it('rejects a relay that is not wss', () => {
     const c = fresh();
     c.nostr.relays = ['ws://relay.example'];

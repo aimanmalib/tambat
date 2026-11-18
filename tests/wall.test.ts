@@ -54,12 +54,12 @@ describe('buildWall', () => {
       { ...binding, created_at: binding.created_at + 5, tags: [['i', claimIdentity(keys.address), signMessage(other.bchPrivateKey, verificationText(keys.npub))]] },
       keys.nostrSecretKey,
     ) as Event;
-    expect(buildWall([wrong], 30)).toEqual({ entries: [], hidden: 1 });
+    expect(buildWall([wrong], 30)).toEqual({ entries: [], hidden: 1, scanned: 1 });
   });
 
   it('leaves out a binding replaced by a newer event without counting it as a failure', () => {
     const revoked = finalizeEvent(createRevocationEvent(binding, binding.created_at + 10), keys.nostrSecretKey) as Event;
-    expect(buildWall([binding, revoked, second], 30)).toEqual({ entries: [expect.objectContaining({ npub: other.npub })], hidden: 0 });
+    expect(buildWall([binding, revoked, second], 30)).toEqual({ entries: [expect.objectContaining({ npub: other.npub })], hidden: 0, scanned: 3 });
   });
 
   it('does not let a forged newer event push out the genuine one', () => {
@@ -69,13 +69,13 @@ describe('buildWall', () => {
   });
 
   it('counts each event once when several relays return it, keeping the copy that verifies', () => {
-    expect(buildWall([badNostrSig(binding), binding, clone(binding)], 30)).toEqual({ entries: [expect.objectContaining({ eventId: binding.id })], hidden: 0 });
+    expect(buildWall([badNostrSig(binding), binding, clone(binding)], 30)).toEqual({ entries: [expect.objectContaining({ eventId: binding.id })], hidden: 0, scanned: 1 });
   });
 
   it('ignores events of other platforms and junk, and counts a malformed BCH claim event', () => {
     const github = finalizeEvent({ kind: config.nostr.bindingKind, created_at: 1, content: '', tags: [['i', 'github:someone', 'abc']] }, other.nostrSecretKey);
     const malformed = { tags: [['i', claimIdentity(keys.address), 'x']] };
-    expect(buildWall([github, null, 'junk', 42, malformed], 30)).toEqual({ entries: [], hidden: 1 });
+    expect(buildWall([github, null, 'junk', 42, malformed], 30)).toEqual({ entries: [], hidden: 1, scanned: 1 });
   });
 
   it('shows at most the limit', () => {
@@ -84,16 +84,16 @@ describe('buildWall', () => {
 });
 
 describe('loadWall', () => {
-  it('asks for the newest binding events up to the limit and verifies them', async () => {
+  it('asks for one page of the newest identity events and verifies them', async () => {
     const filters: Filter[] = [];
     const query = fakeRelay([binding, forged]);
-    const wall = await loadWall({ relays: ['wss://a.example'], timeoutMs: 200, limit: 7, query: (r, f, t) => (filters.push(f), query(r, f, t)) });
-    expect(filters).toEqual([{ kinds: [config.nostr.bindingKind], limit: 7 }]);
-    expect(wall).toEqual({ entries: [expect.objectContaining({ eventId: binding.id })], hidden: 1 });
+    const wall = await loadWall({ relays: ['wss://a.example'], timeoutMs: 200, limit: 7, pageSize: 50, maxPages: 5, query: (r, f, t) => (filters.push(f), query(r, f, t)) });
+    expect(filters).toEqual([{ kinds: [config.nostr.bindingKind], limit: 50 }]);
+    expect(wall).toEqual({ entries: [expect.objectContaining({ eventId: binding.id })], hidden: 1, scanned: 2 });
   });
 
   it('reads as empty when the relays fail', async () => {
-    expect(await loadWall({ relays: ['wss://a.example'], timeoutMs: 50, query: () => Promise.reject(new Error('down')) })).toEqual({ entries: [], hidden: 0 });
+    expect(await loadWall({ relays: ['wss://a.example'], timeoutMs: 50, query: () => Promise.reject(new Error('down')) })).toEqual({ entries: [], hidden: 0, scanned: 0 });
   });
 });
 

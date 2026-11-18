@@ -86,8 +86,12 @@ export interface TambatConfig {
     frameAncestors: string[];
   };
   wall: {
-    /** How many of the newest binding events the wall asks each relay for and shows at most. */
+    /** How many verified BCH bindings the wall shows at most. */
     limit: number;
+    /** Identity events asked of each relay per page; the wall pages back with `until` until it finds `limit`. */
+    pageSize: number;
+    /** Pages asked of each relay at most, so a relay full of other platforms cannot keep the wall loading. */
+    maxPages: number;
   };
   /** Optional BCH anchor (docs/SPEC.md "Optional BCH anchor"). The server never signs or sends a transaction. */
   anchor: {
@@ -280,6 +284,8 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.embed.height, 'embed.height');
   nonEmptyStrings(c.embed.frameAncestors, 'embed.frameAncestors', (s) => !/[\s;,]/.test(s) && s !== "'none'");
   positiveInt(c.wall?.limit, 'wall.limit');
+  positiveInt(c.wall.pageSize, 'wall.pageSize');
+  positiveInt(c.wall.maxPages, 'wall.maxPages');
   if (typeof c.nostr?.recoveryTag !== 'string' || !/^[a-z_]{2,}$/.test(c.nostr.recoveryTag)) fail('nostr.recoveryTag', 'must be a lower-case tag name of two or more letters');
   if (typeof c.nostr.recoveryText !== 'string' || !c.nostr.recoveryText.includes('{npub}')) fail('nostr.recoveryText', 'must contain {npub}');
   parseAnchor(c.anchor);

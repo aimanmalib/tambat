@@ -280,7 +280,8 @@
   },
   "wall": {
     "title": "Recent bindings",
-    "help": "The newest {limit} identity events on the relays, checked one by one in your browser. A binding is listed only when every step passes; the rest are counted below and never shown as verified.",
+    "help": "Identity events on the relays, newest first, checked one by one in your browser. The relays cannot pick out BCH bindings, so the wall reads back through older events until it finds {limit}. A binding is listed only when every step passes; the rest are counted below and never shown as verified.",
+    "scanned": "Showing {shown} bindings found in the newest {scanned} identity events.",
     "refresh": "Check again",
     "loading": "Asking relays",
     "listLabel": "Verified bindings",

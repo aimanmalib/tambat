@@ -1,12 +1,14 @@
 /**
- * The wall against its own fake relay holding exactly two binding events: one genuine and one named `forged` whose
- * Nostr signature was changed after signing. Only the genuine one may be listed; the forged one only counts as hidden.
+ * The wall against its own fake relay holding two binding events: one genuine and one named `forged` whose Nostr
+ * signature was changed after signing. Only the genuine one may be listed; the forged one only counts as hidden. Both
+ * sit behind more newer identity events of another platform than one page holds, so the wall must page back to them.
  */
 import { join } from 'node:path';
 import { secp256k1 } from '@bitauth/libauth';
-import { generateSecretKey, getPublicKey, type Event } from 'nostr-tools/pure';
+import { finalizeEvent, generateSecretKey, getPublicKey, type Event } from 'nostr-tools/pure';
 import type { Page, TestInfo } from '@playwright/test';
 import WebSocket from 'ws';
+import { config as siteConfig } from '../src/config.js';
 import { addressFromPublicKey } from '../src/core/cashaddr.js';
 import { shortAddress, shortNpub } from '../src/core/badge.js';
 import { toNpub } from '../src/core/nostr.js';
@@ -27,8 +29,14 @@ function freshBinding(createdAt: number) {
 }
 
 const now = Math.floor(Date.now() / 1000);
-const genuine = freshBinding(now - 60);
-const forgedSource = freshBinding(now - 30);
+const genuine = freshBinding(now - 5000);
+const forgedSource = freshBinding(now - 4000);
+/** Newer identity events naming another platform: more than one page, so the BCH bindings are only on a later page. */
+const crowdKey = generateSecretKey();
+const crowd = Array.from({ length: siteConfig.wall.pageSize + 50 }, (_, i) =>
+  finalizeEvent({ kind: siteConfig.nostr.bindingKind, created_at: now - 1000 + i, content: '', tags: [['i', `github:user${i}`, 'proof']] }, crowdKey),
+);
+const scanned = String(crowd.length + 2);
 const forged: Event = { ...forgedSource.event, sig: `${forgedSource.event.sig.slice(0, -4)}${forgedSource.event.sig.endsWith('0000') ? '1111' : '0000'}` };
 
 let relay: ReturnType<typeof startFakeRelay>;
@@ -37,6 +45,7 @@ test.beforeAll(() => {
   // Stored directly: the fake relay, like a real one, would refuse the forged event if it were published.
   relay.events.set(genuine.event.id, genuine.event);
   relay.events.set(forged.id, forged);
+  for (const e of crowd) relay.events.set(e.id, e);
 });
 test.afterAll(() => relay.close());
 
@@ -77,6 +86,7 @@ test('the wall lists the genuine binding and only counts the forged one', async 
   await expect(cards.first()).toContainText(shortAddress(genuine.address));
   await expect(page.locator('.wall__hidden')).toHaveAttribute('data-hidden', '1');
   await expect(page.locator('.wall__hidden')).toHaveText(en.wall.hidden.replace('{count}', '1'));
+  await expect(page.locator('.wall__scanned')).toHaveText(en.wall.scanned.replace('{shown}', '1').replace('{scanned}', scanned));
   await expect(page.getByRole('link', { name: en.nav.wall })).toHaveAttribute('aria-current', 'page');
   await expectAccessible(page);
   await expectNoOverflow(page);
@@ -94,6 +104,7 @@ test('the wall in Malay at 320 px fits and keeps the same verdicts', async ({ pa
   await expect(page.getByRole('heading', { level: 1, name: ms.wall.title })).toBeVisible();
   await expect(page.locator('.wall__card')).toHaveCount(1);
   await expect(page.locator('.wall__hidden')).toHaveText(ms.wall.hidden.replace('{count}', '1'));
+  await expect(page.locator('.wall__scanned')).toHaveText(ms.wall.scanned.replace('{shown}', '1').replace('{scanned}', scanned));
   await expectNoOverflow(page);
   await expectAccessible(page);
   await shot(page, info, consoleErrors, 'ms-320');

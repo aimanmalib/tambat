@@ -126,7 +126,9 @@
     }
   },
   "wall": {
-    "limit": 30
+    "limit": 30,
+    "pageSize": 200,
+    "maxPages": 5
   },
   "anchor": {
     "prefix": "TMBT",
