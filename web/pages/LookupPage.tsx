@@ -9,6 +9,7 @@ import { errorText } from '../../src/errors';
 import { Notice } from '../ui/Notice';
 import { Tamper } from '../ui/Tamper';
 import { AnchorStatus } from './AnchorStatus';
+import { Attestations } from './Attestations';
 import { OwnerActions } from './OwnerActions';
 
 const VERIFIER_PATH = '/verify/';
@@ -29,6 +30,7 @@ function Result({ result, onChanged }: { result: BindingResult; onChanged: () =>
         <button type="button" className="btn" onClick={() => navigate('/pay', `?npub=${result.npub}`)}>{t('lookup.pay')}</button>
       ) : null}
       {result.ok ? <AnchorStatus result={result} /> : null}
+      {result.ok ? <Attestations result={result} /> : null}
       {result.ok ? <Tamper result={result} /> : null}
       <details className="more">
         <summary>{t('lookup.event')}</summary>

@@ -396,5 +396,14 @@
     "notPayee": "It pays no address bound to the identity named in the receipt.",
     "by": "Receipt by",
     "event": "Receipt event"
+  },
+  "attest": {
+    "title": "Attestations",
+    "checking": "Reading attestations from the relays",
+    "none": "No other key has attested this binding yet.",
+    "by": "Verified by this key on {date}, for this exact binding event:",
+    "event": "Attestation event",
+    "replaced": "{count} key(s) attested an earlier binding of this key. Those attestations no longer count, because the binding they checked was replaced.",
+    "help": "An attestation is a signed NIP-32 label in which another Nostr key says it checked this binding. It names the binding event by id, so it counts only while that event is this key's current binding. It is that key's word, not a proof."
   }
 }

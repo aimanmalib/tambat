@@ -158,5 +158,10 @@
     "namespace": "cash.tambat.receipt",
     "label": "paid",
     "inputLimit": 50
+  },
+  "attest": {
+    "kind": 1985,
+    "namespace": "cash.tambat.attest",
+    "label": "verified"
   }
 }

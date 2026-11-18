@@ -396,5 +396,14 @@
     "notPayee": "Ia tidak membayar mana-mana alamat yang terikat pada identiti yang dinamakan dalam resit.",
     "by": "Resit oleh",
     "event": "Event resit"
+  },
+  "attest": {
+    "title": "Pengesahan pihak lain",
+    "checking": "Membaca pengesahan dari relay",
+    "none": "Belum ada kunci lain yang mengesahkan ikatan ini.",
+    "by": "Disahkan oleh kunci ini pada {date}, untuk event ikatan yang tepat ini:",
+    "event": "Event pengesahan",
+    "replaced": "{count} kunci mengesahkan ikatan lebih awal kunci ini. Pengesahan itu tidak lagi dikira, kerana ikatan yang disemak telah diganti.",
+    "help": "Pengesahan ialah label NIP-32 bertandatangan di mana kunci Nostr lain menyatakan ia telah menyemak ikatan ini. Ia menamakan event ikatan dengan id, jadi ia dikira hanya selagi event itu ikatan semasa kunci ini. Ia kata-kata kunci itu, bukan bukti."
   }
 }

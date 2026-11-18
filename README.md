@@ -130,6 +130,8 @@ npx tsx bin/tambat.ts rotate <old address> <new address> [--keys <file>]   # mov
 npx tsx bin/tambat.ts recover <old npub> --keys <new key file> --bch-keys <wallet file>   # lost Nostr key: hand the binding to a new key
 npx tsx bin/tambat.ts receipt <txid> [--json]                        # payment receipts for a BCH transaction, checked on chain
 npx tsx bin/tambat.ts receipt-publish <payee npub> <txid> [--keys <file>]   # publish a receipt for a payment you made
+npx tsx bin/tambat.ts attest <npub> [--keys <file>]                  # attest another key's current binding
+npx tsx bin/tambat.ts attestations <npub> [--json]                   # attestations that still count
 ```
 
 `verify` works offline. `lookup` asks the relays in `config/tambat.json` and verifies every event they return. Exit code 0 means
@@ -153,6 +155,13 @@ transaction as a NIP-73 id `bitcoincash:tx:<txid>` ([SPEC](docs/SPEC.md#payment-
 [ADR 0010](docs/decisions/0010-payment-receipts.md)). The **Pay** page and `tambat receipt` read the transaction from a chain
 server and say "from a bound address" only when every input spends from an address bound to the receipt's author; otherwise
 "payer not proven". A receipt published on the public relays is in [MEASURED.md](docs/MEASURED.md#receipt).
+
+Another key can attest a binding: `tambat attest <npub>` publishes a NIP-32 label (kind 1985) that names the subject key and
+pins the id of its current binding event ([SPEC](docs/SPEC.md#attestations),
+[ADR 0011](docs/decisions/0011-attestations.md)). The look-up page and `tambat attestations` list only attestations of the
+current binding: once the subject rotates, recovers, revokes or publishes any newer binding, older attestations no longer
+count. An attestation is the attester's word, not a proof. One published on the public relays is in
+[MEASURED.md](docs/MEASURED.md#attestation).
 
 ## Server
 
@@ -206,7 +215,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-a9f8df422b2dcba751b96a87102a071760cf8b460928c62dfaf56fee7b4bb9fe  tambat-verify.html
+34d94a027e0580181ed880555f32b1103abebcc2e96c3e239d9a18e891e8605e  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -254,6 +263,8 @@ outage never reads as "not linked"), or not an npub or address. Only `/embed/` m
   claim, and the recovery then fails its `old_binding` step. Publishing a recovery is a CLI command (`tambat recover`); the web
   app shows recoveries but has no form to make one.
 - **One address per Nostr key**, P2PKH only. Multisig and P2SH addresses cannot sign a message; CashTokens are not covered.
+- **Attestations** are one label ("verified") with no score, expiry or reason; the web app shows them but publishing one is a
+  CLI command (`tambat attest`).
 - **Credentials, reputation and selective disclosure** are out of scope. A binding says two keys belong together, not who the
   person is.
 - **Privacy**: a binding is public by design and links a payment address to a social identity. Users who want unlinkable

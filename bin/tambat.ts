@@ -10,6 +10,8 @@
  *   tambat recover <old npub>          bind the address of a lost Nostr key to the key in --keys, signed by --bch-keys
  *   tambat receipt <txid>              find payment receipts for a BCH transaction and check them against the chain
  *   tambat receipt-publish <payee> <txid>  publish a receipt for a payment you made, signed by the Nostr key in --keys
+ *   tambat attest <npub>               attest the current binding of another key, signed by the Nostr key in --keys
+ *   tambat attestations <npub>         list attestations of a key's current binding (older bindings drop)
  * revoke and rotate sign with the phrase in --keys <file> (default from config: cli.keysFile). recover takes the new
  * Nostr key from --keys and the wallet phrase that holds the bound address from --bch-keys.
  * Add --json for machine-readable output. Exit code 0 = verified, 1 = not verified, 2 = usage error.
@@ -27,13 +29,15 @@ import { verifyBinding, type BindingResult } from '../src/core/verify.js';
 import { electrumChain, readCommitments, type OpenChain } from '../src/core/anchor-chain.js';
 import { parseP2pkhAddress } from '../src/core/cashaddr.js';
 import { publishReceipt, receiptLookup } from '../src/node/receipt.js';
+import { attestationLookup, publishAttestation } from '../src/node/attest.js';
 
 const USAGE =
   'usage: tambat text <npub> | verify <event.json|-> | lookup <npub|cashaddr> [--json]\n' +
   '       tambat revoke <cashaddr> | rotate <old cashaddr> <new cashaddr> [--keys <file>]\n' +
   '       tambat anchor-lookup <cashaddr> [--json]\n' +
   '       tambat recover <old npub> --keys <new key file> --bch-keys <wallet phrase file>\n' +
-  '       tambat receipt <txid> [--json] | receipt-publish <payee npub> <txid> [--keys <file>]';
+  '       tambat receipt <txid> [--json] | receipt-publish <payee npub> <txid> [--keys <file>]\n' +
+  '       tambat attest <npub> [--keys <file>] | attestations <npub> [--json]';
 
 const nodeDeps: ManageDeps = {
   query: nodeRelayQuery,
@@ -149,6 +153,23 @@ export async function main(argv: string[], deps: ManageDeps = nodeDeps, openChai
     if (!keysFile || !arg2) return usageError('receipt-publish needs the payee, the transaction id and a key file');
     try {
       const result = await publishReceipt(readPhrase(keysFile), arg, arg2, deps);
+      console.log(JSON.stringify(result, null, 2));
+      return result.outcomes.some((o) => o.ok) ? 0 : 1;
+    } catch (err) {
+      return usageError((err as Error).message);
+    }
+  }
+  if (command === 'attestations') {
+    try {
+      return await attestationLookup(arg, json, deps);
+    } catch (err) {
+      return usageError((err as Error).message);
+    }
+  }
+  if (command === 'attest') {
+    if (!keysFile) return usageError('attest needs the npub to attest and a key file');
+    try {
+      const result = await publishAttestation(readPhrase(keysFile), arg, deps);
       console.log(JSON.stringify(result, null, 2));
       return result.outcomes.some((o) => o.ok) ? 0 : 1;
     } catch (err) {

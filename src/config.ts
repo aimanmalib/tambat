@@ -113,6 +113,16 @@ export interface TambatConfig {
     /** A transaction with more inputs than this is not read input by input; its payer stays not proven. */
     inputLimit: number;
   };
+  /**
+   * Attestations (docs/SPEC.md "Attestations"): a NIP-32 label event by which one key vouches for another key's
+   * binding, pinned by event id. It drops as soon as that binding is replaced.
+   */
+  attest: {
+    kind: number;
+    /** NIP-32 namespace (`L` tag) and label value (`l` tag) of an attestation. */
+    namespace: string;
+    label: string;
+  };
   /** The one-screen page for judges at /judges. Event ids and keys come from docs/MEASURED.md. */
   judges: {
     repoUrl: string;
@@ -166,6 +176,13 @@ function parseReceipt(r: TambatConfig['receipt']): void {
   if (typeof r.namespace !== 'string' || !/^[a-z0-9.-]+$/.test(r.namespace)) fail('receipt.namespace', 'must use a-z, 0-9 and .- only');
   if (typeof r.label !== 'string' || !/^[a-z0-9_-]+$/.test(r.label)) fail('receipt.label', 'must use a-z, 0-9 and _- only');
   positiveInt(r.inputLimit, 'receipt.inputLimit');
+}
+
+function parseAttest(a: TambatConfig['attest'], receipt: TambatConfig['receipt']): void {
+  positiveInt(a?.kind, 'attest.kind');
+  if (typeof a.namespace !== 'string' || !/^[a-z0-9.-]+$/.test(a.namespace)) fail('attest.namespace', 'must use a-z, 0-9 and .- only');
+  if (a.namespace === receipt.namespace) fail('attest.namespace', 'must differ from receipt.namespace');
+  if (typeof a.label !== 'string' || !/^[a-z0-9_-]+$/.test(a.label)) fail('attest.label', 'must use a-z, 0-9 and _- only');
 }
 
 function parseJudges(j: TambatConfig['judges']): void {
@@ -244,6 +261,7 @@ export function parseConfig(input: unknown): TambatConfig {
   if (typeof c.nostr.recoveryText !== 'string' || !c.nostr.recoveryText.includes('{npub}')) fail('nostr.recoveryText', 'must contain {npub}');
   parseAnchor(c.anchor);
   parseReceipt(c.receipt);
+  parseAttest(c.attest, c.receipt);
   parseJudges(c.judges);
   return c;
 }

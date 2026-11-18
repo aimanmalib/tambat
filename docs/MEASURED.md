@@ -2,6 +2,19 @@
 
 Facts measured on a real run, failures included. Newest first.
 
+## Attestation
+
+Attestations (SPEC "Attestations"), 2026-11-18. The second demo Nostr key ran `tambat attest` on the main demo identity. The
+command read the main identity's current binding from the relays, checked it, and published a NIP-32 label (kind 1985) pinned
+to that binding event's id. Relays: relay.damus.io refused the connection; nos.lol and relay.primal.net accepted. A few
+seconds later `tambat attestations` on the main identity found the attestation, checked it against the current binding and
+printed "verified by" the second demo key, exit code 0. Dropping an attestation when the binding is replaced is covered by
+tests (`tests/attest*.test.ts`, `e2e/attest.spec.ts`); the main demo binding was not replaced for this.
+
+| UTC | attestation event | attester | subject | pinned binding event | relays accepting | reading | result |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 01:28:44 | `e50c7901d6917710faa235bfbbef57a9327a8e41fe3394a5224d10a674fc26e9` | `npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql` | `npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt` | `f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2` | nos.lol, relay.primal.net | current, counts | ok |
+
 ## Receipt
 
 Payment receipts (SPEC "Payment receipts"), 2026-11-18. No payment was made for this: the transaction is an existing public

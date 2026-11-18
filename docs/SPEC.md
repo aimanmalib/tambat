@@ -243,6 +243,32 @@ event stays on the relays; the old one is marked as recovered by the new npub. R
 Recovery covers a lost key, not a stolen one: a thief who holds the old Nostr key can publish a newer event without the claim,
 which makes `old_binding` fail. The optional anchor below is the stronger proof for that case.
 
+## Attestations
+
+One Nostr key may say that it checked another key's binding ([ADR 0011](decisions/0011-attestations.md)). An attestation
+is a NIP-32 label event, kind `1985`, content empty, signed by the attester, with these tags:
+
+```
+["L", "cash.tambat.attest"]
+["l", "verified", "cash.tambat.attest"]
+["e", <id of the subject's binding event, 64 lower-case hex>]
+["p", <hex key of the subject>]
+```
+
+A reader:
+
+1. checks the event (id, signature, kind, label, exactly one `e` and one `p`); an attestation of the attester's own key is
+   rejected;
+2. looks up the subject's newest binding (section 6);
+3. counts the attestation only when that binding verifies and its id is the `e` value. When the subject has published any
+   newer binding (rotation, recovery, revocation or a plain update), the attestation drops: it was about an event that is no
+   longer the subject's binding.
+
+Readers keep the newest attestation per attester. Relays find attestations with `{"kinds": [1985], "#p": [<subject>],
+"#L": ["cash.tambat.attest"]}`. An attestation is the attester's statement; it proves nothing about the attester. Publish:
+`tambat attest <npub> --keys <file>` (it pins the subject's current binding, read from the relays); list:
+`tambat attestations <npub>`.
+
 ## Optional BCH anchor
 
 The binding above needs no blockchain transaction. An anchor is an optional extra: an ordinary BCH transaction, signed by
