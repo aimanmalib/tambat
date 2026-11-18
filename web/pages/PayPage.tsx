@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { addressStatus, electrumChain } from '../../src/core/anchor-chain';
+import { refusesPayment, type ChainVerdict } from '../../src/core/chain-status';
+import { toNpub } from '../../src/core/nostr';
 import { parseNip05 } from '../../src/core/nip05';
 import { parsePubkey } from '../../src/core/nostr';
 import { amountProblem, paymentUri } from '../../src/core/pay';
@@ -11,7 +14,9 @@ import { Notice } from '../ui/Notice';
 import { Qr } from '../ui/Qr';
 import { ReceiptPanel } from './ReceiptPanel';
 
-type Found = { address: string; npub: string } | 'none' | null;
+type Found = { address: string; npub: string; pubkey: string; eventId: string } | 'none' | null;
+/** The chain's verdict on the found binding: 'checking' while it is read, null when no chain server answered. */
+type Chain = ChainVerdict | null | 'checking';
 type Via = { name: string; npub: string } | null;
 type Resolved = { found: Found; error: string; via: Via };
 
@@ -24,6 +29,19 @@ export function PayPage() {
   const [busy, setBusy] = useState(() => queryParam('npub') !== '');
   const [error, setError] = useState('');
   const [via, setVia] = useState<Via>(null);
+  const [read, setRead] = useState<{ of: Found; verdict: ChainVerdict | null } | null>(null);
+
+  // Chain first (docs/decisions/0013-revoke-by-transaction.md): no payment link until the chain has been read.
+  useEffect(() => {
+    if (!found || found === 'none') return;
+    let live = true;
+    void addressStatus(found.address, found.pubkey, found.eventId, electrumChain()).then((s) => {
+      if (live) setRead({ of: found, verdict: s.verdict });
+    });
+    return () => {
+      live = false;
+    };
+  }, [found]);
 
   const resolve = async (value: string): Promise<Resolved> => {
     // Pay takes a person (key or name), not an address: an address is already where the money goes.
@@ -33,7 +51,8 @@ export function PayPage() {
       if (r === 'bad_input') return { found: null, error: t('pay.inputError'), via: null };
       const binding = r.results[0];
       const claim = binding?.ok ? binding.claims.find((c) => c.ok) : undefined;
-      return { found: claim && binding ? { address: claim.address, npub: binding.npub } : 'none', error: '', via: r.via ?? null };
+      const found = claim && binding ? { address: claim.address, npub: binding.npub, pubkey: binding.pubkey, eventId: binding.eventId } : 'none';
+      return { found, error: '', via: r.via ?? null };
     } catch (e) {
       return { found: null, error: errorText(e, t), via: null };
     }
@@ -59,8 +78,10 @@ export function PayPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const chain: Chain = read && read.of === found ? read.verdict : 'checking';
   const badAmount = amountProblem(amount);
-  const uri = found && found !== 'none' && !badAmount ? paymentUri({ address: found.address, amount }) : '';
+  const refused = chain !== 'checking' && chain !== null && refusesPayment(chain) ? chain : null;
+  const uri = found && found !== 'none' && !badAmount && chain !== 'checking' && !refused ? paymentUri({ address: found.address, amount }) : '';
 
   return (
     <section className="card" aria-labelledby="pay-title">
@@ -85,6 +106,16 @@ export function PayPage() {
             <input className="input" name="amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} aria-invalid={badAmount ? true : undefined} />
           </label>
           {badAmount ? <Notice tone="error">{t(badAmount === 'zero' ? 'pay.amountZero' : 'pay.amountFormat')}</Notice> : null}
+          {chain === 'checking' ? <Notice>{t('pay.checking')}</Notice> : null}
+          {chain === null ? <Notice>{t('pay.unreachable')}</Notice> : null}
+          {refused ? (
+            <div className="stack" data-pay="refused">
+              <Notice tone="error">
+                {refused.kind === 'revoked' ? t('pay.revoked', { height: refused.revocation.height }) : t('pay.conflict', { npub: toNpub(refused.chainPubkey) })}
+              </Notice>
+              <button type="button" className="btn" disabled>{t('pay.open')}</button>
+            </div>
+          ) : null}
           {uri ? (
             <div className="pairing">
               <Qr value={uri} label={t('pay.qr')} />

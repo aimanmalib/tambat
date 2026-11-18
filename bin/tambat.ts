@@ -87,7 +87,7 @@ async function anchorLookup(address: string, json: boolean, open: OpenChain): Pr
     else {
       for (const c of found) {
         const when = c.height > 0 ? `block ${c.height} (${new Date((c.blockTime ?? 0) * 1000).toISOString()})` : 'unconfirmed';
-        console.log(`${when}  ${c.npub}\n  event ${c.eventId}\n  tx ${c.txid}`);
+        console.log(`${when}  ${c.action === 'revoke' ? 'revokes ' : ''}${c.npub}\n  event ${c.eventId}\n  tx ${c.txid}`);
       }
       console.log('A commitment counts only while that key\'s newest binding still names this address: tambat lookup <npub>');
     }

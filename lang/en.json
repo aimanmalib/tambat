@@ -188,7 +188,11 @@
     "qr": "Payment QR code",
     "amountFormat": "Enter the amount in BCH with at most 8 decimals, for example 0.001.",
     "amountZero": "The amount must be more than zero.",
-    "inputError": "Enter an npub, a 64-character hex key or a name like alice@example.com."
+    "inputError": "Enter an npub, a 64-character hex key or a name like alice@example.com.",
+    "checking": "Reading the BCH chain before showing the payment link.",
+    "revoked": "Payment refused: this address revoked this Nostr key on BCH in block {height}. Ask the person for a current address.",
+    "conflict": "Payment refused: the BCH chain says this address now belongs to another Nostr key, {npub}. The chain record wins over the binding found on the relays.",
+    "unreachable": "Chain servers unreachable, so the BCH chain was not checked. The address comes from the binding verified on the relays."
   },
   "footer": {
     "built": "Built for BCH BLAZE 2026.",
@@ -387,7 +391,12 @@
     "hintUnconfirmed": "This anchor spends coins not yet in a block; waiting for one confirmation may help.",
     "feeHigh": "The fee would be above {max} sat, so this page will not ask the wallet.",
     "badReply": "The wallet's answer is not this anchor from this address. Nothing was recorded.",
-    "needWallet": "Connect the wallet that holds the bound address over WalletConnect first."
+    "needWallet": "Connect the wallet that holds the bound address over WalletConnect first.",
+    "revoked": "Revoked on BCH in block {height} ({date}): this address withdrew this Nostr key. The chain record wins over relays, so this binding is not current.",
+    "conflict": "The BCH chain says this address now belongs to another Nostr key, {npub}. The chain record wins over relays, so this binding is not current.",
+    "revokeOffer": "Revoke this link on BCH",
+    "revokeHelp": "You can revoke this link on BCH. Your wallet signs an ordinary transaction from {address} with one data output that withdraws this Nostr key, and the change goes back to the same address. You pay a small fee. Payment pages that read the chain then refuse this address for this key. The record is public and permanent.",
+    "revokePrompt": "Revoke a Nostr identity link on BCH"
   },
   "recovery": {
     "title": "Recovery",

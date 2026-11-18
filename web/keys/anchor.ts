@@ -75,6 +75,7 @@ export async function requestAnchor(signer: BchSigner, unsigned: UnsignedAnchor,
   if (!/^[0-9a-f]+$/i.test(hex)) throw new TextError('anchor.badReply');
   const bytes = hexToBin(hex);
   const found = commitmentFromTransaction(bytes, signer.address);
-  if (typeof found === 'string' || found.pubkey !== payload.pubkey || found.eventId !== payload.eventId) throw new TextError('anchor.badReply');
+  const same = typeof found !== 'string' && found.pubkey === payload.pubkey && found.eventId === payload.eventId && found.action === payload.action;
+  if (!same) throw new TextError('anchor.badReply');
   return txidOf(bytes);
 }

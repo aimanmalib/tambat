@@ -74,6 +74,11 @@ Beyond the required parts, each live and tested:
   the Paytaca binding is anchored on BCH since block 977901, signed by the Paytaca wallet that holds the address
   ([anchor measured](docs/MEASURED.md#anchor)). `tambat anchor-lookup <address>` reads it from the chain alone, no relays.
   Transaction and event ids are shortened in the middle on screen, with the full id in the tooltip and a copy button.
+- Revoke by transaction, chain first ([SPEC](docs/SPEC.md#revoke-by-transaction),
+  [ADR 0013](docs/decisions/0013-revoke-by-transaction.md)): the owner's wallet can revoke an anchored link with the same
+  OP_RETURN format and a revoke type byte. The newest confirmed commitment decides (bound, revoked, conflict or none), Look up
+  shows it, and Pay refuses an address the chain revoked or gave to another key. Tested against a simulated chain
+  (`tests/chain-status.test.ts`, `e2e/chain-status.spec.ts`).
 - A wall of verified links read from the relays, paging back past identity events of other platforms: https://tambat.sasateguh.com/wall ([wall measured](docs/MEASURED.md#wall)).
 - A NIP-05 name for the demo identity, an [embeddable badge](#embeddable-badge), a [one-file verifier](#one-file-verifier)
   and a "Try tampering" demo on every verified look-up.
@@ -247,7 +252,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-65347db1005da03bb021ff5a63917286a795afe53cdef26c6d69cc12723e05d8  tambat-verify.html
+0ed821970dc2c08a0962e256526e9f7e272973c4299390e5c49c1000bcf2f939  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -308,7 +313,8 @@ outage never reads as "not linked"), or not an npub or address. Only `/embed/` m
   code (not for the result, which comes from relays). Sites that want no such dependency can run the CLI or the one-file
   verifier themselves.
 - **Optional BCH anchor**: one anchor exists, for the Paytaca binding, made by its owner; the demo key has none yet. The
-  wallet request (`bch_signTransaction`) is tested end to end against a fake wallet only.
+  wallet request (`bch_signTransaction`) is tested end to end against a fake wallet only. Revoke by transaction is tested
+  against a simulated chain only; no revocation has been sent on mainnet.
 - **Single sign-in instance**: nonces and sessions live in memory, so more than one server process needs a shared store.
 
 ## Web app

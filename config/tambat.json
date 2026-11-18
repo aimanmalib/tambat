@@ -133,6 +133,7 @@
   "anchor": {
     "prefix": "TMBT",
     "version": 1,
+    "revokeVersion": 2,
     "maxFeeSats": 1000,
     "feePerByte": 1,
     "dustSats": 546,

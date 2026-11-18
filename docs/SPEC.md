@@ -165,6 +165,8 @@ document is rebuilt from relays on every request; anyone can rebuild it with the
 
 An npub or a NIP-05 name is looked up with section 6; only a verified address is offered. The payment request is a BIP21 URI
 (`bitcoincash:<address>?amount=<BCH>&label=...`) and its QR code. The payer's wallet builds and sends the transaction.
+Before the URI is shown the address's BCH commitments are read; an address whose chain status is `revoked` or `conflict`
+("Revoke by transaction", under "Optional BCH anchor") gets no payment link.
 
 ### Payment receipts
 
@@ -279,8 +281,11 @@ the wallet that holds the bound address, that records the pair (Nostr key, BCH a
 **Format.** The transaction spends at least one P2PKH input from the bound address and has one `OP_RETURN` output:
 
 ```
-OP_RETURN <"TMBT", 4 bytes ASCII> <0x01, a one-byte push: version> <Nostr x-only public key, 32 bytes> <binding event id, 32 bytes>
+OP_RETURN <"TMBT", 4 bytes ASCII> <one-byte push: type> <Nostr x-only public key, 32 bytes> <binding event id, 32 bytes>
 ```
+
+The type byte is `0x01` for a commitment (bind) and `0x02` for a revocation (see "Revoke by transaction" below); other
+values are not a valid payload. Commitments made before revocations existed, such as the one in block 977901, read the same.
 
 That is 71 bytes of script. The tool in this repository adds a single change output back to the same address and nothing
 else. The prefix is set in `config/tambat.json` (`anchor.prefix`); it was checked against the public OP_RETURN prefix list
@@ -319,6 +324,27 @@ page runs both. Servers are listed in `anchor.electrum`; none answering is shown
   anchor, and it cannot create one dated before the owner's. A verifier that has to choose can prefer the pair with the
   earliest anchor.
 - The signature is an ordinary BCH transaction from the wallet, so any block explorer shows it.
+
+### Revoke by transaction
+
+A revocation is the same transaction with type byte `0x02`: from the bound address, it names the Nostr key it withdraws
+and the event id of the binding being withdrawn. It is valid under rules 1 and 2 above. The confirmed commitments of an
+address are put in chain order (lower block first; in one block a commitment before a revocation, then lower txid), and the
+newest one decides what the chain says about a binding found on the relays for key K:
+
+| Newest confirmed commitment | Status |
+|---|---|
+| none | `none`: the chain says nothing; the relay binding stands on its own |
+| bind to K | `bound`; "bound since" is the earliest bind to K after K's last revocation |
+| revoke of K | `revoked`: the binding is withdrawn |
+| bind to another key | `conflict`: the chain wins, and readers name the key the chain gives |
+| revoke of another key | `none` |
+
+The chain wins over the relays: a payment page refuses an address whose status is `revoked` or `conflict`, and says why.
+Binding again after a revocation is one more commitment (bind, revoke, bind gives `bound`). Transactions not yet in a block
+do not count. When no chain server answers, the status is unknown and the page says the chain was not checked. This is
+tested against a simulated chain (`tests/chain-status.test.ts`, `e2e/chain-status.spec.ts`); no revocation has been sent
+on mainnet.
 
 **Wallet request.** The web app builds the transaction without signatures from the address's coins, shows the outputs and
 the fee, refuses a fee above `anchor.maxFeeSats`, and asks the connected wallet with the WalletConnect BCH method

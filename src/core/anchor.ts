@@ -1,8 +1,10 @@
 /**
  * Optional BCH anchor: an ordinary BCH transaction from the bound address with one OP_RETURN output that commits to
  * the Nostr key and the binding event id. Format (docs/SPEC.md "Optional BCH anchor"):
- *   OP_RETURN <prefix, 4 bytes> <version, 1 byte> <Nostr x-only public key, 32 bytes> <binding event id, 32 bytes>
- * The block that confirms it dates the pair (Nostr key, BCH address) without trusting any relay or created_at.
+ *   OP_RETURN <prefix, 4 bytes> <type, 1 byte> <Nostr x-only public key, 32 bytes> <binding event id, 32 bytes>
+ * The type byte is `anchor.version` for a commitment (bind) and `anchor.revokeVersion` for a revocation of that key
+ * (docs/decisions/0013-revoke-by-transaction.md). The block that confirms it dates the pair (Nostr key, BCH address)
+ * without trusting any relay or created_at.
  * This module only builds and reads transactions. It never signs or sends one: the wallet does (web/keys/anchor.ts).
  */
 import {
@@ -29,6 +31,8 @@ export interface AnchorPayload {
   pubkey: string;
   /** Hex id of the kind 10011 binding event. */
   eventId: string;
+  /** Present only on a revocation: the address withdraws this key. Absent means a commitment (bind). */
+  action?: 'revoke';
 }
 
 /** Why a transaction is not a valid commitment for an address. */
@@ -49,7 +53,7 @@ export const prefixBytes = (prefix: string = config.anchor.prefix): Uint8Array =
 export function encodeAnchorScript(payload: AnchorPayload, prefix: string = config.anchor.prefix): Uint8Array {
   if (!HEX32.test(payload.pubkey) || !HEX32.test(payload.eventId)) throw new Error('pubkey and eventId must be 64 hex characters');
   // The version is a one-byte push (0x01 <version>), not OP_1: readers that only take data pushes see it the same way.
-  const version = [0x01, config.anchor.version];
+  const version = [0x01, payload.action === 'revoke' ? config.anchor.revokeVersion : config.anchor.version];
   const push = (bytes: Uint8Array) => [...encodeDataPush(bytes)];
   return Uint8Array.from([OP_RETURN, ...push(prefixBytes(prefix)), ...version, ...push(hexToBin(payload.pubkey)), ...push(hexToBin(payload.eventId))]);
 }
@@ -63,9 +67,11 @@ export function decodeAnchorScript(script: Uint8Array, prefix: string = config.a
   if (data.length === 0 || data.some((d) => d === undefined)) return 'no_payload';
   const [tag, version, pubkey, eventId] = data as Uint8Array[];
   if (binToHex(tag ?? new Uint8Array()) !== binToHex(prefixBytes(prefix))) return 'wrong_prefix';
-  if (data.length !== 4 || version?.length !== 1 || version[0] !== config.anchor.version) return 'wrong_version';
+  const type = version?.length === 1 ? version[0] : undefined;
+  if (data.length !== 4 || (type !== config.anchor.version && type !== config.anchor.revokeVersion)) return 'wrong_version';
   if (pubkey?.length !== 32 || eventId?.length !== 32) return 'wrong_version';
-  return { pubkey: binToHex(pubkey), eventId: binToHex(eventId) };
+  const payload: AnchorPayload = { pubkey: binToHex(pubkey), eventId: binToHex(eventId) };
+  return type === config.anchor.revokeVersion ? { ...payload, action: 'revoke' } : payload;
 }
 
 /** Public key pushed by a P2PKH unlocking bytecode (<signature> <public key>), if the input has that shape. */
@@ -104,13 +110,28 @@ export function commitmentFromTransaction(tx: TransactionCommon | Uint8Array, ad
 }
 
 /**
+ * Order of commitments on the chain: lower block first; in the same block a commitment before a revocation (the
+ * cautious reading: the revocation is the last word), then lower txid, so every reader agrees.
+ */
+export function chainOrder(a: Commitment, b: Commitment): number {
+  if (a.height !== b.height) return a.height - b.height;
+  const rank = (c: Commitment) => (c.action === 'revoke' ? 1 : 0);
+  if (rank(a) !== rank(b)) return rank(a) - rank(b);
+  return a.txid < b.txid ? -1 : a.txid > b.txid ? 1 : 0;
+}
+
+/**
  * The commitment that dates a binding: confirmed, for the Nostr key whose current binding still claims the address,
- * and the earliest such block (lowest height, then lowest txid for a stable answer). Null when there is none.
+ * and the earliest such block after the last revocation of that key (lowest height, then lowest txid for a stable
+ * answer). Null when there is none, or when the key's last word on the chain is a revocation.
  */
 export function earliestCommitment(commitments: Commitment[], currentPubkey: string): Commitment | null {
-  return commitments
-    .filter((c) => c.height > 0 && c.pubkey === currentPubkey)
-    .reduce<Commitment | null>((best, c) => (best === null || c.height < best.height || (c.height === best.height && c.txid < best.txid) ? c : best), null);
+  const mine = commitments.filter((c) => c.height > 0 && c.pubkey === currentPubkey).sort(chainOrder);
+  let start = 0;
+  mine.forEach((c, i) => {
+    if (c.action === 'revoke') start = i + 1;
+  });
+  return mine.slice(start)[0] ?? null;
 }
 
 /** An unspent output of the bound address, as a chain server lists it. */

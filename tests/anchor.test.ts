@@ -34,7 +34,7 @@ describe('anchor payload', () => {
     expect(decodeAnchorScript(encodeAnchorScript(payload, 'XXXX'))).toBe('wrong_prefix');
     const script = encodeAnchorScript(payload);
     const v2 = Uint8Array.from(script);
-    v2[7] = 2;
+    v2[7] = 9;
     expect(decodeAnchorScript(v2)).toBe('wrong_version');
     const short = Uint8Array.from([0x6a, ...encodeDataPush(new TextEncoder().encode('TMBT')), ...encodeDataPush(Uint8Array.of(1)), ...encodeDataPush(new Uint8Array(31)), ...encodeDataPush(new Uint8Array(32))]);
     expect(decodeAnchorScript(short)).toBe('wrong_version');

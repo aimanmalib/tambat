@@ -97,7 +97,10 @@ export interface TambatConfig {
   anchor: {
     /** Four ASCII bytes that start the OP_RETURN payload. */
     prefix: string;
+    /** Type byte of a commitment (bind). */
     version: number;
+    /** Type byte of a revocation: the address withdraws the key it names (docs/decisions/0013-revoke-by-transaction.md). */
+    revokeVersion: number;
     /** The web app refuses to ask a wallet to sign a commitment whose fee is above this. */
     maxFeeSats: number;
     feePerByte: number;
@@ -182,6 +185,8 @@ function parseAnchor(a: TambatConfig['anchor']): void {
   if (typeof a?.prefix !== 'string' || !/^[\x21-\x7e]{4}$/.test(a.prefix)) fail('anchor.prefix', 'must be 4 printable ASCII characters');
   positiveInt(a.version, 'anchor.version');
   if (a.version > 255) fail('anchor.version', 'must fit in one byte');
+  positiveInt(a.revokeVersion, 'anchor.revokeVersion');
+  if (a.revokeVersion > 255 || a.revokeVersion === a.version) fail('anchor.revokeVersion', 'must fit in one byte and differ from anchor.version');
   positiveInt(a.maxFeeSats, 'anchor.maxFeeSats');
   positiveInt(a.feePerByte, 'anchor.feePerByte');
   positiveInt(a.dustSats, 'anchor.dustSats');

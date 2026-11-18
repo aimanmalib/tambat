@@ -8,22 +8,22 @@ import { canAnchor, prepareAnchor, requestAnchor } from './anchor';
 import { useKeys } from './KeysContext';
 import { HexId } from '../ui/HexId';
 
-/** Set through the CSSOM, which the style-src policy allows, so a long address breaks instead of widening the page. */
-
 type Step = { kind: 'offer' } | { kind: 'busy' } | { kind: 'preview'; unsigned: PreparedAnchor } | { kind: 'asking' } | { kind: 'sent'; txid: string };
 
 /**
  * "Anchor this link on BCH", shown only to the person whose wallet holds the bound address over WalletConnect.
- * The outputs and the fee are shown before the wallet is asked; the wallet signs and sends.
+ * With `revoke`, "Revoke this link on BCH": the same transaction with the revoke type byte
+ * (docs/decisions/0013-revoke-by-transaction.md). The outputs and the fee are shown before the wallet is asked; the
+ * wallet signs and sends.
  */
-export function AnchorOffer({ result, anchored }: { result: BindingResult; anchored: boolean }) {
+export function AnchorOffer({ result, anchored, revoke = false }: { result: BindingResult; anchored: boolean; revoke?: boolean }) {
   const { t } = useText();
   const { bch } = useKeys();
   const [step, setStep] = useState<Step>({ kind: 'offer' });
   const [error, setError] = useState('');
   const address = result.claims[0]?.address ?? '';
   if (!result.ok || !canAnchor(bch) || bch.address !== address) return null;
-  const payload: AnchorPayload = { pubkey: result.pubkey, eventId: result.eventId };
+  const payload: AnchorPayload = { pubkey: result.pubkey, eventId: result.eventId, ...(revoke ? { action: 'revoke' as const } : {}) };
   /** `hint` is a text key added after the error, such as the note on coins not yet in a block. */
   const attempt = async (busy: Step, work: () => Promise<Step>, back: Step, hint?: string) => {
     setError('');
@@ -41,10 +41,10 @@ export function AnchorOffer({ result, anchored }: { result: BindingResult; ancho
       {step.kind === 'offer' || step.kind === 'busy' ? (
         <>
           {/* The help names the 54-character address, which must wrap at 320 px (docs/decisions/0012-wallet-errors.md). */}
-          <p className="option__help option__help--wrap">{t(anchored ? 'anchor.helpAgain' : 'anchor.help', { address })}</p>
+          <p className="option__help option__help--wrap">{t(revoke ? 'anchor.revokeHelp' : anchored ? 'anchor.helpAgain' : 'anchor.help', { address })}</p>
           <button type="button" className="btn" disabled={step.kind === 'busy'}
             onClick={() => void attempt({ kind: 'busy' }, async () => ({ kind: 'preview', unsigned: await prepareAnchor(address, payload) }), { kind: 'offer' })}>
-            {step.kind === 'busy' ? t('anchor.preparing') : t('anchor.offer')}
+            {step.kind === 'busy' ? t('anchor.preparing') : t(revoke ? 'anchor.revokeOffer' : 'anchor.offer')}
           </button>
         </>
       ) : null}
@@ -59,7 +59,7 @@ export function AnchorOffer({ result, anchored }: { result: BindingResult; ancho
                 if (step.kind !== 'preview') return;
                 const unsigned = step.unsigned;
                 const hint = unsigned.unconfirmed ? 'anchor.hintUnconfirmed' : undefined;
-                void attempt({ kind: 'asking' }, async () => ({ kind: 'sent', txid: await requestAnchor(bch, unsigned, payload, t('anchor.prompt')) }), step, hint);
+                void attempt({ kind: 'asking' }, async () => ({ kind: 'sent', txid: await requestAnchor(bch, unsigned, payload, t(revoke ? 'anchor.revokePrompt' : 'anchor.prompt')) }), step, hint);
               }}>
               {t('anchor.ask')}
             </button>

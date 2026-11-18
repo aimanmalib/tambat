@@ -7,6 +7,7 @@ import { ElectrumWebSocket } from '@electrum-cash/web-socket';
 import { binToHex, cashAddressToLockingBytecode, hexToBin, sha256 } from '@bitauth/libauth';
 import { config } from '../config.js';
 import { commitmentFromTransaction, earliestCommitment, type Commitment, type Utxo } from './anchor.js';
+import { chainVerdict, type ChainVerdict } from './chain-status.js';
 
 export interface HistoryItem {
   tx_hash: string;
@@ -116,23 +117,38 @@ export type AnchorStatus =
   | { kind: 'none' }
   | { kind: 'unreachable' };
 
+/** The anchor of a binding and the chain's verdict on it, from one read; null verdict when the chain was unreachable. */
+export interface AddressStatus {
+  anchor: AnchorStatus;
+  verdict: ChainVerdict | null;
+}
+
 /**
- * Anchor status of a verified binding: the earliest confirmed commitment from `address` to `pubkey`. `sameEvent` is
+ * Anchor status of a verified binding: the earliest confirmed commitment from `address` to `pubkey` since the key's
+ * last revocation, and what the newest commitment says about the binding (src/core/chain-status.ts). `sameEvent` is
  * false when the anchored event is not the binding event now on the relays (the pair still counts).
  */
-export async function anchorStatus(address: string, pubkey: string, eventId: string, open: OpenChain = electrumChain()): Promise<AnchorStatus> {
+export async function addressStatus(address: string, pubkey: string, eventId: string, open: OpenChain = electrumChain()): Promise<AddressStatus> {
+  const unreachable: AddressStatus = { anchor: { kind: 'unreachable' }, verdict: null };
   let chain: ChainSource;
   try {
     chain = await open();
   } catch {
-    return { kind: 'unreachable' };
+    return unreachable;
   }
   try {
-    const earliest = earliestCommitment(await readCommitments(address, chain), pubkey);
-    return earliest ? { kind: 'anchored', commitment: earliest, sameEvent: earliest.eventId === eventId } : { kind: 'none' };
+    const commitments = await readCommitments(address, chain);
+    const earliest = earliestCommitment(commitments, pubkey);
+    const anchor: AnchorStatus = earliest ? { kind: 'anchored', commitment: earliest, sameEvent: earliest.eventId === eventId } : { kind: 'none' };
+    return { anchor, verdict: chainVerdict(commitments, pubkey) };
   } catch {
-    return { kind: 'unreachable' };
+    return unreachable;
   } finally {
     await chain.close();
   }
+}
+
+/** The anchor part of addressStatus. */
+export async function anchorStatus(address: string, pubkey: string, eventId: string, open: OpenChain = electrumChain()): Promise<AnchorStatus> {
+  return (await addressStatus(address, pubkey, eventId, open)).anchor;
 }

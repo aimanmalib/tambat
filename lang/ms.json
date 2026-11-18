@@ -188,7 +188,11 @@
     "qr": "Kod QR bayaran",
     "amountFormat": "Masukkan amaun dalam BCH dengan paling banyak 8 tempat perpuluhan, contohnya 0.001.",
     "amountZero": "Amaun mesti lebih daripada sifar.",
-    "inputError": "Masukkan npub, kunci heks 64 aksara atau nama seperti ali@contoh.com."
+    "inputError": "Masukkan npub, kunci heks 64 aksara atau nama seperti ali@contoh.com.",
+    "checking": "Membaca rantaian BCH sebelum memaparkan pautan bayaran.",
+    "revoked": "Bayaran ditolak: alamat ini membatalkan kunci Nostr ini di BCH dalam blok {height}. Minta alamat semasa daripada orang itu.",
+    "conflict": "Bayaran ditolak: rantaian BCH menyatakan alamat ini kini milik kunci Nostr lain, {npub}. Rekod rantaian mengatasi ikatan yang ditemui di relay.",
+    "unreachable": "Pelayan rantaian tidak dapat dicapai, jadi rantaian BCH tidak disemak. Alamat ini datang dari ikatan yang disahkan di relay."
   },
   "footer": {
     "built": "Dibina untuk BCH BLAZE 2026.",
@@ -387,7 +391,12 @@
     "hintUnconfirmed": "Sauh ini membelanjakan syiling yang belum masuk ke dalam blok; menunggu satu pengesahan mungkin membantu.",
     "feeHigh": "Yuran akan melebihi {max} sat, jadi halaman ini tidak akan meminta dompet.",
     "badReply": "Jawapan dompet bukan sauh ini dari alamat ini. Tiada apa-apa direkod.",
-    "needWallet": "Sambungkan dahulu dompet yang memegang alamat terikat melalui WalletConnect."
+    "needWallet": "Sambungkan dahulu dompet yang memegang alamat terikat melalui WalletConnect.",
+    "revoked": "Dibatalkan di BCH dalam blok {height} ({date}): alamat ini menarik balik kunci Nostr ini. Rekod rantaian mengatasi relay, jadi ikatan ini bukan yang semasa.",
+    "conflict": "Rantaian BCH menyatakan alamat ini kini milik kunci Nostr lain, {npub}. Rekod rantaian mengatasi relay, jadi ikatan ini bukan yang semasa.",
+    "revokeOffer": "Batalkan pautan ini di BCH",
+    "revokeHelp": "Anda boleh membatalkan pautan ini di BCH. Dompet anda menandatangani transaksi biasa dari {address} dengan satu output data yang menarik balik kunci Nostr ini, dan baki kembali ke alamat yang sama. Anda membayar yuran kecil. Halaman bayaran yang membaca rantaian kemudian menolak alamat ini untuk kunci ini. Rekod ini awam dan kekal.",
+    "revokePrompt": "Batalkan pautan identiti Nostr di BCH"
   },
   "recovery": {
     "title": "Pemulihan",

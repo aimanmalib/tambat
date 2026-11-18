@@ -94,7 +94,7 @@ async function fakeWallet(page: Page, refuse?: { code: number; message: string }
 }
 
 /** Links the fake wallet on the Link page, then looks up the binding in the language of `text`. */
-async function lookUpAsOwner(page: Page, text: typeof en) {
+async function lookUpAsOwner(page: Page, text: typeof en, settled: string = text.anchor.none) {
   await page.goto('/');
   if (text === ms) await page.getByLabel(en.lang.label).selectOption('ms');
   await page.getByRole('button', exact(text.nostr.demo)).click();
@@ -105,7 +105,7 @@ async function lookUpAsOwner(page: Page, text: typeof en) {
   await page.getByLabel(text.lookup.label, { exact: true }).fill(vectors.nostr.npub);
   await page.getByRole('button', exact(text.lookup.submit)).click();
   // WebKit can take more than 5 s to read the relays and the chain on a shared host.
-  await expect(page.getByText(text.anchor.none)).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(settled)).toBeVisible({ timeout: 20_000 });
 }
 
 const walletRequests = (page: Page) => page.evaluate(() => (window as unknown as { __requests: unknown[] }).__requests);
@@ -116,7 +116,7 @@ test('look-up reads the earliest anchor from the chain and shows its block', asy
   await routeChain(page, anchoredChain());
   await page.goto(`/lookup?q=${vectors.nostr.npub}`);
   const anchor = page.locator('.anchor');
-  await expect(anchor).toHaveAttribute('data-anchor', 'anchored');
+  await expect(anchor).toHaveAttribute('data-anchor', 'anchored', { timeout: 20_000 });
   await expect(anchor.getByText(before(en.anchor.since))).toBeVisible();
   await expect(anchor).toContainText('900010');
   await expect(anchor.locator('.anchor__tx code')).toHaveAttribute('data-full', anchoredChain().history[scripthashOf(address)]![0]!.txid);
@@ -243,4 +243,24 @@ test('a wallet that rejects the anchor is named, never "[object Object]"', async
   expect(await walletRequests(page)).toHaveLength(1);
   // The preview stays, so the owner can ask again.
   await expect(page.getByRole('button', exact(en.anchor.ask))).toBeEnabled();
+});
+
+test('the owner of an anchored link can revoke it on BCH: the wallet signs the same format with the revoke type', async ({ page }) => {
+  test.slow();
+  // Anchored once (bound) and the address still holds coins for the fee. A simulated chain: nothing is sent anywhere.
+  await routeChain(page, { ...anchoredChain(), unspent: coins.unspent ?? {} });
+  await fakeWallet(page);
+  await lookUpAsOwner(page, en, before(en.anchor.since));
+  await expect(page.locator('.anchor')).toHaveAttribute('data-chain', 'bound');
+  await page.getByRole('button', exact(en.anchor.revokeOffer)).click();
+  await expect(page.getByText(before(en.anchor.preview))).toBeVisible();
+  await page.getByRole('button', exact(en.anchor.ask)).click();
+  await expect(page.getByText(en.anchor.sent)).toBeVisible();
+  const requests = (await walletRequests(page)) as { params: { userPrompt: string } }[];
+  expect(requests).toHaveLength(1);
+  expect(requests[0]?.params.userPrompt).toBe(en.anchor.revokePrompt);
+  const signed = parseExtended<{ transaction: TransactionCommon; sourceOutputs: (Input & Output)[] }>(requests[0]!.params);
+  const found = commitmentFromTransaction(signP2pkh(signed.transaction, signed.sourceOutputs, phraseKeys.bchPrivateKey), address);
+  expect(found).toMatchObject({ pubkey: payload.pubkey, action: 'revoke' });
+  await expectNoOverflow(page);
 });
