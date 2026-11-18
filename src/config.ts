@@ -171,8 +171,16 @@ function parseAnchor(a: TambatConfig['anchor']): void {
   positiveInt(a.historyLimit, 'anchor.historyLimit');
 }
 
+/** NIP-32 label event kind. Receipts and attestations reuse it; Tambat defines no new kinds. */
+export const NIP32_LABEL_KIND = 1985;
+
+function labelKind(kind: number, path: string): void {
+  if (kind !== NIP32_LABEL_KIND) fail(path, `must be ${NIP32_LABEL_KIND} (NIP-32 label)`);
+}
+
 function parseReceipt(r: TambatConfig['receipt']): void {
   positiveInt(r?.kind, 'receipt.kind');
+  labelKind(r.kind, 'receipt.kind');
   if (typeof r.namespace !== 'string' || !/^[a-z0-9.-]+$/.test(r.namespace)) fail('receipt.namespace', 'must use a-z, 0-9 and .- only');
   if (typeof r.label !== 'string' || !/^[a-z0-9_-]+$/.test(r.label)) fail('receipt.label', 'must use a-z, 0-9 and _- only');
   positiveInt(r.inputLimit, 'receipt.inputLimit');
@@ -180,6 +188,7 @@ function parseReceipt(r: TambatConfig['receipt']): void {
 
 function parseAttest(a: TambatConfig['attest'], receipt: TambatConfig['receipt']): void {
   positiveInt(a?.kind, 'attest.kind');
+  labelKind(a.kind, 'attest.kind');
   if (typeof a.namespace !== 'string' || !/^[a-z0-9.-]+$/.test(a.namespace)) fail('attest.namespace', 'must use a-z, 0-9 and .- only');
   if (a.namespace === receipt.namespace) fail('attest.namespace', 'must differ from receipt.namespace');
   if (typeof a.label !== 'string' || !/^[a-z0-9_-]+$/.test(a.label)) fail('attest.label', 'must use a-z, 0-9 and _- only');

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { config, cspHeader, parseConfig } from '../src/config.js';
+import { config, cspHeader, NIP32_LABEL_KIND, parseConfig } from '../src/config.js';
 
 const fresh = () => JSON.parse(readFileSync(new URL('../config/tambat.json', import.meta.url), 'utf8'));
 
@@ -13,6 +13,16 @@ describe('config/tambat.json', () => {
   it('uses NIP-39 and NIP-98 event kinds', () => {
     expect(config.nostr.bindingKind).toBe(10011);
     expect(config.nostr.authKind).toBe(27235);
+  });
+
+  it('rejects a receipt or attestation kind other than the NIP-32 label kind', () => {
+    for (const key of ['receipt', 'attest'] as const) {
+      const c = fresh();
+      c[key].kind = 30078;
+      expect(() => parseConfig(c)).toThrow(new RegExp(`${key}.kind`));
+    }
+    expect(config.receipt.kind).toBe(NIP32_LABEL_KIND);
+    expect(config.attest.kind).toBe(NIP32_LABEL_KIND);
   });
 
   it('rejects a relay that is not wss', () => {
