@@ -68,6 +68,20 @@ no npub.
 | 11:01:44 | `8d552e29246d89aa8ac47e061cfa0893da21b4d2b04f35d80733c78778f2198a` | `f918c39a459905fae64afa2faf552f228760e0a03b73737571a4722b63ba28f3` (move to `bitcoincash:qruxnv4dpr6ygdvv5czupa9dgrqy69vtjceqzzvzc9`) | nos.lol, relay.primal.net; moved: the old address finds no npub, the new one verifies | ok |
 | 11:02:26 | `f918c39a459905fae64afa2faf552f228760e0a03b73737571a4722b63ba28f3` | `6aa1a2d0fe533d3a68a17d53c6a91d166ee01c339ee1827e5d6e125065909ae0` | nos.lol, relay.primal.net; revoked: the npub has no current link and neither address finds the npub | ok |
 
+## Recovery
+
+Recovery from a lost Nostr key (SPEC "Recovery from a lost Nostr key"), 2026-11-18. A third demo Nostr key, made for this by
+`scripts/demo-binding.ts keys`, ran `tambat recover` against the main demo identity (binding event
+`f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2`), with the main demo wallet phrase as `--bch-keys`. The main
+identity's event was not changed. Relays: relay.damus.io refused the connection; nos.lol and relay.primal.net accepted. A few
+seconds later `tambat lookup` of the new npub printed "recovered from" the main demo npub with all five recovery steps passed,
+and `tambat lookup` of the demo address listed both keys, the main one noted as recovered to the new npub. The live look-up page
+showed the same on Chromium desktop and WebKit iPhone 13, with no horizontal overflow at 390 and 320 px.
+
+| UTC | recovering event | new npub | recovered from | address | relays accepting | result |
+| --- | --- | --- | --- | --- | --- | --- |
+| 00:28:17 | `368d108445a7317393b3af224bdd1803ae72f39f2be23c4a64d2094758f6d9e4` | `npub19adq4gfjgm7cl38c3vj074rpfh5q5kucrzyh7s6zfe93uvrhp6pq66xyfz` | `npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt` | `bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77` | nos.lol, relay.primal.net | ok |
+
 ## 2026-11-17: revoke and move a binding on the live relays
 
 - Deployed `d62db4a`: the live browser checks passed 6 of 6 (Chromium desktop and WebKit iPhone 13). A new live check,

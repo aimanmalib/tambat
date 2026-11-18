@@ -144,7 +144,7 @@ binding, keep other identity tags, and print each relay's answer; nothing secret
 the wallet that holds the bound address signs `replaces <old npub>`, and the new key (from `--keys`) publishes a binding for that
 address with the signature in a `replaces` tag ([SPEC](docs/SPEC.md#recovery-from-a-lost-nostr-key),
 [ADR 0009](docs/decisions/0009-recovery-tag.md)). Look-ups then show "Recovered from <old npub>" on the new key, and an address
-look-up marks the old key as moved.
+look-up marks the old key as moved. A recovery of the demo identity on the public relays is in [MEASURED.md](docs/MEASURED.md#recovery).
 
 ## Server
 
