@@ -141,7 +141,12 @@
     ],
     "timeoutMs": 8000,
     "historyLimit": 200,
-    "confirmedCoinsOnly": true
+    "confirmedCoinsOnly": true,
+    "demoBudget": {
+      "maxTransactions": 2,
+      "maxTotalFeeSats": 2000,
+      "ledger": "state/anchor/budget.json"
+    }
   },
   "judges": {
     "repoUrl": "https://github.com/aimanmalib/tambat",

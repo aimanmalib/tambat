@@ -41,3 +41,15 @@ permanent public record, so it cannot be required.
 - Reading an anchor needs a chain server; when none answers the page says so and the binding is still verified as before.
 - Addresses with long histories are read up to `anchor.historyLimit` transactions, oldest first.
 - Anyone can write the payload bytes, but only the address key can spend from it, which is what the input check enforces.
+
+## Demo key commitments
+
+- `scripts/anchor-demo.ts` makes the commitment for the project's own demo binding with the demo key, signing the same
+  way a wallet does (`src/core/anchor-sign.ts`, shared with the tests that stand in for a wallet). Without `--broadcast` it
+  only builds, signs, checks and prints.
+- Before anything is recorded the signed transaction is decoded again: exactly two outputs, a 0 sat OP_RETURN carrying the
+  demo key and the current binding event id, and the change back to the same demo address; every input is a coin of that
+  address read from the chain; the fee is at most `anchor.maxFeeSats`.
+- Budget: `anchor.demoBudget` (at most 2 transactions and 2000 sat in fees over the project). Each transaction is written
+  to the ledger file `anchor.demoBudget.ledger` (not tracked) before it is sent, so the ledger can never show less than
+  was spent. A binding already committed, even while unconfirmed, is not committed again.

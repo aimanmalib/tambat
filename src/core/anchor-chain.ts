@@ -19,6 +19,8 @@ export interface ChainSource {
   transaction(txid: string): Promise<string>;
   header(height: number): Promise<string>;
   unspent(scripthash: string): Promise<Utxo[]>;
+  /** Sends a signed transaction and returns the txid the server reports. Only the demo key script calls it. */
+  send?(transactionHex: string): Promise<string>;
   close(): Promise<void>;
 }
 
@@ -63,6 +65,7 @@ function electrumSource(client: ElectrumClient<never>, timeoutMs: number): Chain
         satoshis: u.value,
         height: u.height,
       })),
+    send: (hex) => call<string>('blockchain.transaction.broadcast', hex),
     close: async () => {
       await client.disconnect(true).catch(() => false);
     },

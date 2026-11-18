@@ -106,6 +106,11 @@ export interface TambatConfig {
     historyLimit: number;
     /** Spend only coins already in a block; when only unconfirmed coins would pay, the page says to wait. */
     confirmedCoinsOnly: boolean;
+    /**
+     * Spending limit of the project's own demo key (scripts/anchor-demo.ts): at most this many commitments and this many
+     * sat in fees over the project, recorded in `ledger` (never tracked) before each one is sent.
+     */
+    demoBudget: { maxTransactions: number; maxTotalFeeSats: number; ledger: string };
   };
   /**
    * Payment receipts (docs/SPEC.md "Payment receipts"): a NIP-32 label event naming the paid key and, as a NIP-73
