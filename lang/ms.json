@@ -318,6 +318,15 @@
     "lookName": "NIP-05",
     "proofTitle": "Bukti direkod",
     "paytaca": "Ditandatangan dengan dompet Paytaca melalui WalletConnect",
+    "anchor": "Ditambat pada BCH sejak blok {block}",
+    "anchorTx": "Transaksi tambatan",
+    "explorer": "Penjelajah",
+    "anchorState": {
+      "checking": "Membaca rantaian",
+      "confirmed": "Ada pada rantaian",
+      "differs": "Rantaian berbeza",
+      "unreachable": "Rantaian tidak dapat dicapai"
+    },
     "revocation": "Pautan yang dibatalkan (tiada alamat semasa)",
     "open": "Cari",
     "actionsTitle": "Cuba",

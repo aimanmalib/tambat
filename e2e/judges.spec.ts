@@ -7,9 +7,11 @@ import { join } from 'node:path';
 import type { Page, TestInfo } from '@playwright/test';
 import type { Event } from 'nostr-tools/pure';
 import config from '../config/tambat.json' with { type: 'json' };
+import { scripthashOf } from '../src/core/anchor-chain.js';
 import demoEvent from './demo-binding-event.json' with { type: 'json' };
+import paytacaAnchor from './paytaca-anchor.json' with { type: 'json' };
 import { routeToRelay, startFakeRelay } from './fake-relay.js';
-import { en, expect, expectAccessible, expectNoOverflow, ms, test } from './fixtures.js';
+import { chainServers, en, expect, expectAccessible, expectNoOverflow, ms, routeChain, test } from './fixtures.js';
 import { E2E } from './ports.js';
 
 const JUDGES_RELAY_PORT = E2E.relayPort + 20;
@@ -21,8 +23,15 @@ test.beforeAll(() => {
 });
 test.afterAll(() => relay.close());
 
+/** The chain holds the owner's real Paytaca anchor transaction (public chain data) in its real block. */
+const anchoredChain = {
+  history: { [scripthashOf(paytacaAnchor.address)]: [{ hex: paytacaAnchor.hex, txid: paytacaAnchor.txid, height: paytacaAnchor.height }] },
+  headers: { [paytacaAnchor.height]: paytacaAnchor.header },
+};
+
 async function useJudgesRelay(page: Page) {
   await routeToRelay(page, JUDGES_RELAY_PORT);
+  await routeChain(page, anchoredChain);
 }
 
 /** The page is one screen: the document is no taller than the window. */
@@ -56,6 +65,12 @@ test('one screen with a green live check, the recorded proof and every requireme
 
   await expect(page.locator(`[data-proof="paytaca"] a[data-event="${config.judges.paytaca.eventId}"]`)).toHaveAttribute('href', `/lookup?q=${config.judges.paytaca.npub}`);
   await expect(page.locator(`[data-proof="revocation"] a[data-event="${config.judges.revocation.eventId}"]`)).toBeVisible();
+  const anchor = page.locator('[data-proof="anchor"]');
+  await expect(anchor).toHaveAttribute('data-anchor', 'confirmed', { timeout: 20_000 });
+  await expect(anchor).toContainText(en.judges.anchor.replace('{block}', String(config.judges.anchor.block)));
+  await expect(anchor.getByRole('status')).toHaveText(`✓${en.judges.anchorState.confirmed}`);
+  await expect(anchor.locator('code')).toHaveAttribute('title', config.judges.anchor.txid);
+  await expect(anchor.getByRole('link', { name: en.judges.explorer })).toHaveAttribute('href', config.anchor.explorerTx.replace('{txid}', config.judges.anchor.txid));
   for (const name of [en.judges.signIn, en.judges.verifyYourself, en.judges.spec, en.judges.repo]) {
     await expect(page.getByRole('main').getByRole('link', { name })).toBeVisible();
   }
@@ -74,6 +89,8 @@ test('one screen with a green live check, the recorded proof and every requireme
   await page.getByRole('combobox').selectOption('ms');
   await expect(page.getByRole('heading', { level: 1, name: ms.judges.title })).toBeVisible();
   await expect(live).toHaveAttribute('data-state', 'verified', { timeout: 20_000 });
+  await expect(anchor.getByRole('status')).toHaveText(`✓${ms.judges.anchorState.confirmed}`);
+  await expect(anchor).toContainText(ms.judges.anchor.replace('{block}', String(config.judges.anchor.block)));
   await expectOneScreen(page);
   await expectNoOverflow(page);
   await shot(page, info, consoleErrors, 'ms');
@@ -90,6 +107,33 @@ test('at 320 px the page does not overflow sideways and the lists still open', a
   for (const s of await page.locator('details.jfold > summary').all()) await s.click();
   await expect(page.locator('[data-req="discovery"]')).toBeVisible();
   await expectNoOverflow(page);
+});
+
+test('the copy button puts the full anchor transaction id on the clipboard', async ({ page, context }, info) => {
+  test.skip(info.project.name !== 'chromium', 'clipboard read permission is Chromium only');
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await useJudgesRelay(page);
+  await page.goto('/judges');
+  const anchor = page.locator('[data-proof="anchor"]');
+  await anchor.getByRole('button', { name: `${en.common.copy}: ${en.judges.anchorTx}` }).click();
+  await expect(anchor.getByRole('button')).toHaveText(en.common.copied);
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(config.judges.anchor.txid);
+});
+
+test('a chain that holds another block or cannot be read is never shown as confirmed', async ({ page }) => {
+  await routeToRelay(page, JUDGES_RELAY_PORT);
+  const height = paytacaAnchor.height + 1;
+  const tx = { hex: paytacaAnchor.hex, txid: paytacaAnchor.txid, height };
+  await routeChain(page, { history: { [scripthashOf(paytacaAnchor.address)]: [tx] }, headers: { [height]: paytacaAnchor.header } });
+  await page.goto('/judges');
+  const anchor = page.locator('[data-proof="anchor"]');
+  await expect(anchor).toHaveAttribute('data-anchor', 'differs', { timeout: 20_000 });
+  await expect(anchor.getByRole('status')).toHaveText(en.judges.anchorState.differs);
+
+  await page.routeWebSocket(chainServers, (ws) => ws.close());
+  await page.reload();
+  await expect(anchor).toHaveAttribute('data-anchor', 'unreachable', { timeout: 30_000 });
+  await expect(anchor.getByRole('status')).toHaveText(en.judges.anchorState.unreachable);
 });
 
 test('blocked relays read as not found, never as verified', async ({ page }, info) => {

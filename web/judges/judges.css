@@ -33,6 +33,7 @@
 @media (max-width: 59.99rem) {
   .top--wide .nav { display: none; }
   .top--wide { padding-block: 0.25rem; }
+  .jactions { gap: 0.25rem; }
   .jnarrow-hide { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 
@@ -43,5 +44,7 @@
   .jlist { gap: 0.375rem; }
 }
 
-/* Four short actions on one row at 390 px. */
-.jactions .btn { padding-inline: 0.5rem; }
+/* Four short actions on one row at 390 px, in English and Malay. */
+.jactions .btn { padding-inline: 0.375rem; }
+.jchip { display: inline-block; vertical-align: baseline; }
+.jmark { font-weight: 700; color: var(--accent); }

@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from 'react';
 import { config } from '../../src/config';
 import { useText } from '../i18n';
+import { shortHex } from '../ui/HexId';
+import { AnchorProof } from './AnchorProof';
 import { SampleCheck } from './SampleCheck';
 import './judges.css';
 
 const VERIFIER_PATH = '/verify/';
 const repo = (path: string) => `${config.judges.repoUrl}/blob/main/${path}`;
 const look = (q: string) => `/lookup?q=${encodeURIComponent(q)}`;
-const shortId = (id: string) => `${id.slice(0, 8)}…${id.slice(-4)}`;
 
 /** Each bounty requirement with the live pages and files that show it, in the order the bounty lists them. */
 const REQUIREMENTS: { key: string; links: { key: string; href: string }[] }[] = [
@@ -54,10 +55,11 @@ export function JudgesPage() {
           <h2 id="j-proof" className="jpanel__title jnarrow-hide">{t('judges.proofTitle')}</h2>
           <ul className="jlist">
             <li data-proof="paytaca">
-              {t('judges.paytaca')}: <code>{shortId(j.paytaca.eventId)}</code> <a href={look(j.paytaca.npub)} data-event={j.paytaca.eventId}>{t('judges.open')}</a>
+              {t('judges.paytaca')}: <code>{shortHex(j.paytaca.eventId)}</code> <a href={look(j.paytaca.npub)} data-event={j.paytaca.eventId}>{t('judges.open')}</a>
             </li>
+            <AnchorProof />
             <li data-proof="revocation">
-              {t('judges.revocation')}: <code>{shortId(j.revocation.eventId)}</code> <a href={look(j.revocation.npub)} data-event={j.revocation.eventId}>{t('judges.open')}</a>
+              {t('judges.revocation')}: <code>{shortHex(j.revocation.eventId)}</code> <a href={look(j.revocation.npub)} data-event={j.revocation.eventId}>{t('judges.open')}</a>
             </li>
           </ul>
         </section>

@@ -115,6 +115,8 @@ export interface TambatConfig {
      * sat in fees over the project, recorded in `ledger` (never tracked) before each one is sent.
      */
     demoBudget: { maxTransactions: number; maxTotalFeeSats: number; ledger: string };
+    /** Block explorer page of a transaction; `{txid}` is replaced with the full transaction id. */
+    explorerTx: string;
   };
   /**
    * Payment receipts (docs/SPEC.md "Payment receipts"): a NIP-32 label event naming the paid key and, as a NIP-73
@@ -145,6 +147,8 @@ export interface TambatConfig {
     sample: { name: string; npub: string; address: string };
     /** A binding whose BCH signature came from a Paytaca wallet over WalletConnect. */
     paytaca: { eventId: string; npub: string };
+    /** The Paytaca binding's BCH commitment, copied from `tambat anchor-lookup` and docs/MEASURED.md "## Anchor". */
+    anchor: { address: string; txid: string; block: number; eventId: string };
     /** The event that revoked the second demo identity's link. */
     revocation: { eventId: string; npub: string };
     /** CSS width from which the requirement and criteria lists start open; below it they start closed. */
@@ -185,6 +189,7 @@ function parseAnchor(a: TambatConfig['anchor']): void {
   positiveInt(a.timeoutMs, 'anchor.timeoutMs');
   positiveInt(a.historyLimit, 'anchor.historyLimit');
   if (typeof a.confirmedCoinsOnly !== 'boolean') fail('anchor.confirmedCoinsOnly', 'must be true or false');
+  if (!/^https:\/\/[^\s{}]+\{txid\}[^\s{}]*$/.test(a.explorerTx ?? '')) fail('anchor.explorerTx', 'must be an https URL with one {txid}');
 }
 
 /** NIP-32 label event kind. Receipts and attestations reuse it; Tambat defines no new kinds. */
@@ -219,6 +224,10 @@ function parseJudges(j: TambatConfig['judges']): void {
   }
   if (!EVENT_ID.test(j.paytaca.eventId ?? '')) fail('judges.paytaca.eventId', 'must be a 64-character hex event id');
   if (!EVENT_ID.test(j.revocation.eventId ?? '')) fail('judges.revocation.eventId', 'must be a 64-character hex event id');
+  if (!/^bitcoincash:[qp][02-9ac-hj-np-z]{41}$/.test(j.anchor?.address ?? '')) fail('judges.anchor.address', 'must be a CashAddr');
+  if (!EVENT_ID.test(j.anchor.txid ?? '')) fail('judges.anchor.txid', 'must be a 64-character hex transaction id');
+  positiveInt(j.anchor.block, 'judges.anchor.block');
+  if (!EVENT_ID.test(j.anchor.eventId ?? '')) fail('judges.anchor.eventId', 'must be a 64-character hex event id');
   if (!/^\d+(\.\d+)?(rem|px|em)$/.test(j.openFromWidth ?? '')) fail('judges.openFromWidth', 'must be a CSS length');
 }
 

@@ -41,7 +41,9 @@ Where each required part of the "Decentralized Identity" bounty lives:
 
 The same map is one screen on the live site at https://tambat.sasateguh.com/judges, in English and Malay: it looks up the
 demo identity on the relays when it opens and shows every check, links the Paytaca binding and a revoked link from
-[the measurements](docs/MEASURED.md), and opens each requirement and judging criterion. `e2e/judges.spec.ts` holds it to one
+[the measurements](docs/MEASURED.md), names the Paytaca binding's anchor transaction in block 977901 and reads it again
+from the chain (a check mark only when the chain shows that transaction in that block), and opens each requirement and
+judging criterion. `e2e/judges.spec.ts` holds it to one
 screen at 1440 x 900 and on an iPhone 13.
 
 | Requirement | Code | Try it or read it |
@@ -241,7 +243,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-f2453c0b49746dd8cc965b46196339c40cc3f738663b8b8e65935ea5c14b3dd4  tambat-verify.html
+2e834195cc3b29487b7c0ad14a0380397a5e6ec3f50a165636f18f09560bc169  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;

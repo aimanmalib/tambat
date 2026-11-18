@@ -318,6 +318,15 @@
     "lookName": "NIP-05",
     "proofTitle": "Recorded proof",
     "paytaca": "Signed with a Paytaca wallet over WalletConnect",
+    "anchor": "Anchored on BCH since block {block}",
+    "anchorTx": "Anchor transaction",
+    "explorer": "Explorer",
+    "anchorState": {
+      "checking": "Reading the chain",
+      "confirmed": "On chain now",
+      "differs": "Chain reads differently",
+      "unreachable": "Chain unreachable"
+    },
     "revocation": "A revoked link (no current address)",
     "open": "Look up",
     "actionsTitle": "Try it",
