@@ -5,6 +5,7 @@ import { toNpub } from '../../src/core/nostr';
 import type { BindingResult } from '../../src/core/verify';
 import { useText } from '../i18n';
 import { Notice } from '../ui/Notice';
+import { HexId } from '../ui/HexId';
 
 /**
  * Attestations of a verified binding, read from the relays in the browser: other keys that signed "verified" for
@@ -35,7 +36,7 @@ export function Attestations({ result }: { result: BindingResult }) {
             <li key={a.event.id} className="attest__item">
               <Notice tone="ok">{t('attest.by', { date: new Date(a.event.created_at * 1000).toLocaleDateString(lang, { dateStyle: 'medium' }) })}</Notice>
               <p className="option__help attest__who"><code>{toNpub(a.attester)}</code></p>
-              <p className="option__help attest__who">{t('attest.event')} <code>{a.event.id}</code></p>
+              <p className="option__help attest__who">{t('attest.event')} <HexId value={a.event.id} label={t('attest.event')} /></p>
             </li>
           ))}
         </ul>

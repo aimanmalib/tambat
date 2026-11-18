@@ -54,7 +54,7 @@ test('an attestation of the current binding shows; one of a replaced binding onl
   const panel = page.locator('.result[data-ok="true"] .attest');
   await expect(panel).toHaveAttribute('data-attest', '1', { timeout: 20_000 });
   await expect(panel.locator('.attest__item')).toContainText(B.npub);
-  await expect(panel.locator('.attest__item')).toContainText(fromB.id);
+  await expect(panel.locator(`.attest__item code[data-full="${fromB.id}"]`)).toHaveCount(1);
   await expect(panel).not.toContainText(C.npub);
   await expect(panel).toContainText(en.attest.replaced.replace('{count}', '1'));
   await expectNoOverflow(page);

@@ -73,6 +73,7 @@ Beyond the required parts, each live and tested:
 - An optional BCH anchor ([SPEC](docs/SPEC.md#optional-bch-anchor), [ADR 0008](docs/decisions/0008-optional-bch-anchor.md)):
   the Paytaca binding is anchored on BCH since block 977901, signed by the Paytaca wallet that holds the address
   ([anchor measured](docs/MEASURED.md#anchor)). `tambat anchor-lookup <address>` reads it from the chain alone, no relays.
+  Transaction and event ids are shortened in the middle on screen, with the full id in the tooltip and a copy button.
 - A wall of verified links read from the relays, paging back past identity events of other platforms: https://tambat.sasateguh.com/wall ([wall measured](docs/MEASURED.md#wall)).
 - A NIP-05 name for the demo identity, an [embeddable badge](#embeddable-badge), a [one-file verifier](#one-file-verifier)
   and a "Try tampering" demo on every verified look-up.
@@ -244,7 +245,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-776dcd54bffac04fcd1228513f8ed75617b4cabf64b281c2e53c4abccf93b3f3  tambat-verify.html
+65347db1005da03bb021ff5a63917286a795afe53cdef26c6d69cc12723e05d8  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;

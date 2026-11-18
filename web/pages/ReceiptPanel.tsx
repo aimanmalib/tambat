@@ -11,6 +11,7 @@ import { useKeys } from '../keys/KeysContext';
 import { NostrConnect } from '../keys/NostrConnect';
 import { Notice } from '../ui/Notice';
 import { RelayList } from '../ui/RelayList';
+import { HexId } from '../ui/HexId';
 
 const TXID = /^[0-9a-f]{64}$/;
 
@@ -23,7 +24,7 @@ function ReceiptLine({ check }: { check: ReceiptCheck }) {
       <p className="option__help">{t(`receipt.chain.${check.chain}`)}</p>
       {check.chain === 'found' ? <p className="option__help">{t(check.paysPayee ? 'receipt.paysPayee' : 'receipt.notPayee')}</p> : null}
       <p className="option__help receipt__who">{t('receipt.by')} <code>{check.payerNpub}</code></p>
-      <p className="option__help receipt__who">{t('receipt.event')} <code>{check.eventId}</code></p>
+      <p className="option__help receipt__who">{t('receipt.event')} <HexId value={check.eventId} label={t('receipt.event')} /></p>
     </li>
   );
 }

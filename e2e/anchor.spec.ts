@@ -119,10 +119,46 @@ test('look-up reads the earliest anchor from the chain and shows its block', asy
   await expect(anchor).toHaveAttribute('data-anchor', 'anchored');
   await expect(anchor.getByText(before(en.anchor.since))).toBeVisible();
   await expect(anchor).toContainText('900010');
-  await expect(anchor).toContainText(anchoredChain().history[scripthashOf(address)]![0]!.txid);
+  await expect(anchor.locator('.anchor__tx code')).toHaveAttribute('data-full', anchoredChain().history[scripthashOf(address)]![0]!.txid);
   // Not the owner's wallet, so no offer to anchor.
   await expect(page.getByRole('button', exact(en.anchor.offer))).toHaveCount(0);
   await expectAccessible(page);
+});
+
+/** The card holding the anchor and the page are no wider than the screen: nothing scrolls sideways. */
+async function expectAnchorCardFits(page: Page) {
+  const card = page.locator('.result', { has: page.locator('.anchor') });
+  for (const box of [card, page.locator('.anchor')]) {
+    const widths = await box.evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }));
+    expect(widths.scroll).toBeLessThanOrEqual(widths.client);
+  }
+  await expectNoOverflow(page);
+}
+
+test('the anchor transaction id is shortened in the middle and fits the card on a phone and at 320 px', async ({ page }) => {
+  const txid = anchoredChain().history[scripthashOf(address)]![0]!.txid;
+  await routeChain(page, anchoredChain());
+  await page.goto(`/lookup?q=${vectors.nostr.npub}`);
+  const shown = page.locator('.anchor__tx code');
+  await expect(shown).toHaveText(`${txid.slice(0, 8)}…${txid.slice(-4)}`, { timeout: 20_000 });
+  await expect(shown).toHaveAttribute('title', txid);
+  await expect(page.locator('.anchor').getByRole('button', { name: `${en.common.copy}: ${en.anchor.tx}` })).toBeVisible();
+  await expectAnchorCardFits(page);
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expectAnchorCardFits(page);
+});
+
+test('the copy button puts the full anchor transaction id on the clipboard and says so', async ({ page, context }, info) => {
+  test.skip(info.project.name !== 'chromium', 'clipboard read permission is Chromium only');
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  const txid = anchoredChain().history[scripthashOf(address)]![0]!.txid;
+  await routeChain(page, anchoredChain());
+  await page.goto(`/lookup?q=${vectors.nostr.npub}`);
+  const anchor = page.locator('.anchor');
+  await anchor.getByRole('button', { name: `${en.common.copy}: ${en.anchor.tx}` }).click();
+  await expect(anchor.locator('.hexid__copy')).toHaveText(en.common.copied);
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(txid);
 });
 
 test('chain servers that close at once leave the binding verified and say so', async ({ page }) => {
@@ -157,7 +193,7 @@ test('the owner previews the outputs and the fee, then the wallet signs and send
   expect(requests[0]).toMatchObject({ method: 'bch_signTransaction', params: { broadcast: true, userPrompt: en.anchor.prompt } });
   expect(requests[0]?.params.sourceOutputs).toHaveLength(1);
   expect(requests[0]?.params.transaction.outputs).toHaveLength(2);
-  const shown = (await page.locator('.anchor .notice--ok code').textContent()) ?? '';
+  const shown = (await page.locator('.anchor .notice--ok code').getAttribute('data-full')) ?? '';
   const signed = parseExtended<{ transaction: TransactionCommon; sourceOutputs: (Input & Output)[] }>(requests[0]!.params);
   const bytes = signP2pkh(signed.transaction, signed.sourceOutputs, phraseKeys.bchPrivateKey);
   expect(shown).toBe(txidOf(bytes));

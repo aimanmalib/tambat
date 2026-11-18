@@ -6,6 +6,7 @@ import { useText } from '../i18n';
 import { Notice } from '../ui/Notice';
 import { canAnchor, prepareAnchor, requestAnchor } from './anchor';
 import { useKeys } from './KeysContext';
+import { HexId } from '../ui/HexId';
 
 /** Set through the CSSOM, which the style-src policy allows, so a long address breaks instead of widening the page. */
 
@@ -66,7 +67,7 @@ export function AnchorOffer({ result, anchored }: { result: BindingResult; ancho
           </div>
         </>
       ) : null}
-      {step.kind === 'sent' ? <Notice tone="ok">{t('anchor.sent')} <code>{step.txid}</code></Notice> : null}
+      {step.kind === 'sent' ? <Notice tone="ok">{t('anchor.sent')} <HexId value={step.txid} label={t('anchor.tx')} /></Notice> : null}
       {error ? <Notice tone="error">{error}</Notice> : null}
     </div>
   );

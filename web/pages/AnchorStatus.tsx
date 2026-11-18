@@ -4,6 +4,7 @@ import type { BindingResult } from '../../src/core/verify';
 import { useText } from '../i18n';
 import { Notice } from '../ui/Notice';
 import { AnchorOffer } from '../keys/anchorOffer';
+import { HexId } from '../ui/HexId';
 
 /**
  * The optional BCH anchor of a verified binding, read from the chain in the browser: since which block the address
@@ -34,7 +35,7 @@ export function AnchorStatus({ result }: { result: BindingResult }) {
       <>
         <Notice tone="ok">{t('anchor.since', { height: c.height, date })}</Notice>
         {status.sameEvent ? null : <p className="option__help">{t('anchor.otherEvent')}</p>}
-        <p className="option__help anchor__tx">{t('anchor.tx')} <code>{c.txid}</code></p>
+        <p className="option__help anchor__tx">{t('anchor.tx')} <HexId value={c.txid} label={t('anchor.tx')} /></p>
       </>
     );
   }
