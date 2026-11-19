@@ -59,7 +59,7 @@ screen at 1440 x 900 and on an iPhone 13.
 | --- | --- |
 | Technical correctness | Every verification step is named and reported (`src/core/verify.ts`); `tests/verify.test.ts` and `tests/tamper.test.ts` check that each kind of bad input fails the step meant to catch it. Vectors from outside the project pass (`tests/third-party-vectors.test.ts`). |
 | Security | `key_separation` refuses one key in both roles; sign-in nonces are single-use, short-lived and origin-bound (`tests/auth.test.ts`, `tests/server.test.ts`). See [the threat model](#security-and-threat-model). |
-| Decentralization | Relays are untrusted stores and every reader verifies for itself. Look-ups in [the measurements](docs/MEASURED.md#lookup) were answered by two of the three relays and still verified. |
+| Decentralization | Relays are untrusted stores and every reader verifies for itself. Look-ups in [the measurements](docs/MEASURED.md#lookup) were answered by two of the three relays then in use and still verified; Look up now lists which relays answered each query ([relays measured](docs/MEASURED.md#relays)). |
 | Interoperability | NIP-39 kind 10011, the Bitcoin signed-message format, NIP-98, NIP-05, NIP-32 labels, `did:nostr`, BIP21. No new event kind. |
 | Usability | English and Malay throughout; end-to-end tests run in Chromium and in WebKit on an iPhone 13 at 320 px and up; a binding signed with a Paytaca wallet over WalletConnect is in [the measurements](docs/MEASURED.md). |
 | Demo quality | Live at https://tambat.sasateguh.com on public relays; [the measurements](docs/MEASURED.md) records each live reading, failures included. |
@@ -86,6 +86,10 @@ Beyond the required parts, each live and tested:
   judges page and `tambat anchor-lookup` show how many servers agreed. Tested with fake servers
   (`tests/chain-quorum.test.ts`, `e2e/chain-status.spec.ts`, `e2e/judges.spec.ts`); the live reading is in [anchor measured](docs/MEASURED.md#anchor).
 - A wall of verified links read from the relays, paging back past identity events of other platforms: https://tambat.sasateguh.com/wall ([wall measured](docs/MEASURED.md#wall)).
+- Which relays answered: Look up, the wall and the judges page list every relay in `config/tambat.json` (five public relays)
+  as answered, refused or no answer, with the time of each answer, taken from the sockets of that look-up itself
+  (`src/core/relay-watch.ts`; `tests/relay-watch.test.ts` with one relay refusing the handshake with 503 and one staying
+  silent; `e2e/relays.spec.ts`; [relays measured](docs/MEASURED.md#relays)). Publishing shows each relay's answer time too.
 - "Anchored since block N" on wall entries and on Pay, shown only when the chain servers agree that the address is still
   bound to that key; the wall reads the chain only for entries on screen or within `wall.sinceRootMargin` of it (one screen
   below the fold, so on a phone the entries you scroll to next already carry their badge), `wall.chainConcurrency` at a
@@ -98,8 +102,8 @@ Beyond the required parts, each live and tested:
 
 1. Open https://tambat.sasateguh.com. **Link**: connect a Nostr key (a NIP-07 extension, a NIP-46 remote signer, or "Use a
    demo key"), then a BCH key (Paytaca over WalletConnect, a signature pasted from any wallet with "Sign message", or a demo key).
-2. Sign. The page runs every verification step on the event before you publish, then publishes to three public relays and shows
-   which ones accepted it.
+2. Sign. The page runs every verification step on the event before you publish, then publishes to the five public relays and shows
+   which ones accepted it and how fast.
 3. **Look up**: paste the npub, the address or a NIP-05 name such as `demo@tambat.sasateguh.com`. The browser asks the relays and verifies the result itself: the step list, the
    signed event and the DID document.
    **Try tampering** on a verified result edits one field of a local copy (content, the BCH address in the `i` tag, or the Nostr
@@ -266,7 +270,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-0fd5c348293bd13799b472b474a98c1f2d064b859ea559894cf9401ff9ce1a81  tambat-verify.html
+72956f34523c75335b00c015623fb0c05e5d3c936433121644625bb8ac0a801d  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -297,7 +301,7 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 
 ## Decentralisation
 
-- Relays are untrusted, interchangeable stores. The default list is three public relays in `config/tambat.json`; any NIP-01
+- Relays are untrusted, interchangeable stores. The default list is five public relays in `config/tambat.json`; any NIP-01
   relay works, and users can publish to their own.
 - Verification needs only the event and the public algorithm. The CLI, the browser, the server and the
   [one-file verifier](#one-file-verifier) each check independently;

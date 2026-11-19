@@ -101,6 +101,22 @@ session.
 | 11:57:31 | bch | `bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77` (main demo identity) | `npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt` | `f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2` | 2196 | ok |
 | 11:57:37 | bch | `bitcoincash:qruxnv4dpr6ygdvv5czupa9dgrqy69vtjceqzzvzc9` (second demo identity, revoked above) | none: `401 no_binding` | none | 1192 | refused |
 
+## Relays
+
+Candidate relays, 2026-11-19, from the host over WebSocket (not HTTP): open a connection, send a REQ for kind 10011 with
+`limit` 1 and wait for EOSE, then send the main demo identity's existing binding event `f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2`
+(signed by the demo key, unchanged) as EVENT and wait for OK. Times are milliseconds from opening the connection. A first
+run a few minutes earlier gave the same answers for the three candidates (each newly stored the event) while relay.damus.io
+refused the handshake with HTTP 503. relay.snort.social and nostr.mom were added to `config/tambat.json`, so the app now asks
+five relays; offchain.pub also passed and is not used.
+
+| UTC | relay | handshake ms | REQ answer | EVENT answer | result |
+| --- | --- | --- | --- | --- | --- |
+| 09:53:56 | nostr.mom | 592 | EOSE at 794, 1 event | `OK true` (duplicate) at 798 | ok |
+| 09:53:56 | relay.snort.social | 600 | EOSE at 799, 1 event | `OK true` at 799 | ok |
+| 09:53:56 | offchain.pub | 653 | EOSE at 908, 1 event | `OK true` (duplicate) at 895 | ok |
+| 09:53:56 | relay.damus.io | 696 | EOSE at 896, 1 event | `OK true` (duplicate) at 813 | ok |
+
 ## Lookup
 
 Second demo identity (not the main demo below), 2026-11-17, from the host with `tambat lookup` and the same library calls. `ms`
