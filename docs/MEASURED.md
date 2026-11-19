@@ -70,6 +70,8 @@ host against the default relays, 2026-11-17, before deploying it. Each relay was
 | --- | --- | --- | --- | --- | --- | --- |
 | 17:46:12 | relay.damus.io 0, nos.lol 30, relay.primal.net 30 | 34 | 2: `d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b` (the Paytaca binding below), `f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2` (main demo identity) | 0 | 3385 | ok |
 | 2026-11-18 16:41:44 | relay.damus.io 0 (refused), nos.lol 5 pages of 200, relay.primal.net 5 pages of 200 | 1473 | 4: `368d108445a7317393b3af224bdd1803ae72f39f2be23c4a64d2094758f6d9e4`, `271cad218146e5e39d75f9aac55f6e7629751ba02ef354084a59535bbdf3a786`, `d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b` (the Paytaca binding below), `f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2` (main demo identity) | 3 | 6631 | ok |
+| 2026-11-19 08:15 | WebKit, iPhone 13 profile, live site tag ffaca93, no scroll; relay.damus.io refused (503) | not counted | 4 cards; the Paytaca binding `d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b` third, below the fold; chain read for cards yes, no, no, no; no badge after 30 s | not counted | 38578 | no badge |
+| 2026-11-19 09:12 | WebKit, iPhone 13 profile, live site tag bf8c5b6 (ADR 0016), no scroll; relay.damus.io refused (503) | not counted | 4 cards; `d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b` third, below the fold, shows "Anchored since block 977901"; chain read for cards yes, yes, yes, no | not counted | 72208 | ok |
 
 On 2026-11-18 at 16:13 UTC the newest 30 kind 10011 events held one BCH binding each on nos.lol and relay.primal.net, and
 not the Paytaca binding: identity events of other platforms had pushed it out, and the relays cannot filter on the value
@@ -79,6 +81,11 @@ on its own cursor with `until`, `wall.pageSize` (200) events per page and at mos
 "events per relay" counts pages times events per page. On the live site (tag 7c9be65) the same day, /wall in Chromium and
 in WebKit on an iPhone 13 listed 4 bindings including `d7c03eee` after 6 to 8 seconds, with no horizontal overflow; the
 only console errors were relay.damus.io refusing the WebSocket handshake.
+
+The two 2026-11-19 rows are the live /wall in WebKit with the iPhone 13 profile (390 by 664), before and after reading
+entries within one screen below the fold (`wall.sinceRootMargin`, ADR 0016). "ms" runs from opening the page to the badge
+or to giving up; the host was under heavy load (load average above 200) during the second run. Scrolling each card into
+view gave the badge before the change too; each chain server got one WebSocket per read, all closed after.
 
 ## Sign-in
 

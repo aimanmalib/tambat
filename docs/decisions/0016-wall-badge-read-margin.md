@@ -9,7 +9,7 @@ only for entries on screen (`web/ui/SinceBadge.tsx`), so a long wall does not op
 looks at. On an iPhone 13 (390 by 664 CSS pixels) the live wall showed no badge on the Paytaca entry, while desktop
 Chromium showed it. One explanation offered was that WebKit allows one WebSocket per chain server, so later reads stall.
 
-Measured on the live site, 2026-11-19 08:2x UTC, WebKit with the iPhone 13 profile and desktop Chromium, counting every
+Measured on the live site, 2026-11-19 at about 08:15 UTC, WebKit with the iPhone 13 profile and desktop Chromium, counting every
 WebSocket the page opened (`page.on('websocket')`), each in a fresh browser:
 
 | engine | scrolled | entries | Paytaca entry | `data-since-read` | badge | sockets per chain server |
@@ -40,3 +40,6 @@ WebSocket the page opened (`page.on('websocket')`), each in a fresh browser:
   and badged before any scroll, that the last entry is not, and that an entry further down is badged after scrolling a
   screen at a time. With the margin set to `0px` that test fails.
 - To go back: set `wall.sinceRootMargin` to `0px`.
+- Live after deploying (tag bf8c5b6, 2026-11-19 09:12 UTC), WebKit with the iPhone 13 profile and no scroll: the first
+  three entries were read, the fourth was not, and the Paytaca entry showed "Anchored since block 977901"
+  ([wall measured](../MEASURED.md#wall)).
