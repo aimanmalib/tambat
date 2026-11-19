@@ -16,6 +16,8 @@
  *   tambat vc verify <credential.json|->  verify a credential offline
  *   tambat rep export <npub|nprofile> [--out <file>]  the key's attestations as a portable reputation bundle (VP 2.0)
  *   tambat rep verify <bundle.json|-> [--chain]  recount a bundle offline; --chain also checks the anchor block
+ *   tambat sd issue [--keys <file>] [--binding <file>] [--out <file>]  a selective disclosure credential, every field
+ *   tambat sd present <issued.json> --reveal <field,...> [--out <file>] | sd verify <presentation.json|->
  * revoke and rotate sign with the phrase in --keys <file> (default from config: cli.keysFile). recover takes the new
  * Nostr key from --keys and the wallet phrase that holds the bound address from --bch-keys.
  * Add --json for machine-readable output. Exit code 0 = verified, 1 = not verified, 2 = usage error.
@@ -37,6 +39,7 @@ import { publishReceipt, receiptLookup } from '../src/node/receipt.js';
 import { attestationLookup, publishAttestation } from '../src/node/attest.js';
 import { vcExport, vcVerify } from '../src/node/vc.js';
 import { repExport, repVerify } from '../src/node/rep.js';
+import { sdIssue, sdPresent, sdVerify } from '../src/node/sd.js';
 
 const USAGE =
   'usage: tambat text <npub> | verify <event.json|-> | lookup <npub|cashaddr> [--json]\n' +
@@ -46,7 +49,9 @@ const USAGE =
   '       tambat receipt <txid> [--json] | receipt-publish <payee npub> <txid> [--keys <file>]\n' +
   '       tambat attest <npub> [--keys <file>] | attestations <npub> [--json]\n' +
   '       tambat vc export <attestation id|file> [--binding <file>] | vc verify <credential.json|-> [--json]\n' +
-  '       tambat rep export <npub|nprofile> [--out <file>] | rep verify <bundle.json|-> [--chain] [--json]';
+  '       tambat rep export <npub|nprofile> [--out <file>] | rep verify <bundle.json|-> [--chain] [--json]\n' +
+  '       tambat sd issue [--keys <file>] [--binding <file>] [--out <file>] | sd present <issued.json> --reveal <fields> [--out <file>]\n' +
+  '       tambat sd verify <presentation.json|-> [--json]';
 
 const nodeDeps: ManageDeps = {
   query: nodeRelayQuery,
@@ -121,7 +126,7 @@ export async function main(argv: string[], deps: ManageDeps = nodeDeps, chain: C
   const openChain: OpenChain = Array.isArray(chain) ? firstAnswering(chain) : chain;
   const json = argv.includes('--json');
   const readChain = argv.includes('--chain');
-  const flags = new Map<string, number>(['--keys', '--bch-keys', '--binding', '--out'].map((f) => [f, argv.indexOf(f)]));
+  const flags = new Map<string, number>(['--keys', '--bch-keys', '--binding', '--out', '--reveal'].map((f) => [f, argv.indexOf(f)]));
   const valueOf = (flag: string) => {
     const i = flags.get(flag) ?? -1;
     return i >= 0 ? argv[i + 1] : undefined;
@@ -190,6 +195,15 @@ export async function main(argv: string[], deps: ManageDeps = nodeDeps, chain: C
     if (!arg2 || (arg !== 'export' && arg !== 'verify')) return usageError('rep needs export <npub|nprofile> or verify <file>');
     try {
       return arg === 'verify' ? await repVerify(arg2, json, readChain ? chain : null) : await repExport(arg2, valueOf('--out'), deps, chain);
+    } catch (err) {
+      return usageError((err as Error).message);
+    }
+  }
+  if (command === 'sd') {
+    if (arg !== 'issue' && (!arg2 || (arg !== 'present' && arg !== 'verify'))) return usageError('sd needs issue, present <issued.json> or verify <file>');
+    try {
+      if (arg === 'issue') return await sdIssue(readPhrase(keysFile), valueOf('--binding'), valueOf('--out'), deps.query);
+      return arg === 'verify' ? sdVerify(arg2 ?? '', json) : sdPresent(arg2 ?? '', valueOf('--reveal') ?? '', valueOf('--out'));
     } catch (err) {
       return usageError((err as Error).message);
     }

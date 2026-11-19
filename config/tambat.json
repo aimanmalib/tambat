@@ -197,5 +197,15 @@
     "filePrefix": "tambat-attestation",
     "presentationType": "TambatReputationSummary",
     "reputationFilePrefix": "tambat-reputation"
+  },
+  "sd": {
+    "kind": 1985,
+    "namespace": "cash.tambat.sd",
+    "label": "credential",
+    "credentialType": "BchNostrSelectiveCredential",
+    "presentationType": "TambatSelectiveDisclosure",
+    "fields": ["bchAddress", "network", "bindingEvent", "boundAt"],
+    "saltBytes": 16,
+    "filePrefix": "tambat-disclosure"
   }
 }

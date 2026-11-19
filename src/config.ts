@@ -165,6 +165,21 @@ export interface TambatConfig {
     /** Download file name prefix of a reputation summary. */
     reputationFilePrefix: string;
   };
+  /**
+   * Selective disclosure (ADR 0019): a self-issued credential whose fields are salted digests. The proof is an
+   * unpublished NIP-32 label event (`kind`, `namespace`, `label`) signed by the holder. `fields` are the binding facts
+   * it carries, in order; `saltBytes` is the random salt length of each disclosure.
+   */
+  sd: {
+    kind: number;
+    namespace: string;
+    label: string;
+    credentialType: string;
+    presentationType: string;
+    fields: string[];
+    saltBytes: number;
+    filePrefix: string;
+  };
   /** The one-screen page for judges at /judges. Event ids and keys come from docs/MEASURED.md. */
   judges: {
     repoUrl: string;
@@ -342,8 +357,29 @@ export function parseConfig(input: unknown): TambatConfig {
   for (const k of ['filePrefix', 'reputationFilePrefix'] as const) {
     if (typeof c.vc[k] !== 'string' || !/^[a-z0-9-]+$/.test(c.vc[k])) fail(`vc.${k}`, 'must use a-z, 0-9 and - only');
   }
+  parseSd(c.sd, [c.attest.namespace, c.receipt.namespace]);
   parseJudges(c.judges);
   return c;
+}
+
+const SD_FIELDS = ['bchAddress', 'network', 'bindingEvent', 'boundAt'];
+
+function parseSd(sd: TambatConfig['sd'], taken: string[]): void {
+  positiveInt(sd?.kind, 'sd.kind');
+  labelKind(sd.kind, 'sd.kind');
+  if (typeof sd.namespace !== 'string' || !/^[a-z0-9.-]+$/.test(sd.namespace)) fail('sd.namespace', 'must use a-z, 0-9 and .- only');
+  if (taken.includes(sd.namespace)) fail('sd.namespace', 'must differ from attest.namespace and receipt.namespace');
+  if (typeof sd.label !== 'string' || !/^[a-z0-9_-]+$/.test(sd.label)) fail('sd.label', 'must use a-z, 0-9 and _- only');
+  for (const k of ['credentialType', 'presentationType'] as const) {
+    if (typeof sd[k] !== 'string' || !/^[A-Z][A-Za-z0-9]+$/.test(sd[k])) fail(`sd.${k}`, 'must be a PascalCase term');
+  }
+  const f = sd.fields;
+  if (!Array.isArray(f) || f.length < 3 || new Set(f).size !== f.length || !f.every((x) => SD_FIELDS.includes(x)) || !f.includes('bchAddress')) {
+    fail('sd.fields', `must list three or more of ${SD_FIELDS.join(', ')} once each, including bchAddress`);
+  }
+  positiveInt(sd.saltBytes, 'sd.saltBytes');
+  if (sd.saltBytes < 16) fail('sd.saltBytes', 'must be 16 or more (128 bits)');
+  if (typeof sd.filePrefix !== 'string' || !/^[a-z0-9-]+$/.test(sd.filePrefix)) fail('sd.filePrefix', 'must use a-z, 0-9 and - only');
 }
 
 /** Each name maps to a non-empty list of integer codes, and no code appears under two names. */

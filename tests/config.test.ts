@@ -25,6 +25,25 @@ describe('config/tambat.json', () => {
     expect(config.attest.kind).toBe(NIP32_LABEL_KIND);
   });
 
+  it('rejects a selective disclosure proof kind, namespace, field list or salt the format does not allow', () => {
+    const cases: [(c: ReturnType<typeof fresh>) => void, RegExp][] = [
+      [(c) => (c.sd.kind = 30078), /sd\.kind/],
+      [(c) => (c.sd.namespace = c.attest.namespace), /sd\.namespace/],
+      [(c) => (c.sd.fields = ['network', 'bindingEvent', 'boundAt']), /sd\.fields/],
+      [(c) => (c.sd.fields = ['bchAddress', 'network']), /sd\.fields/],
+      [(c) => (c.sd.fields = ['bchAddress', 'network', 'network']), /sd\.fields/],
+      [(c) => (c.sd.fields = ['bchAddress', 'network', 'nickname']), /sd\.fields/],
+      [(c) => (c.sd.saltBytes = 8), /sd\.saltBytes/],
+      [(c) => (c.sd.credentialType = 'selective'), /sd\.credentialType/],
+    ];
+    for (const [change, err] of cases) {
+      const c = fresh();
+      change(c);
+      expect(() => parseConfig(c)).toThrow(err);
+    }
+    expect(config.sd.kind).toBe(NIP32_LABEL_KIND);
+  });
+
   it('rejects wallet error codes that are not integers, are empty, or repeat across names', () => {
     for (const codes of [{ rejected: ['5000'] }, { rejected: [] }, { rejected: [5000], other: [5000] }, [5000]]) {
       const c = fresh();

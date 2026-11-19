@@ -23,4 +23,6 @@ export { createAttestationEvent, parseAttestation } from './attest.js';
 export { exportCredential, verifyCredential } from './vc.js';
 export { buildReputationBundle, summarizeReputation, verifyReputationBundle } from './reputation.js';
 export type { BundleCheck, ReputationBundle } from './reputation.js';
+export { issueSd, presentSd, verifySdPresentation } from './sd.js';
+export type { SdCheck, SdPresentation, SdProblem } from './sd.js';
 export { canonicalize } from './jcs.js';

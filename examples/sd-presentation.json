@@ -1,0 +1,61 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2"
+  ],
+  "type": [
+    "VerifiablePresentation",
+    "TambatSelectiveDisclosure"
+  ],
+  "holder": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+  "verifiableCredential": [
+    {
+      "@context": [
+        "https://www.w3.org/ns/credentials/v2"
+      ],
+      "type": [
+        "VerifiableCredential",
+        "BchNostrSelectiveCredential"
+      ],
+      "issuer": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+      "validFrom": "2026-11-19T17:39:04Z",
+      "_sd_alg": "sha-256",
+      "credentialSubject": {
+        "id": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+        "_sd": [
+          "0kVUIexqoANyAXZDbz9m2LyocSL6w1tdpipG-8q9W1o",
+          "JStIt02c29nXZAsCOmn5NjPCX6bnh62_DuYFfVcjYps",
+          "TJygETgerfJaXV6HN1hRRBZQ6oTM_1K6NroO3i8o4T8",
+          "dhHueGr4_bH8uXdlSPRhyFCsIBSKlvMtviw1pYjrSW0"
+        ]
+      },
+      "proof": {
+        "type": "NostrEventProof",
+        "proofPurpose": "assertionMethod",
+        "verificationMethod": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4#key1",
+        "created": "2026-11-19T17:39:04Z",
+        "event": {
+          "kind": 1985,
+          "created_at": 1795109944,
+          "tags": [
+            [
+              "L",
+              "cash.tambat.sd"
+            ],
+            [
+              "l",
+              "credential",
+              "cash.tambat.sd"
+            ]
+          ],
+          "content": "-bcE_LxPc6jxHyMQJv__aDgditDSAYuw0p2B2nslGxs",
+          "pubkey": "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+          "id": "c6306ef38e7f74ecbf29e4c3a91a75e19258f707cd445458a57a5016ebbbb6f8",
+          "sig": "bc4e55e0d9af89850aeb34dd462c449ebd6501a57d470af0d31e1a53b62e12a458505e6f84cb49d46e26a1d389138171e2c70b8ac3d7982d5870d26e47339abd"
+        }
+      }
+    }
+  ],
+  "disclosures": [
+    "WyJTWHM5T1BSY2pfY2tFbjFPd2JRUmp3IiwiYmNoQWRkcmVzcyIseyJhZGRyZXNzIjoiYml0Y29pbmNhc2g6cXIyZmtoeWtud3h3eHVydm1ua3lleGhsaG01bXBkNWZteWt3ZHBsejc3Iiwic2lnbmF0dXJlIjoiSVBwaFpBWkUzVVI3RkE4eVBYd0VETVMrVmVHQWhOTmtqUUtNQkRsY0MzMUdNZGhYZGNLb1lKT0RpWTRxQUZEeURBT2dydzZFN2JmYWlzTkRCNjdNSE9zPSJ9XQ"
+  ]
+}
