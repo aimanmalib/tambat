@@ -397,7 +397,7 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
   of one credential can be linked by its proof signature, and no holder signature binds a presentation to one recipient.
   The public binding already shows the address; the hiding applies to credentials handed out privately. "SD-JWT style",
   not SD-JWT; no JWT is made.
-  A binding says two keys belong together, not who the person is.
+- **Identity**: a binding says two keys belong together, not who the person is.
 - **Privacy**: a binding is public by design and links a payment address to a social identity. Users who want unlinkable
   payments should bind a separate address.
 - **NIP-05 names** depend on the domain that serves them: if it is down, or does not let browsers read its file, a name
@@ -414,7 +414,8 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 - **Credentials** carry the signed attestation and binding events as their proof, not a Data Integrity proof, so a
   generic VC verifier cannot check them; `tambat vc verify` and the one-file verifier can. The official W3C test suite was
   not run ([ADR 0017](docs/decisions/0017-attestation-verifiable-credential.md)).
-- **The library** is a tarball in this repository, not a package on the npm registry.
+- **The library** is a tarball in this repository, also attached to a GitHub release with its checksums; it is not a
+  package on the npm registry.
 - **Single sign-in instance**: nonces and sessions live in memory, so more than one server process needs a shared store.
 
 ## Web app

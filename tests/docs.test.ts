@@ -51,6 +51,19 @@ describe('docs', () => {
     for (const doc of ['docs/SPEC.md', 'docs/VERIFY.md']) expect(read(doc)).toContain('NIP-39-bch.md');
   });
 
+  it('VERIFY.md shows how to check a reputation file and a selective disclosure presentation', () => {
+    const verify = read('docs/VERIFY.md');
+    for (const [heading, command] of [
+      ['## A reputation file', 'npx tsx bin/tambat.ts rep verify examples/reputation-bundle.json'],
+      ['## A selective disclosure presentation', 'npx tsx bin/tambat.ts sd verify examples/sd-presentation.json'],
+    ] as const) {
+      const section = verify.split(heading)[1]?.split('\n## ')[0] ?? '';
+      expect(section, heading).toContain(command);
+      const file = command.split(' ').at(-1) ?? '';
+      expect(existsSync(new URL(`../${file}`, import.meta.url)), file).toBe(true);
+    }
+  });
+
   it('README and the docs link files that exist', () => {
     for (const doc of ['README.md', 'docs/SPEC.md', 'docs/VERIFY.md', 'docs/PAYTACA.md', 'docs/NIP-39-bch.md']) {
       for (const [, target] of read(doc).matchAll(/\]\(((?:\.\.\/|[A-Za-z])[^)#:]*)(?:#[^)]*)?\)/g)) {

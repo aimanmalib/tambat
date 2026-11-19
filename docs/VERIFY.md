@@ -123,6 +123,34 @@ the credential matches them, compared as RFC 8785 canonical JSON. A changed fiel
 check that failed. The one-file verifier accepts the same file. A pass shows who attested which binding and when; whether the
 binding is still current needs the relays: `npx tsx bin/tambat.ts attestations <npub>`.
 
+## A reputation file
+
+A portable reputation file ([SPEC](SPEC.md#portable-reputation)) is counted again from its signed events; the counts it
+states are only compared with the recount. Check one with no network:
+
+```sh
+npx tsx bin/tambat.ts rep verify examples/reputation-bundle.json
+```
+
+It exits 0 and lists each credential as counted or skipped with its reason (for the example: 2 counted of 4, one skipped
+because the holder attests itself and one because it pins an older binding). Change `"attestations": 2` to `3` in a copy
+and it exits 1 with `a claimed count differs from the recount`. Offline, a pass cannot show that no newer binding exists:
+`npx tsx bin/tambat.ts lookup <npub>` answers that. Add `--chain` to compare a stated anchor block with the chain.
+
+## A selective disclosure presentation
+
+A presentation ([SPEC](SPEC.md#selective-disclosure), [ADR 0019](decisions/0019-selective-disclosure.md)) reveals some
+fields of a credential and hides the rest behind salted digests. Check one with no network:
+
+```sh
+npx tsx bin/tambat.ts sd verify examples/sd-presentation.json
+```
+
+It exits 0, prints the revealed BCH address with a note that its BCH signature for the holder's npub was checked, and
+reports 3 of 4 fields hidden. A changed value, an unknown or repeated disclosure, or a broken proof exits 1 and names the
+step. A pass shows what the holder chose to reveal; it is not a zero-knowledge proof, and whoever receives a presentation
+can show it again.
+
 ## The library package
 
 The `@tambat/core` tarball in [`docs/pkg/`](pkg/) is built by `npx tsx scripts/pack-core.ts`. Check that it is the file the
