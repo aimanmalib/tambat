@@ -75,6 +75,9 @@ Beyond the required parts, each live and tested:
   ([example](examples/attestation-vc.json), [ADR 0017](docs/decisions/0017-attestation-verifiable-credential.md)):
   "Download as Verifiable Credential" on Look up, `tambat vc export`, and `tambat vc verify` or the one-file verifier to
   check one offline.
+- A reputation summary on Look up ([SPEC](docs/SPEC.md#reputation-summary)): verified attestations, receipts the chain
+  confirms, and "anchored since block N", each opening to its sources. A source that could not be read says so instead of 0,
+  and there is no combined score. Live for the Paytaca key: https://tambat.sasateguh.com/lookup?q=npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz
 - An optional BCH anchor ([SPEC](docs/SPEC.md#optional-bch-anchor), [ADR 0008](docs/decisions/0008-optional-bch-anchor.md)):
   the Paytaca binding is anchored on BCH since block 977901, signed by the Paytaca wallet that holds the address
   ([anchor measured](docs/MEASURED.md#anchor)). `tambat anchor-lookup <address>` reads it from the chain alone, no relays.
@@ -303,7 +306,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-aabe45ab7f2a4246122354155a7155e30a146521bf870e7797a525e17a331c63  tambat-verify.html
+7489eff3ab2ce78a1cdea4a743f77a8f6d860f49127a13eea8e4951d2c02afc3  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -357,8 +360,9 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 - **One address per Nostr key**, P2PKH only. Multisig and P2SH addresses cannot sign a message; CashTokens are not covered.
 - **Attestations** are one label ("verified") with no score, expiry or reason; the web app shows them but publishing one is a
   CLI command (`tambat attest`).
-- **Credentials, reputation and selective disclosure** are out of scope. A binding says two keys belong together, not who the
-  person is.
+- **Reputation** is three separate counts with no score, and they are lower bounds: only what the queried relays hold is
+  counted, and nothing shows whether attesting or paying keys are distinct people. **Selective disclosure** is out of scope.
+  A binding says two keys belong together, not who the person is.
 - **Privacy**: a binding is public by design and links a payment address to a social identity. Users who want unlinkable
   payments should bind a separate address.
 - **NIP-05 names** depend on the domain that serves them: if it is down, or does not let browsers read its file, a name

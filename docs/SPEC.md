@@ -396,3 +396,30 @@ the fee, refuses a fee above `anchor.maxFeeSats`, and asks the connected wallet 
 `bch_signTransaction` (`transaction`, `sourceOutputs`, `broadcast: true`). The wallet signs and sends. The app checks that the
 signed transaction it gets back carries the same payload from the same address. The server of this repository never signs
 or sends a transaction and holds no key.
+
+## Reputation summary
+
+The look-up page shows a small summary above the anchor and attestation panels. It puts three facts side by side, each read
+and checked with the rules above; it computes nothing new (`src/core/reputation.ts`, pure, with tests).
+
+| Line | Counted | Source it opens to |
+|---|---|---|
+| Attestations | attestations of the subject's current binding, one per attester (section "Attestations") | attester npub and attestation event id |
+| Payment receipts | receipts naming the subject as payee whose transaction a chain server returned, that pay an address bound to the subject, and whose every input spends from an address bound to the receipt's author ("Payment receipts"); one per transaction | transaction id and payer npub |
+| BCH anchor | the block of the earliest commitment when the agreed chain verdict is `bound` ("Optional BCH anchor") | anchor transaction id |
+
+Rules:
+
+1. **Unreadable is not zero.** When no configured relay answers a query (every relay refused or stayed silent), that line
+   says it could not be read and shows no number. When no chain server answers, or too few agree (quorum), the anchor line
+   says so. A read in which relays answered and returned nothing is a real zero.
+2. Receipts that could not be checked because no chain server answered, and receipts that the chain does not support, are
+   reported in separate sentences and are not counted.
+3. A revoked anchor, a commitment to another key, or a commitment not yet in a block gives "not anchored".
+4. **No combined score.** There is no sound basis for weighing an attestation against a payment or an anchor: an attester
+   may be anyone, a payment proves only that coins moved, and an anchor proves only that the address's owner committed.
+   Each count stands alone with its evidence. A reader who wants a score has the sources to build their own.
+
+Limits: attestations and receipts are only as many as the queried relays hold, so the counts are lower bounds. Nothing here
+says whether the attesting or paying keys are distinct people. Receipts are read once per look-up; a page left open does
+not update.
