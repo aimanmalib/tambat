@@ -82,6 +82,10 @@ Beyond the required parts, each live and tested:
   Verifiable Presentation 2.0 that carries every counted attestation credential and the holder's binding. "Download
   reputation summary" on Look up or `tambat rep export <npub>` makes one; `tambat rep verify` or the one-file verifier
   recounts it offline and rejects a file whose claimed count differs from the recount.
+- Selective disclosure ([SPEC](docs/SPEC.md#selective-disclosure), [example](examples/sd-presentation.json),
+  [ADR 0019](docs/decisions/0019-selective-disclosure.md)): a holder issues a credential whose fields are salted digests and
+  reveals only the BCH address, with its BCH signature for the holder's npub; the other fields stay hidden.
+  `tambat sd issue|present|verify` and the one-file verifier ("3 of 4 fields hidden").
 - An optional BCH anchor ([SPEC](docs/SPEC.md#optional-bch-anchor), [ADR 0008](docs/decisions/0008-optional-bch-anchor.md)):
   the Paytaca binding is anchored on BCH since block 977901, signed by the Paytaca wallet that holds the address
   ([anchor measured](docs/MEASURED.md#anchor)). `tambat anchor-lookup <address>` reads it from the chain alone, no relays.
@@ -244,6 +248,11 @@ which binding and when, not whether that binding is still current.
 per issuer, only attestations of the named binding, never the holder's own; a file that claims more than that is rejected.
 `--chain` also reads the chain to check the claimed "anchored since" block.
 
+`tambat sd issue --keys <file> --out mine.json` makes a selective disclosure credential from the holder's binding with
+every field disclosed; it stays with the holder. `tambat sd present mine.json --reveal bchAddress --out share.json` keeps
+only the address, and `tambat sd verify share.json` checks it offline and counts the hidden fields
+([SPEC](docs/SPEC.md#selective-disclosure)).
+
 ## Use the library
 
 The code that writes, finds and verifies bindings (`src/core`) is also an installable package, `@tambat/core`
@@ -319,7 +328,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-f50f811cf0ce2b477559ff66d3e7487e4399692d0f1bdffe41356a4597ff639d  tambat-verify.html
+40ae90a3f74a0bd14ad706add335efb84ed324af46fe1709029cb5fd1a07b430  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -376,7 +385,11 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 - **Reputation** is three separate counts with no score, and they are lower bounds: only what the queried relays hold is
   counted, and nothing shows whether attesting or paying keys are distinct people. The portable reputation file covers attestations
   only; offline it cannot show whether a newer binding replaced the one it names, and its anchor block stays a claim
-  until checked with `tambat rep verify --chain`. **Selective disclosure** is out of scope.
+  until checked with `tambat rep verify --chain`.
+- **Selective disclosure** uses salted digests, not zero-knowledge proofs: a revealed value is seen as it is, presentations
+  of one credential can be linked by its proof signature, and no holder signature binds a presentation to one recipient.
+  The public binding already shows the address; the hiding applies to credentials handed out privately. "SD-JWT style",
+  not SD-JWT; no JWT is made.
   A binding says two keys belong together, not who the person is.
 - **Privacy**: a binding is public by design and links a payment address to a social identity. Users who want unlinkable
   payments should bind a separate address.

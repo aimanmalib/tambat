@@ -477,3 +477,62 @@ Limits: offline, a file cannot show that a newer binding has not been published 
 that. It carries attestations only, not receipts. Whether the issuers are distinct people is not known. There is no
 combined score.
 
+
+## Selective disclosure
+
+A holder can hand one recipient a credential that reveals only some facts of its binding (`src/core/sd.ts`, ADR 0019).
+It uses the digest and disclosure rules of SD-JWT (IETF OAuth working group) inside a W3C VC 2.0 whose proof is a signed
+Nostr event; it is "SD-JWT style": no JWT is made and it was not tested against SD-JWT implementations. The holder makes
+it privately; it is never published.
+
+```json
+{
+  "@context": ["https://www.w3.org/ns/credentials/v2"],
+  "type": ["VerifiablePresentation", "TambatSelectiveDisclosure"],
+  "holder": "did:nostr:<holder hex key>",
+  "verifiableCredential": [{
+    "@context": ["https://www.w3.org/ns/credentials/v2"],
+    "type": ["VerifiableCredential", "BchNostrSelectiveCredential"],
+    "issuer": "did:nostr:<holder hex key>",
+    "validFrom": "2026-11-19T17:39:04Z",
+    "_sd_alg": "sha-256",
+    "credentialSubject": { "id": "did:nostr:<holder hex key>", "_sd": ["<digest>", "<digest>", "<digest>", "<digest>"] },
+    "proof": { "type": "NostrEventProof", "proofPurpose": "assertionMethod", "verificationMethod": "<issuer>#key1",
+               "created": "2026-11-19T17:39:04Z", "event": "<kind 1985 label event signed by the holder>" }
+  }],
+  "disclosures": ["<base64url of [salt, \"bchAddress\", {\"address\": ..., \"signature\": ...}]>"]
+}
+```
+
+Fields (config `sd.fields`): `bchAddress` (`{ address, signature }`, the signature being the BCH signed message over the
+verification text for the holder's npub, section 2), `network`, `bindingEvent` (id) and `boundAt` (ISO time of the
+binding). A disclosure is the base64url (no padding) of the UTF-8 JSON array `[salt, name, value]`; the salt is
+`sd.saltBytes` (16) random bytes, base64url. Its digest is the base64url SHA-256 of the disclosure text. `_sd` lists the
+digest of every field, sorted. The proof event is kind 1985 with tags `["L", sd.namespace]` and
+`["l", sd.label, sd.namespace]`; its content is the base64url SHA-256 of the RFC 8785 text of the credential without
+`proof`. The file the holder issues carries every disclosure; a presentation keeps only the chosen ones
+(`tambat sd present <file> --reveal bchAddress`). [examples/sd-presentation.json](../examples/sd-presentation.json)
+reveals the address only.
+
+Verification, in order; the first failure rejects the presentation and is named:
+
+1. Context and both types, `holder` `did:nostr:` plus 64 hex, one credential with `_sd_alg` `sha-256` and `_sd` a list
+   of unique 43-character digests (`shape`).
+2. `holder`, `issuer`, `credentialSubject.id` and the proof event author are one key (`issuer`); proof type, purpose,
+   method and `created` equal to `validFrom` (`proof`); the event id (`proof_event`), its Schnorr signature
+   (`proof_signature`), its label (`proof`), and its content equal to the digest of the credential (`proof_hash`).
+3. Each disclosure decodes to `[salt, name, value]` with a salt of at least 22 characters and a field from `sd.fields`
+   (`disclosure_malformed`), appears once and names a field once (`disclosure_duplicate`), and has its digest in `_sd`
+   (`disclosure_unknown`; a changed value lands here).
+4. A `bchAddress` value verifies as a claim of section 5 for the holder's npub: the signature recovers to the key of
+   that address (`bch_signature`). Other values must be strings.
+
+The result lists the revealed fields and counts the rest as hidden. No disclosure at all means only "the holder
+committed to N fields". `tambat sd verify <file>` and the one-file verifier run these steps.
+
+Limits: this is not a zero-knowledge proof; a revealed value is seen as it is and a hidden one is protected by its salt
+only. A binding published on relays already reveals its address to anyone who looks it up; selective disclosure is for
+the private path, where a recipient is handed a credential instead of the binding event. Every presentation made from
+one credential carries the same proof signature, so recipients can link them; issue a fresh credential per recipient to
+avoid that. A presentation has no holder signature over a recipient's challenge, so it can be shown again by whoever
+received it.
