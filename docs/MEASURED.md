@@ -117,6 +117,12 @@ five relays; offchain.pub also passed and is not used.
 | 09:53:56 | offchain.pub | 653 | EOSE at 908, 1 event | `OK true` (duplicate) at 895 | ok |
 | 09:53:56 | relay.damus.io | 696 | EOSE at 896, 1 event | `OK true` (duplicate) at 813 | ok |
 
+Live site tag 777f545, 2026-11-19 10:16:58 UTC, WebKit with the iPhone 13 profile: Look up of the Paytaca binding's npub
+`npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz` verified event
+`d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b` and listed "4 of 5 relays answered": relay.damus.io refused
+(0.6 s), nos.lol answered (0.7 s), relay.primal.net (0.8 s), relay.snort.social (0.7 s), nostr.mom (0.7 s); no sideways
+scroll. The judges page then showed "5/5 relays" for its live check and still fit one screen (664 of 664 px). Result: ok.
+
 ## Lookup
 
 Second demo identity (not the main demo below), 2026-11-17, from the host with `tambat lookup` and the same library calls. `ms`
