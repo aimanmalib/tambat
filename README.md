@@ -256,12 +256,16 @@ only the address, and `tambat sd verify share.json` checks it offline and counts
 ## Use the library
 
 The code that writes, finds and verifies bindings (`src/core`) is also an installable package, `@tambat/core`
-(ESM, TypeScript types, MIT). It is not on the npm registry: the tarball is kept in this repository at
-[`docs/pkg/`](docs/pkg/) with a `SHA256SUMS` file, built by `npx tsx scripts/pack-core.ts` with tsc from `src/core`.
+(ESM, TypeScript types, MIT). It is not on the npm registry: the tarball and a `SHA256SUMS` file are attached to the
+[`core-v0.2.0` release](https://github.com/aimanmalib/tambat/releases/tag/core-v0.2.0) and kept in this repository at
+[`docs/pkg/`](docs/pkg/), built by `npx tsx scripts/pack-core.ts` with tsc from `src/core`
+([release notes](docs/pkg/RELEASE-NOTES.md)).
 
 ```sh
-sha256sum -c SHA256SUMS                       # in docs/pkg/, or after downloading both files
-npm install ./tambat-core-0.1.0.tgz           # a local file, or the raw GitHub URL of the same file
+curl -LO https://github.com/aimanmalib/tambat/releases/download/core-v0.2.0/tambat-core-0.2.0.tgz
+curl -LO https://github.com/aimanmalib/tambat/releases/download/core-v0.2.0/SHA256SUMS
+sha256sum -c SHA256SUMS                       # or in docs/pkg/ of a clone
+npm install ./tambat-core-0.2.0.tgz
 ```
 
 - [`examples/core-nostr-client.ts`](examples/core-nostr-client.ts): a Nostr client checks that an npub is bound to a

@@ -1,6 +1,6 @@
 {
   "name": "tambat",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Bind a Bitcoin Cash key and a Nostr key with NIP-39, publish the binding to relays, and verify it independently.",
   "license": "MIT",

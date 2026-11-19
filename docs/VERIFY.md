@@ -135,6 +135,9 @@ npx tsx scripts/pack-core.ts && git diff --exit-code docs/pkg/
 
 `tests/core-package.test.ts` installs the tarball into an empty folder and runs both library examples against it.
 
+The same two files are attached to the GitHub release `core-v<version>`. A downloaded copy is checked the same way:
+`sha256sum -c SHA256SUMS` in the download folder, and the hash equals the line in `docs/pkg/SHA256SUMS` of the tagged commit.
+
 ## Check the checker
 
 The reference code that all three ways rely on is tested against vectors from outside this project: the BIP-340 test vectors,

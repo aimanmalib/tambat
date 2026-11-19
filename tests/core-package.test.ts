@@ -80,6 +80,15 @@ describe('tracked library tarball', () => {
     expect(readFileSync(join(root, 'README.md'), 'utf8')).toContain(`npm install ./${tarballs[0]}`);
   });
 
+  it('is linked as a release asset of the same version from README and the release notes', () => {
+    const url = `releases/download/core-v${rootPkg.version}/${tarballs[0]}`;
+    expect(readFileSync(join(root, 'README.md'), 'utf8')).toContain(url);
+    const notes = readFileSync(join(pkgDir, 'RELEASE-NOTES.md'), 'utf8');
+    expect(notes.split('\n')[0]).toBe(`# @tambat/core ${rootPkg.version}`);
+    expect(notes).toContain(url);
+    expect(notes).toContain('not on the npm registry');
+  });
+
   it('holds only the built library, no local or secret files', () => {
     const list = execFileSync('tar', ['tzf', tarball], { encoding: 'utf8' }).trim().split('\n');
     expect(list).toContain('package/package.json');
