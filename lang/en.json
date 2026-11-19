@@ -266,8 +266,8 @@
     "tag": "one-file verifier",
     "title": "Verify a BCH and Nostr binding",
     "intro": "This page is a single HTML file. It checks every signature in your browser and talks only to the relays listed below, never to the Tambat server. Save it and open it from disk to check bindings without this site.",
-    "inputLabel": "Signed event JSON, credential or reputation summary JSON, npub or BCH address",
-    "inputHelp": "Paste a kind 10011 event, an attestation credential or a reputation summary to check it on this device, or enter an npub or address to fetch the newest binding from relays.",
+    "inputLabel": "Signed event JSON, credential, reputation summary or selective disclosure JSON, npub or BCH address",
+    "inputHelp": "Paste a kind 10011 event, an attestation credential, a reputation summary or a selective disclosure presentation to check it on this device, or enter an npub or address to fetch the newest binding from relays.",
     "relaysLabel": "Relays",
     "relaysHelp": "One per line. Edit them freely; nothing else is contacted.",
     "submit": "Verify",
@@ -375,6 +375,7 @@
       "measured": "Measurements",
       "embed": "Embed badge",
       "vc": "Attestation as W3C VC 2.0",
+      "sd": "Selective disclosure",
       "pkg": "Library package",
       "phone": "Pairing link for a phone wallet",
       "reputation": "Reputation summary",
@@ -546,6 +547,35 @@
       "stale_binding": "a credential inside carries a newer binding of the holder than the one it names.",
       "count": "the claimed {path} differs from the recount of the signed events inside.",
       "anchor": "the chain does not bind the address since the claimed block."
+    }
+  },
+  "sdProof": {
+    "ok": "Selective disclosure verified on this device: the holder's signature covers every field, and each revealed value matches its digest.",
+    "bad": "Selective disclosure not verified: {reason}",
+    "holder": "Holder",
+    "issued": "Issued",
+    "addressChecked": "The BCH signature in this value is for the holder's npub, so one person holds both keys.",
+    "hiddenLabel": "Hidden",
+    "hidden": "{hidden} of {fields} fields hidden",
+    "hiddenNone": "No field is hidden.",
+    "offline": "Checked offline. Hidden fields stay salted digests; a revealed value is seen as it is. This is not a zero-knowledge proof.",
+    "field": {
+      "bchAddress": "BCH address",
+      "network": "Network",
+      "bindingEvent": "Binding event",
+      "boundAt": "Bound at"
+    },
+    "reason": {
+      "shape": "it is not a selective disclosure presentation (context, type, holder, credential or digests).",
+      "issuer": "the holder, issuer, subject and signing key are not the same key ({path}).",
+      "proof": "the proof is not a Nostr event proof with a selective disclosure label ({path}).",
+      "proof_event": "the proof event was changed after signing (its id does not match).",
+      "proof_signature": "the proof event signature does not verify.",
+      "proof_hash": "the proof event signs a different credential: a digest was added, removed or changed.",
+      "disclosure_malformed": "{path} is not [salt, field, value] with a long enough salt and a known field.",
+      "disclosure_duplicate": "{path} repeats a disclosure or a field.",
+      "disclosure_unknown": "the digest of {path} is not in the credential: its value was changed or it comes from another credential.",
+      "bch_signature": "the BCH signature in {path} is not for the holder's npub."
     }
   }
 }

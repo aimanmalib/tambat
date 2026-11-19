@@ -29,6 +29,15 @@ describe('one-file verifier checks', () => {
     expect(query).not.toHaveBeenCalled();
   });
 
+  it('checks a pasted selective disclosure offline, apart from a reputation summary', async () => {
+    const query = vi.fn(fakeRelay([]));
+    const sd = await check(readFileSync(new URL('../examples/sd-presentation.json', import.meta.url), 'utf8'), RELAYS, query);
+    expect(sd.kind === 'sd' && sd.check.ok && [sd.check.disclosed.map((d) => d.name), sd.check.hidden]).toEqual([['bchAddress'], 3]);
+    const rep = await check(readFileSync(new URL('../examples/reputation-bundle.json', import.meta.url), 'utf8'), RELAYS, query);
+    expect(rep.kind).toBe('bundle');
+    expect(query).not.toHaveBeenCalled();
+  });
+
   it('names the failing step of a pasted event that was edited after signing', async () => {
     const edited = { ...clone(vectors.bindingEvent), content: 'edited' };
     const out = await check(JSON.stringify(edited), RELAYS);

@@ -150,6 +150,39 @@ test('from disk: a pasted reputation summary is recounted offline and an inflate
   expect(offDisk(requests)).toEqual([]);
 });
 
+test('from disk: a selective disclosure shows the revealed address and counts hidden fields; a changed value is refused', async ({ page }) => {
+  const text = readFileSync(resolve(import.meta.dirname, '..', 'examples', 'sd-presentation.json'), 'utf8');
+  const requests = await watchRequests(page);
+  await page.setViewportSize({ width: 390, height: 664 });
+  await page.goto(FILE);
+  const input = page.getByLabel(en.verifier.inputLabel, { exact: true });
+  await input.fill(text);
+  await page.getByRole('button', exact(en.verifier.submit)).click();
+  const ok = page.locator('.result[data-ok="true"]');
+  await expect(ok).toHaveAttribute('data-sd-hidden', '3');
+  await expect(ok.locator('[data-revealed]')).toHaveCount(1);
+  await expect(ok.locator('[data-revealed="bchAddress"]')).toContainText('bitcoincash:q');
+  await expect(ok.getByText(en.sdProof.hidden.replace('{hidden}', '3').replace('{fields}', '4'))).toBeVisible();
+  await expectNoOverflow(page);
+  await expectAccessible(page);
+
+  const changed = JSON.parse(text) as { disclosures: string[] };
+  const [salt, name, value] = JSON.parse(Buffer.from(changed.disclosures[0]!, 'base64url').toString('utf8')) as [string, string, { address: string }];
+  changed.disclosures[0] = Buffer.from(JSON.stringify([salt, name, { ...value, address: 'bitcoincash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq' }])).toString('base64url');
+  await input.fill(JSON.stringify(changed));
+  await page.getByRole('button', exact(en.verifier.submit)).click();
+  await expect(page.locator('.result[data-ok="false"]')).toHaveAttribute('data-sd-reason', 'disclosure_unknown');
+
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto(`${FILE}?lang=ms`);
+  await page.getByLabel(ms.verifier.inputLabel, { exact: true }).fill(text);
+  await page.getByRole('button', exact(ms.verifier.submit)).click();
+  await expect(page.getByText(ms.sdProof.hidden.replace('{hidden}', '3').replace('{fields}', '4'))).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expectNoOverflow(page);
+  expect(offDisk(requests)).toEqual([]);
+});
+
 test('from disk in Malay at 320 px: same checks, no horizontal overflow', async ({ page }) => {
   const keys = freshKeys();
   await publish(bindingFromKeys(keys, Math.floor(Date.now() / 1000)));

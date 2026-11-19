@@ -266,8 +266,8 @@
     "tag": "pengesah satu fail",
     "title": "Sahkan ikatan BCH dan Nostr",
     "intro": "Halaman ini satu fail HTML. Ia menyemak setiap tandatangan dalam pelayar anda dan hanya berhubung dengan relay yang disenaraikan di bawah, tidak sekali-kali dengan pelayan Tambat. Simpan fail ini dan buka dari cakera untuk menyemak ikatan tanpa laman ini.",
-    "inputLabel": "JSON event bertandatangan, JSON kelayakan atau ringkasan reputasi, npub atau alamat BCH",
-    "inputHelp": "Tampal event kind 10011, kelayakan pengesahan atau ringkasan reputasi untuk menyemaknya pada peranti ini, atau masukkan npub atau alamat untuk mengambil ikatan terbaharu dari relay.",
+    "inputLabel": "JSON event bertandatangan, JSON kelayakan, ringkasan reputasi atau pendedahan terpilih, npub atau alamat BCH",
+    "inputHelp": "Tampal event kind 10011, kelayakan pengesahan, ringkasan reputasi atau persembahan pendedahan terpilih untuk menyemaknya pada peranti ini, atau masukkan npub atau alamat untuk mengambil ikatan terbaharu dari relay.",
     "relaysLabel": "Relay",
     "relaysHelp": "Satu setiap baris. Ubah sesuka hati; tiada yang lain dihubungi.",
     "submit": "Sahkan",
@@ -375,6 +375,7 @@
       "measured": "Ukuran",
       "embed": "Benamkan lencana",
       "vc": "Pengesahan sebagai W3C VC 2.0",
+      "sd": "Pendedahan terpilih",
       "pkg": "Pakej pustaka",
       "phone": "Pautan pasangan untuk dompet telefon",
       "reputation": "Ringkasan reputasi",
@@ -546,6 +547,35 @@
       "stale_binding": "satu kelayakan di dalamnya membawa ikatan pemegang yang lebih baharu daripada yang dinamakan.",
       "count": "{path} yang didakwa berbeza daripada kiraan semula event bertandatangan di dalamnya.",
       "anchor": "rantaian tidak mengikat alamat sejak blok yang didakwa."
+    }
+  },
+  "sdProof": {
+    "ok": "Pendedahan terpilih disahkan pada peranti ini: tandatangan pemegang meliputi setiap medan, dan setiap nilai yang didedahkan sepadan dengan cincangannya.",
+    "bad": "Pendedahan terpilih tidak disahkan: {reason}",
+    "holder": "Pemegang",
+    "issued": "Dikeluarkan",
+    "addressChecked": "Tandatangan BCH dalam nilai ini dibuat untuk npub pemegang, jadi satu orang memegang kedua-dua kunci.",
+    "hiddenLabel": "Tersembunyi",
+    "hidden": "{hidden} daripada {fields} medan disembunyikan",
+    "hiddenNone": "Tiada medan disembunyikan.",
+    "offline": "Disemak di luar talian. Medan tersembunyi kekal sebagai cincangan bergaram; nilai yang didedahkan dilihat seperti adanya. Ini bukan bukti sifar pengetahuan.",
+    "field": {
+      "bchAddress": "Alamat BCH",
+      "network": "Rangkaian",
+      "bindingEvent": "Event ikatan",
+      "boundAt": "Diikat pada"
+    },
+    "reason": {
+      "shape": "ia bukan persembahan pendedahan terpilih (konteks, jenis, pemegang, kelayakan atau cincangan).",
+      "issuer": "pemegang, pengeluar, subjek dan kunci penandatangan bukan kunci yang sama ({path}).",
+      "proof": "bukti bukan bukti event Nostr dengan label pendedahan terpilih ({path}).",
+      "proof_event": "event bukti diubah selepas ditandatangani (idnya tidak sepadan).",
+      "proof_signature": "tandatangan event bukti tidak sah.",
+      "proof_hash": "event bukti menandatangani kelayakan lain: satu cincangan ditambah, dibuang atau diubah.",
+      "disclosure_malformed": "{path} bukan [garam, medan, nilai] dengan garam cukup panjang dan medan yang dikenali.",
+      "disclosure_duplicate": "{path} mengulang pendedahan atau medan.",
+      "disclosure_unknown": "cincangan {path} tiada dalam kelayakan: nilainya diubah atau ia dari kelayakan lain.",
+      "bch_signature": "tandatangan BCH dalam {path} bukan untuk npub pemegang."
     }
   }
 }

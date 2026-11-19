@@ -8,6 +8,7 @@ import { Notice } from '../web/ui/Notice';
 import { check, type CheckOutcome } from './check';
 import { BundleResult } from './BundleResult';
 import { CredentialResult } from './CredentialResult';
+import { SdResult } from './SdResult';
 
 type State = { kind: 'idle' } | { kind: 'busy' } | CheckOutcome | { kind: 'failed'; message: string };
 
@@ -51,6 +52,8 @@ function Outcome({ state }: { state: State }) {
       return <CredentialResult check={state.check} />;
     case 'bundle':
       return <BundleResult check={state.check} credentials={state.credentials} />;
+    case 'sd':
+      return <SdResult check={state.check} />;
     case 'found':
       return (
         <>
