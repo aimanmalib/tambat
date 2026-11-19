@@ -423,3 +423,57 @@ Rules:
 Limits: attestations and receipts are only as many as the queried relays hold, so the counts are lower bounds. Nothing here
 says whether the attesting or paying keys are distinct people. Receipts are read once per look-up; a page left open does
 not update.
+
+## Portable reputation
+
+The attestation count of the reputation summary, packaged so that anyone can count it again without a Tambat server
+(`src/core/reputation.ts`: `buildReputationBundle`, `verifyReputationBundle`). It is a W3C Verifiable Presentation 2.0
+with no holder signature: nothing in it needs the holder's word, because every count is recomputed from signed events.
+
+```json
+{
+  "@context": ["https://www.w3.org/ns/credentials/v2"],
+  "type": ["VerifiablePresentation", "TambatReputationSummary"],
+  "holder": "did:nostr:<holder hex key>",
+  "verifiableCredential": ["<attestation credentials, section Attestations as Verifiable Credentials>"],
+  "reputationSummary": {
+    "binding": "<the holder's kind 10011 binding event, signed>",
+    "bindingEvent": "<its id>",
+    "credentials": 4,
+    "attestations": 2,
+    "issuers": ["did:nostr:<issuer>", "did:nostr:<issuer>"],
+    "anchoredSince": { "height": 977901, "txid": "<anchor transaction>", "eventId": "<committed binding>" },
+    "created": "2026-11-19T16:21:26Z"
+  }
+}
+```
+
+The presentation type and the download file name prefix are in `config/tambat.json` (`vc.presentationType`,
+`vc.reputationFilePrefix`). `anchoredSince` is present only when the maker's agreed chain read said `bound`.
+
+Verification, in order; the first failure rejects the file and is named:
+
+1. `@context` starts with the VC 2.0 context, `type` holds both terms, `verifiableCredential` is a list and
+   `reputationSummary` an object (`shape`). `holder` is `did:nostr:` and 64 hex characters (`holder`).
+2. `reputationSummary.binding` verifies as a binding (section 5, both signatures) and its author is the holder (`binding`).
+3. Each credential is checked as in "Attestations as Verifiable Credentials". It is **counted** only when it verifies,
+   its attester is not the holder, its subject is the holder, it pins `reputationSummary.binding`, and no newer
+   attestation by the same issuer is already counted. Otherwise it is skipped with its reason: `credential` (with the
+   credential's own reason), `self`, `subject`, `old_binding` or `duplicate_issuer`. A skipped credential does not reject
+   the file.
+4. If any verified credential carries a binding of the holder newer than `reputationSummary.binding` (NIP-01 order), the
+   file names a binding that is not current (`stale_binding`).
+5. `bindingEvent`, `credentials`, `attestations` and `issuers` (sorted) must equal the recount exactly (`count`, with the
+   field). An inflated or deflated count is a rejected file, not a corrected one.
+6. `anchoredSince`, when present, is a claim. Given an agreed chain read of the bound address (`tambat rep verify
+   --chain`), its height and transaction must match the earliest commitment of a `bound` verdict (`anchor`); an
+   unreadable chain leaves it a claim.
+
+Recount without Tambat: take the holder key from `holder`, ask any relays for `{"kinds":[1985],"#p":[<holder>],"#L":["cash.tambat.attest"]}` (config `attest.namespace`)
+and for the holder's newest kind 10011 event, check each signature with any Nostr library, then apply rule 3. The
+relays may hold attestations that the file does not, so a file is a lower bound of what the relays held when it was made.
+
+Limits: offline, a file cannot show that a newer binding has not been published since it was made; look up the holder for
+that. It carries attestations only, not receipts. Whether the issuers are distinct people is not known. There is no
+combined score.
+

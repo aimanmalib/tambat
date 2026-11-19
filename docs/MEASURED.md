@@ -32,6 +32,22 @@ of the main demo identity offered "Download as Verifiable Credential" on the att
 | 11:39:41 | WebKit iPhone 13 | look-up, main demo identity | `tambat-attestation-e50c7901d691.json` | `did:nostr:df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb` | ok |
 | 11:39:48 | Chromium 1280 by 900 | look-up, main demo identity | `tambat-attestation-e50c7901d691.json` | `did:nostr:df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb` | ok |
 
+## Portable reputation
+
+Portable reputation files (SPEC "Portable reputation"), 2026-11-19. No event was published. `tambat rep export` read each
+key's binding and attestations from the configured relays and the bound address from the chain servers; `tambat rep
+verify` recounted the file. `examples/reputation-bundle.json` was made by `scripts/make-reputation-example.ts` from the main
+demo binding, the published attestation above, and three attestations signed for the file and not published (a second
+demo issuer, the holder vouching for itself, and one of an older binding signed offline). With its `attestations` changed
+from 2 to 3 it gave "a claimed count differs from the recount (reputationSummary.attestations); recount: 2 attestation(s)",
+exit code 1.
+
+| UTC | holder | command | counted | anchor | exit code |
+| --- | --- | --- | --- | --- | --- |
+| 16:44:56 | Paytaca key `npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz` | `rep export`, then `rep verify --chain` | 0 of 0 | since block 977901, confirmed by an agreed chain read | 0 |
+| 16:45:20 | main demo identity `npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt` | `rep export`, then `rep verify` | 1 of 1 | none (no commitment on the chain) | 0 |
+| 16:45 | main demo identity | `rep verify examples/reputation-bundle.json` | 2 of 4 (skipped: self, older binding) | none | 0 |
+
 ## Receipt
 
 Payment receipts (SPEC "Payment receipts"), 2026-11-18. No payment was made for this: the transaction is an existing public
