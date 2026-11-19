@@ -380,6 +380,10 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
   against a simulated chain only; no revocation has been sent on mainnet.
 - **WizardConnect** is not supported: its protocol signs transactions but not messages, so it cannot sign a binding
   ([ADR 0015](docs/decisions/0015-no-wizardconnect-connector.md)). Wallets without WalletConnect can paste a signed message.
+- **Credentials** carry the signed attestation and binding events as their proof, not a Data Integrity proof, so a
+  generic VC verifier cannot check them; `tambat vc verify` and the one-file verifier can. The official W3C test suite was
+  not run ([ADR 0017](docs/decisions/0017-attestation-verifiable-credential.md)).
+- **The library** is a tarball in this repository, not a package on the npm registry.
 - **Single sign-in instance**: nonces and sessions live in memory, so more than one server process needs a shared store.
 
 ## Web app
