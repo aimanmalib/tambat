@@ -8,7 +8,7 @@ test('link with an extension and a pasted wallet signature, then look up, pay an
   test.slow(); // the whole journey with four accessibility scans; WebKit on a busy machine needs more than 60 s
   await fakeExtension(page);
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.app.headline);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.hero.line);
   await expectAccessible(page);
 
   await page.getByRole('button', exact(en.nostr.extension)).click();
@@ -99,7 +99,7 @@ test('Malay text and no sideways scroll at 320 px on every page', async ({ page 
   await page.setViewportSize({ width: 320, height: 640 });
   await page.goto('/');
   await page.getByLabel(en.lang.label).selectOption('ms');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(ms.app.headline);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(ms.hero.line);
   await expect(page.locator('html')).toHaveAttribute('lang', 'ms');
   for (const path of ['/', '/lookup?q=' + encodeURIComponent(vectors.nostr.npub), '/demo', '/pay']) {
     await page.goto(path);

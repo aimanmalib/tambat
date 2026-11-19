@@ -52,7 +52,6 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
 }
 
 .shell { max-width: calc(var(--measure) + 2 * var(--gap)); margin: 0 auto; padding: 0 var(--gap) var(--gap); display: grid; gap: var(--gap); }
-.hero { padding-top: 0.5rem; }
 .hero__title { font-size: clamp(1.75rem, 6vw, 2.75rem); letter-spacing: -0.01em; }
 .hero__sub { font-size: 1.0625rem; color: var(--ink-soft); margin: 0.75rem 0 0; max-width: 36rem; }
 

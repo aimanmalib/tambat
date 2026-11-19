@@ -15,6 +15,23 @@ const tarball = join(pkgDir, tarballs[0] ?? 'missing.tgz');
 const fromTar = (member: string) => execFileSync('tar', ['xzOf', tarball, member], { encoding: 'utf8' });
 const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { version: string; dependencies: Record<string, string> };
 /** Tests that run npm or git in a temp folder must not inherit GIT_* from a hook. */
+/**
+ * Config sections only the web app reads. A change to them must not force a new library release, so the packed config
+ * is compared without them; the test below checks the library code never reads them.
+ */
+const APP_ONLY = ['hero'] as const;
+const libraryConfig = (c: Record<string, unknown>) => Object.fromEntries(Object.entries(c).filter(([k]) => !(APP_ONLY as readonly string[]).includes(k)));
+
+describe('app-only config sections', () => {
+  it('are never read by src/core, so the packed library does not depend on them', () => {
+    const core = join(root, 'src/core');
+    const reads = readdirSync(core)
+      .filter((f) => f.endsWith('.ts'))
+      .filter((f) => APP_ONLY.some((k) => new RegExp(`config\\.${k}\\b`).test(readFileSync(join(core, f), 'utf8'))));
+    expect(reads).toEqual([]);
+  });
+});
+
 const cleanEnv = () => Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GIT_')));
 
 type LockEntry = { version: string; dependencies?: Record<string, string> } & Record<string, unknown>;
@@ -103,7 +120,7 @@ describe('tracked library tarball', () => {
     expect(pkg.name).toBe('@tambat/core');
     expect(pkg.version).toBe(rootPkg.version);
     for (const [name, version] of Object.entries(pkg.dependencies)) expect(rootPkg.dependencies[name]).toBe(version);
-    expect(JSON.parse(fromTar('package/dist/config/tambat.json'))).toEqual(JSON.parse(readFileSync(join(root, 'config/tambat.json'), 'utf8')));
+    expect(JSON.parse(fromTar('package/dist/config/tambat.json'))).toEqual(libraryConfig(JSON.parse(readFileSync(join(root, 'config/tambat.json'), 'utf8'))));
     expect(fromTar('package/README.md')).toContain('not on the npm registry');
   });
 

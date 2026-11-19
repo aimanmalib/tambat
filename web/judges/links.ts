@@ -20,7 +20,7 @@ export type JudgeLink = { key: string; href: string };
 /** Each bounty requirement with the live pages and files that show it, in the order the bounty lists them. */
 export const REQUIREMENTS: { key: string; links: JudgeLink[] }[] = [
   { key: 'create', links: [{ key: 'link', href: '/' }, { key: 'revoke', href: look(config.judges.revocation.npub) }] },
-  { key: 'binding', links: [{ key: 'vectors', href: repo('examples/vectors.json') }] },
+  { key: 'binding', links: [{ key: 'hero', href: '/' }, { key: 'vectors', href: repo('examples/vectors.json') }] },
   {
     key: 'discovery',
     links: [

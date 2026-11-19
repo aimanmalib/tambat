@@ -122,7 +122,11 @@ Beyond the required parts, each live and tested:
 
 ## Demo in 60 seconds
 
-1. Open https://tambat.sasateguh.com. **Link**: connect a Nostr key (a NIP-07 extension, a NIP-46 remote signer, or "Use a
+1. Open https://tambat.sasateguh.com. The first card is a real binding signed with a Paytaca wallet over WalletConnect
+   (`config/tambat.json` `hero`). The browser fetches it from the relays and checks it in order: the Nostr signature, the BCH
+   signature, that the signer owns the address, then the address's commitment on BCH. Each mark appears only when its own
+   check returns; a step that fails is named instead (`src/core/hero-check.ts`, `tests/hero-check.test.ts`, `e2e/hero.spec.ts`).
+   Tapping the card opens the full check in Look up. **Link**, below it: connect a Nostr key (a NIP-07 extension, a NIP-46 remote signer, or "Use a
    demo key"), then a BCH key (Paytaca over WalletConnect, a signature pasted from any wallet with "Sign message", or a demo key).
    On a phone, the pairing link can be copied and pasted into a phone wallet ([steps](docs/PAYTACA.md#on-an-iphone)).
 2. Sign. The page runs every verification step on the event before you publish, then publishes to the five public relays and shows
@@ -335,7 +339,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-fb295727a4df4572db214f6aa5a49d13bf1d5e9e1ee54f2243afe1b20c8d373a  tambat-verify.html
+f353840064062a12eae0f9f9cfe22949737f598775141f75d117a2cf97d26a07  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -422,6 +426,8 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 
 English by default with a Malay toggle; all text is in `lang/en.json` and `lang/ms.json`.
 
+- **Home** (`/`) opens with the live check of the owner's Paytaca binding described in the demo above; the **Link** form follows it
+  (on a phone, below the first screen).
 - **Link** (`/`), **Look up** (`/lookup`), **Wall** (`/wall`), **Demo app** (`/demo`) and **Pay** (`/pay`) as in the demo above.
 - The demo app only talks to `/api/rp/*`; its server checks the signed challenge and reads the binding from relays on its own.
   It offers two ways in: a Nostr key, or a BCH wallet alone (the server finds the Nostr key linked to the address).

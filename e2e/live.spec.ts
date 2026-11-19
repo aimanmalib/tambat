@@ -31,16 +31,28 @@ const test = base.extend<{ consoleErrors: string[] }>({
   ],
 });
 
+test('the home hero checks the real Paytaca binding on the live relays', async ({ page }) => {
+  await page.goto('/');
+  const hero = page.locator('[data-hero]');
+  await expect(hero).toHaveAttribute('data-state', 'verified', { timeout: 30_000 });
+  const steps = await hero.locator('[data-step]').evaluateAll((els) => els.map((e) => `${e.getAttribute('data-step')}=${e.getAttribute('data-status')}`));
+  expect(steps.slice(0, 4)).toEqual(['relay=pass', 'nostr_sig=pass', 'bch_sig=pass', 'address_match=pass']);
+  // The chain read is extra: it may still be open or unreadable, but it never shows a mark it did not earn.
+  expect(steps[4]).toMatch(/^anchor=(pass|skip|wait)$/);
+  const card = await page.locator('.herocard').evaluate((el) => el.getBoundingClientRect().bottom);
+  expect(card).toBeLessThanOrEqual(await page.evaluate(() => window.innerHeight));
+});
+
 test('health, headers and the home page in both languages', async ({ page, request }) => {
   expect((await request.get('/healthz')).status()).toBe(200);
   const res = await page.goto('/');
   const headers = res?.headers() ?? {};
   expect(headers['content-security-policy']).toContain("script-src 'self'");
   expect(headers['cache-control']).toContain('no-transform');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.app.headline);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.hero.line);
   await expectAccessible(page);
   await page.getByLabel(en.lang.label).selectOption('ms');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(ms.app.headline);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(ms.hero.line);
   await page.setViewportSize({ width: 320, height: 640 });
   await page.mouse.move(10, 10);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));

@@ -194,6 +194,11 @@ export interface TambatConfig {
     /** CSS width from which the requirement and criteria lists start open; below it they start closed. */
     openFromWidth: string;
   };
+  /**
+   * The first card of the home page: a real binding, fetched from the relays and checked in the browser step by step.
+   * `timeoutMs` bounds each step that waits on the network (relays, chain servers).
+   */
+  hero: { npub: string; eventId: string; timeoutMs: number };
 }
 
 const NETWORKS: readonly Network[] = ['bitcoincash', 'bchtest'];
@@ -359,6 +364,9 @@ export function parseConfig(input: unknown): TambatConfig {
   }
   parseSd(c.sd, [c.attest.namespace, c.receipt.namespace]);
   parseJudges(c.judges);
+  if (!NPUB.test(c.hero?.npub ?? '')) fail('hero.npub', 'must be an npub');
+  if (!EVENT_ID.test(c.hero.eventId ?? '')) fail('hero.eventId', 'must be a 64-character hex event id');
+  positiveInt(c.hero.timeoutMs, 'hero.timeoutMs');
   return c;
 }
 

@@ -5,6 +5,32 @@
     "sub": "Sign with both keys, publish the proof to Nostr relays, and let anyone check it without trusting this site.",
     "skip": "Skip to content"
   },
+  "hero": {
+    "line": "One person, two keys: this Nostr name is also a BCH address.",
+    "label": "Live check of a real binding",
+    "by": "Signed with a Paytaca wallet",
+    "nostr": "Nostr",
+    "bch": "BCH",
+    "steps": {
+      "relay": "Found on the relays",
+      "nostr_sig": "Nostr signature",
+      "bch_sig": "BCH signature",
+      "address_match": "Address belongs to the signer",
+      "anchor": "Anchored on BCH"
+    },
+    "status": {
+      "wait": "checking",
+      "pass": "passed",
+      "fail": "failed",
+      "skip": "not shown"
+    },
+    "block": "since block {block}",
+    "anchorNone": "no BCH commitment found",
+    "anchorUnreadable": "chain not read right now",
+    "failed": "Could not check right now: {step} did not pass.",
+    "open": "Open the full check in Look up",
+    "own": "Link your own keys"
+  },
   "nav": {
     "label": "Sections",
     "link": "Link",
@@ -366,6 +392,7 @@
     "link": {
       "link": "Link",
       "revoke": "Revoke and move",
+      "hero": "Live check of a Paytaca binding",
       "vectors": "Test vectors",
       "lookup": "Look up",
       "wall": "Wall with anchored badges",

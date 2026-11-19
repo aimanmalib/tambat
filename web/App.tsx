@@ -8,6 +8,7 @@ import { PayPage } from './pages/PayPage';
 import { WallPage } from './pages/WallPage';
 import { navigate, useRoute, type Route } from './router';
 import { Banner } from './ui/Banner';
+import { HeroCard } from './ui/HeroCard';
 import { config } from '../src/config';
 
 const NAV: { path: Route; key: string }[] = [
@@ -22,11 +23,11 @@ function Home() {
   const { t } = useText();
   return (
     <>
-      <div className="hero">
-        <h1 className="hero__title">{t('app.headline')}</h1>
+      <HeroCard />
+      <div id="link">
         <p className="hero__sub">{t('app.sub')}</p>
+        <LinkPage />
       </div>
-      <LinkPage />
       <section className="how" aria-labelledby="how-title">
         <h2 id="how-title">{t('how.title')}</h2>
         <ol>

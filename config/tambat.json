@@ -207,5 +207,10 @@
     "fields": ["bchAddress", "network", "bindingEvent", "boundAt"],
     "saltBytes": 16,
     "filePrefix": "tambat-disclosure"
+  },
+  "hero": {
+    "npub": "npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz",
+    "eventId": "d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b",
+    "timeoutMs": 10000
   }
 }
