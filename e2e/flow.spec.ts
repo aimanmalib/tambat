@@ -26,7 +26,7 @@ test('link with an extension and a pasted wallet signature, then look up, pay an
   await page.getByRole('button', exact(en.link.lookUp)).click();
   await expect(page).toHaveURL(/\/lookup\?q=/);
   await expect(page.locator('.result[data-ok="true"]')).toHaveCount(1);
-  await expect(page.locator('.result').getByText(vectors.nostr.npub)).toBeVisible();
+  await expect(page.locator('.result').getByText(vectors.nostr.npub, { exact: true })).toBeVisible();
   await page.getByText(en.lookup.did).click();
   await expect(page.locator('pre.json').last()).toContainText(`did:nostr:${vectors.nostr.pubkey}`);
   await expectAccessible(page);
