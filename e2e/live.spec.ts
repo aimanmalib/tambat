@@ -136,7 +136,7 @@ test('the demo NIP-05 name is served and pays to its verified address from the r
   await page.getByLabel(en.pay.label).fill(`${name}@${host}`);
   await page.getByRole('button', { name: en.pay.find, exact: true }).click();
   await expect(page.locator('.notice', { hasText: `${name}@${host}` })).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByRole('img', { name: en.pay.qr, exact: true })).toBeVisible();
+  await expect(page.getByRole('img', { name: en.pay.qr, exact: true })).toBeVisible({ timeout: 20_000 });
 });
 
 test('the badge for the demo identity may be framed and verifies from the real relays; other pages may not', async ({ page, request }) => {
