@@ -7,7 +7,8 @@ import type { Page } from '@playwright/test';
 import { en, expect, expectAccessible, expectNoOverflow, ms, test } from './fixtures.js';
 
 const exact = (name: string) => ({ name, exact: true });
-const pairingUri = 'wc:7a1c0e9d5b3f42a68e0d1c2b3a49586776a5b4c3d2e1f00f1e2d3c4b5a697887@2?relay-protocol=irn&symKey=5f0e1d2c3b4a59687766a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0';
+/** A made-up pairing link with low-entropy filler, so it cannot be mistaken for a real topic or key. */
+const pairingUri = `wc:${'ab'.repeat(32)}@2?relay-protocol=irn&symKey=${'cd'.repeat(32)}`;
 /** The narrow-screen breakpoint in web/styles.css (40rem at the default 16px). */
 const narrow = 640;
 
