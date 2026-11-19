@@ -180,3 +180,18 @@ test('the judges page verifies the demo identity from the real relays on one scr
   await expectNoOverflow(page);
   await expectAccessible(page);
 });
+
+test('the banner on the home and judges pages links the deck, and the deck is a PDF', async ({ page, request }) => {
+  const deckUrl = siteConfig.banner.deckUrl;
+  for (const path of ['/', '/judges']) {
+    await page.goto(path);
+    const deck = page.locator('.banner [data-banner="deck"]');
+    await expect(deck).toBeVisible();
+    await expect(deck).toHaveAttribute('href', deckUrl);
+    await expect(deck).toHaveText(en.banner.presentation);
+  }
+  const res = await request.get(deckUrl);
+  expect(res.status()).toBe(200);
+  expect(res.headers()['content-type']).toContain('application/pdf');
+  expect((await res.body()).subarray(0, 5).toString()).toBe('%PDF-');
+});
