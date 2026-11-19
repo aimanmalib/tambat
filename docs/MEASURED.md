@@ -48,6 +48,10 @@ exit code 1.
 | 16:45:20 | main demo identity `npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt` | `rep export`, then `rep verify` | 1 of 1 | none (no commitment on the chain) | 0 |
 | 16:45 | main demo identity | `rep verify examples/reputation-bundle.json` | 2 of 4 (skipped: self, older binding) | none | 0 |
 
+After the deploy of `9bb011d`, the live look-up page of the main demo identity offered "Download reputation summary"; the
+downloaded `tambat-reputation-392df1af01cc.json` verified with `src/core/reputation.ts` (1 counted), with no horizontal
+overflow: WebKit iPhone 13 at 16:54:56 UTC and Chromium 1280 by 900 at 16:55:01 UTC.
+
 ## Receipt
 
 Payment receipts (SPEC "Payment receipts"), 2026-11-18. No payment was made for this: the transaction is an existing public
