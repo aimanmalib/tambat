@@ -16,6 +16,22 @@ tests (`tests/attest*.test.ts`, `e2e/attest.spec.ts`); the main demo binding was
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 01:28:44 | `e50c7901d6917710faa235bfbbef57a9327a8e41fe3394a5224d10a674fc26e9` | `npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql` | `npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt` | `f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2` | nos.lol, relay.primal.net | current, counts | ok |
 
+## Verifiable credential
+
+Attestations as W3C Verifiable Credentials 2.0 (SPEC "Attestations as Verifiable Credentials", ADR 0017), 2026-11-19. No new
+event was published: the credential is built from the demo attestation in [Attestation](#attestation) and the binding it
+pins. `tambat vc export e50c7901…` read both events from the relays and wrote `examples/attestation-vc.json`;
+`tambat vc verify examples/attestation-vc.json` printed VERIFIED, exit code 0. The same file with `credentialSubject.bchAddress`
+changed gave "a field differs from what the signed events say (credentialSubject.bchAddress[0])", and with another issuer
+"the issuer is not the key that signed the attestation", both exit code 1. After the deploy of `62124b8`, the live look-up page
+of the main demo identity offered "Download as Verifiable Credential" on the attestation; the downloaded file verified with
+`src/core/vc.ts`, with no horizontal overflow. No W3C test suite was run.
+
+| UTC | engine | page | file | issuer | result |
+| --- | --- | --- | --- | --- | --- |
+| 11:39:41 | WebKit iPhone 13 | look-up, main demo identity | `tambat-attestation-e50c7901d691.json` | `did:nostr:df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb` | ok |
+| 11:39:48 | Chromium 1280 by 900 | look-up, main demo identity | `tambat-attestation-e50c7901d691.json` | `did:nostr:df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb` | ok |
+
 ## Receipt
 
 Payment receipts (SPEC "Payment receipts"), 2026-11-18. No payment was made for this: the transaction is an existing public
