@@ -1,0 +1,26 @@
+{
+  "name": "@tambat/core",
+  "description": "Write, find and verify NIP-39 bindings between a Bitcoin Cash key and a Nostr key.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/core/index.d.ts",
+      "import": "./dist/src/core/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "bitcoin-cash",
+    "nostr",
+    "nip-39",
+    "identity"
+  ]
+}

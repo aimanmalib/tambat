@@ -15,7 +15,8 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "noEmit": true,
-    "types": ["node"]
+    "types": ["node"],
+    "paths": { "@tambat/core": ["./src/core/index.ts"] }
   },
   "include": ["src", "server", "bin", "scripts", "tests", "e2e", "examples", "tools", "*.ts"],
   "exclude": ["node_modules", "dist", "web"]

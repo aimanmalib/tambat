@@ -357,6 +357,29 @@ function parseWalletErrorCodes(codes: unknown): void {
 
 export const config: TambatConfig = parseConfig(raw);
 
+/** A partial config: objects merge key by key, arrays and scalars replace. */
+export type ConfigOverrides = { [K in keyof TambatConfig]?: TambatConfig[K] extends unknown[] ? TambatConfig[K] : Partial<TambatConfig[K]> | TambatConfig[K] };
+
+function merge(base: unknown, over: unknown): unknown {
+  if (over === undefined) return base;
+  const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+  if (!isObject(base) || !isObject(over)) return structuredClone(over);
+  const out: Record<string, unknown> = { ...base };
+  for (const [k, v] of Object.entries(over)) out[k] = merge(base[k], v);
+  return out;
+}
+
+/**
+ * Replaces config values for every module that reads `config` (relays, network, kinds, timeouts). The library
+ * package starts from the values frozen at build time; a caller passes only what differs. The result is checked
+ * by `parseConfig` before anything changes, so a bad override throws and leaves the current config in place.
+ */
+export function configure(overrides: ConfigOverrides): TambatConfig {
+  const next = parseConfig(merge(structuredClone(config), overrides));
+  Object.assign(config, next);
+  return config;
+}
+
 /** The Content-Security-Policy header value built from a directive map. */
 export function cspHeader(directives: Record<string, string[]> = config.server.contentSecurityPolicy): string {
   return Object.entries(directives).map(([name, sources]) => `${name} ${sources.join(' ')}`).join('; ');
