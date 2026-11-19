@@ -374,6 +374,7 @@
   "anchor": {
     "title": "Sauh BCH (pilihan)",
     "checking": "Membaca rantaian BCH",
+    "badge": "Disauh sejak blok {height}",
     "since": "Disauh pada BCH sejak blok {height} ({date}). Alamat ini mengikat dirinya kepada kunci Nostr ini dalam blok tersebut.",
     "otherEvent": "Event yang disauh ialah event lebih awal kunci ini yang tiada lagi di relay. Pasangan kunci dan alamat tetap sama, jadi sauh itu masih dikira.",
     "none": "Belum disauh pada BCH. Sauh ialah pilihan; ikatan di atas disahkan tanpanya.",

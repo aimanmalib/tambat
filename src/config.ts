@@ -92,6 +92,8 @@ export interface TambatConfig {
     pageSize: number;
     /** Pages asked of each relay at most, so a relay full of other platforms cannot keep the wall loading. */
     maxPages: number;
+    /** Chain reads for "anchored since" badges running at once; only entries on screen are read. */
+    chainConcurrency: number;
   };
   /** Optional BCH anchor (docs/SPEC.md "Optional BCH anchor"). The server never signs or sends a transaction. */
   anchor: {
@@ -304,6 +306,7 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.wall?.limit, 'wall.limit');
   positiveInt(c.wall.pageSize, 'wall.pageSize');
   positiveInt(c.wall.maxPages, 'wall.maxPages');
+  positiveInt(c.wall.chainConcurrency, 'wall.chainConcurrency');
   if (typeof c.nostr?.recoveryTag !== 'string' || !/^[a-z_]{2,}$/.test(c.nostr.recoveryTag)) fail('nostr.recoveryTag', 'must be a lower-case tag name of two or more letters');
   if (typeof c.nostr.recoveryText !== 'string' || !c.nostr.recoveryText.includes('{npub}')) fail('nostr.recoveryText', 'must contain {npub}');
   parseAnchor(c.anchor);

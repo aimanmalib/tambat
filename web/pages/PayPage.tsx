@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { addressStatus, electrumServers } from '../../src/core/anchor-chain';
 import type { Tally } from '../../src/core/chain-quorum';
 import { refusesPayment, type ChainVerdict } from '../../src/core/chain-status';
+import { boundSince } from '../../src/core/since';
 import { toNpub } from '../../src/core/nostr';
 import { parseNip05 } from '../../src/core/nip05';
 import { parsePubkey } from '../../src/core/nostr';
@@ -13,6 +14,7 @@ import { CopyValue } from '../ui/Copy';
 import { errorText } from '../../src/errors';
 import { Notice } from '../ui/Notice';
 import { Qr } from '../ui/Qr';
+import { SinceLabel } from '../ui/SinceBadge';
 import { tallyDetail } from '../ui/chainTally';
 import { ReceiptPanel } from './ReceiptPanel';
 
@@ -31,14 +33,14 @@ export function PayPage() {
   const [busy, setBusy] = useState(() => queryParam('npub') !== '');
   const [error, setError] = useState('');
   const [via, setVia] = useState<Via>(null);
-  const [read, setRead] = useState<{ of: Found; verdict: ChainVerdict | null; unknown: Tally | null } | null>(null);
+  const [read, setRead] = useState<{ of: Found; verdict: ChainVerdict | null; unknown: Tally | null; since: number | null } | null>(null);
 
   // Chain first (docs/decisions/0013-revoke-by-transaction.md): no payment link until the chain has been read.
   useEffect(() => {
     if (!found || found === 'none') return;
     let live = true;
     void addressStatus(found.address, found.pubkey, found.eventId, electrumServers()).then((s) => {
-      if (live) setRead({ of: found, verdict: s.verdict, unknown: s.anchor.kind === 'unknown' ? s.servers : null });
+      if (live) setRead({ of: found, verdict: s.verdict, unknown: s.anchor.kind === 'unknown' ? s.servers : null, since: boundSince(s) });
     });
     return () => {
       live = false;
@@ -82,6 +84,7 @@ export function PayPage() {
 
   const chain: Chain = read && read.of === found ? read.verdict : 'checking';
   const unknown = read && read.of === found ? read.unknown : null;
+  const since = read && read.of === found ? read.since : null;
   const badAmount = amountProblem(amount);
   const refused = chain !== 'checking' && chain !== null && refusesPayment(chain) ? chain : null;
   const uri = found && found !== 'none' && !badAmount && chain !== 'checking' && !refused ? paymentUri({ address: found.address, amount }) : '';
@@ -104,6 +107,7 @@ export function PayPage() {
       {found && found !== 'none' ? (
         <div className="stack">
           <CopyValue label={t('lookup.bchAddress')} value={found.address} />
+          <SinceLabel height={since} />
           <label className="field">
             <span className="field__label">{t('pay.amount')}</span>
             <input className="input" name="amount" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} aria-invalid={badAmount ? true : undefined} />

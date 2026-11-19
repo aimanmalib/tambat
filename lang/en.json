@@ -374,6 +374,7 @@
   "anchor": {
     "title": "BCH anchor (optional)",
     "checking": "Reading the BCH chain",
+    "badge": "Anchored since block {height}",
     "since": "Anchored on BCH since block {height} ({date}). The address committed to this Nostr key in that block.",
     "otherEvent": "The anchored event is an earlier event of this key that is no longer on the relays. The key and address pair is the same, so the anchor still counts.",
     "none": "Not anchored on BCH. Anchoring is optional; the binding above is verified without it.",

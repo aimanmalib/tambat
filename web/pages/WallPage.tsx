@@ -6,6 +6,7 @@ import { loadWall, type Wall } from '../../src/core/wall';
 import { useText } from '../i18n';
 import { navigate } from '../router';
 import { Notice } from '../ui/Notice';
+import { SinceBadge } from '../ui/SinceBadge';
 
 type State = { kind: 'busy' } | ({ kind: 'done'; reachable: boolean } & Wall);
 
@@ -45,7 +46,10 @@ export function WallPage() {
         <ol className="wall" aria-label={t('wall.listLabel')}>
           {state.entries.map((e) => (
             <li className="wall__card" key={e.eventId} data-event={e.eventId}>
-              <p className="badge badge--ok">{t('lookup.verified')}</p>
+              <div className="wall__badges">
+                <p className="badge badge--ok">{t('lookup.verified')}</p>
+                <SinceBadge address={e.address} pubkey={e.pubkey} eventId={e.eventId} />
+              </div>
               <dl className="facts">
                 <dt>{t('lookup.nostrKey')}</dt>
                 <dd><code title={e.npub}>{shortNpub(e.npub)}</code></dd>

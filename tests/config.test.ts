@@ -45,8 +45,8 @@ describe('config/tambat.json', () => {
     }
   });
 
-  it('rejects a wall page size or page count that is not a positive integer', () => {
-    for (const [key, value] of [['pageSize', 0], ['pageSize', 2.5], ['maxPages', 0], ['maxPages', '5']] as const) {
+  it('rejects a wall page size, page count or chain concurrency that is not a positive integer', () => {
+    for (const [key, value] of [['pageSize', 0], ['pageSize', 2.5], ['maxPages', 0], ['maxPages', '5'], ['chainConcurrency', 0], ['chainConcurrency', 1.5], ['chainConcurrency', undefined]] as const) {
       const c = fresh();
       c.wall[key] = value;
       expect(() => parseConfig(c)).toThrow(new RegExp(`wall.${key}`));

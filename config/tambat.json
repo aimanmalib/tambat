@@ -128,7 +128,8 @@
   "wall": {
     "limit": 30,
     "pageSize": 200,
-    "maxPages": 5
+    "maxPages": 5,
+    "chainConcurrency": 2
   },
   "anchor": {
     "prefix": "TMBT",
