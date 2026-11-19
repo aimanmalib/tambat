@@ -366,7 +366,8 @@
       "verify": "VERIFY.md",
       "measured": "Measurements",
       "embed": "Embed badge",
-      "vc": "Attestation as W3C VC 2.0"
+      "vc": "Attestation as W3C VC 2.0",
+      "pkg": "Library package"
     },
     "critTitle": "Judging criteria",
     "crit": {

@@ -366,7 +366,8 @@
       "verify": "VERIFY.md",
       "measured": "Ukuran",
       "embed": "Benamkan lencana",
-      "vc": "Pengesahan sebagai W3C VC 2.0"
+      "vc": "Pengesahan sebagai W3C VC 2.0",
+      "pkg": "Pakej pustaka"
     },
     "critTitle": "Kriteria penilaian",
     "crit": {

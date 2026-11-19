@@ -227,6 +227,26 @@ attestation and binding events. `tambat vc verify` and the one-file verifier che
 they say, compared as RFC 8785 canonical JSON, with no JSON-LD processing and nothing fetched. Offline it shows who attested
 which binding and when, not whether that binding is still current.
 
+## Use the library
+
+The code that writes, finds and verifies bindings (`src/core`) is also an installable package, `@tambat/core`
+(ESM, TypeScript types, MIT). It is not on the npm registry: the tarball is kept in this repository at
+[`docs/pkg/`](docs/pkg/) with a `SHA256SUMS` file, built by `npx tsx scripts/pack-core.ts` with tsc from `src/core`.
+
+```sh
+sha256sum -c SHA256SUMS                       # in docs/pkg/, or after downloading both files
+npm install ./tambat-core-0.1.0.tgz           # a local file, or the raw GitHub URL of the same file
+```
+
+- [`examples/core-nostr-client.ts`](examples/core-nostr-client.ts): a Nostr client checks that an npub is bound to a
+  BCH address (`verifyBinding`, or `lookupByPubkey` against relays).
+- [`examples/core-wallet.ts`](examples/core-wallet.ts): a wallet builds the verification text and the unsigned kind
+  10011 event from its address and the user's npub.
+
+Relays, network, kinds and timeouts start from the values the package was built with; `configure({ ... })` changes
+them and rejects a bad value. `tests/core-package.test.ts` installs the tracked tarball into an empty folder and runs
+both examples against it.
+
 ## Server
 
 ```
@@ -282,7 +302,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-ee813050dd15a0331ce4719440758d5d83c34ebe709759a5bee8ae655b4724a7  tambat-verify.html
+355ffe3c3eeb907171836a24a22ed28356151e5b30854a92d7daea9c98a52b14  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
