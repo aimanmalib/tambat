@@ -162,6 +162,10 @@ test('from disk: a selective disclosure shows the revealed address and counts hi
   await expect(ok).toHaveAttribute('data-sd-hidden', '3');
   await expect(ok.locator('[data-revealed]')).toHaveCount(1);
   await expect(ok.locator('[data-revealed="bchAddress"]')).toContainText('bitcoincash:q');
+  // The note about the BCH signature sits on its own line under the address, not run on after it.
+  const address = await ok.locator('[data-revealed="bchAddress"] code').boundingBox();
+  const note = await ok.locator('[data-address-note]').boundingBox();
+  expect(note!.y).toBeGreaterThanOrEqual(address!.y + address!.height - 1);
   await expect(ok.getByText(en.sdProof.hidden.replace('{hidden}', '3').replace('{fields}', '4'))).toBeVisible();
   await expectNoOverflow(page);
   await expectAccessible(page);

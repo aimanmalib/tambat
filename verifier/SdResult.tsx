@@ -34,7 +34,7 @@ export function SdResult({ check }: { check: SdCheck }) {
             {d.name === 'bchAddress' ? (
               <dd>
                 <code>{(d.value as BchAddressValue).address}</code>
-                <span className="option__help">{t('sdProof.addressChecked')}</span>
+                <p className="option__help" data-address-note>{t('sdProof.addressChecked')}</p>
               </dd>
             ) : (
               <dd><code>{String(d.value)}</code></dd>
