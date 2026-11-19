@@ -109,6 +109,32 @@ address over the text for this author.
 - The BCH key is not the Nostr key. A wallet message verifier does not show the recovered key; `tambat verify --json` prints it
   as `bchPublicKey`. Its 32 bytes after the first byte must differ from the event `pubkey`.
 
+## An attestation credential
+
+An attestation exported as a W3C Verifiable Credential 2.0 ([ADR 0017](decisions/0017-attestation-verifiable-credential.md))
+carries the signed attestation event and the signed binding event in its proof. Check one with no network:
+
+```sh
+npx tsx bin/tambat.ts vc verify examples/attestation-vc.json
+```
+
+It exits 0 and prints the issuer, subject, address, binding id and attestation id when both events verify and every field of
+the credential matches them, compared as RFC 8785 canonical JSON. A changed field, issuer or proof exits 1 and names the
+check that failed. The one-file verifier accepts the same file. A pass shows who attested which binding and when; whether the
+binding is still current needs the relays: `npx tsx bin/tambat.ts attestations <npub>`.
+
+## The library package
+
+The `@tambat/core` tarball in [`docs/pkg/`](pkg/) is built by `npx tsx scripts/pack-core.ts`. Check that it is the file the
+repository records, then build it again from the source and compare:
+
+```sh
+cd docs/pkg && sha256sum -c SHA256SUMS && cd ../..
+npx tsx scripts/pack-core.ts && git diff --exit-code docs/pkg/
+```
+
+`tests/core-package.test.ts` installs the tarball into an empty folder and runs both library examples against it.
+
 ## Check the checker
 
 The reference code that all three ways rely on is tested against vectors from outside this project: the BIP-340 test vectors,

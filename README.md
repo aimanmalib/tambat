@@ -102,6 +102,10 @@ Beyond the required parts, each live and tested:
   below the fold, so on a phone the entries you scroll to next already carry their badge), `wall.chainConcurrency` at a
   time, each entry once, and a failed read shows no badge rather than an error (`tests/since.test.ts`, `e2e/since.spec.ts`
   in WebKit on an iPhone 13 and Chromium, [ADR 0016](docs/decisions/0016-wall-badge-read-margin.md)).
+- An installable library, `@tambat/core`, kept in this repository as a tarball with a checksum file (not on the npm
+  registry): see [Use the library](#use-the-library) and [check the package](docs/VERIFY.md#the-library-package).
+- A pairing link that can be copied into a phone wallet on the same phone, shown above the QR code on a narrow screen
+  (`e2e/wc-pairing.spec.ts` in WebKit on an iPhone 13 and Chromium; [steps](docs/PAYTACA.md#on-an-iphone)).
 - A NIP-05 name for the demo identity, an [embeddable badge](#embeddable-badge), a [one-file verifier](#one-file-verifier)
   and a "Try tampering" demo on every verified look-up.
 
