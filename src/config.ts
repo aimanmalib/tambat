@@ -152,6 +152,15 @@ export interface TambatConfig {
     namespace: string;
     label: string;
   };
+  /**
+   * Attestations exported as W3C Verifiable Credentials 2.0 (ADR 0017): the credential type after
+   * "VerifiableCredential", the proof type that embeds the signed Nostr events, and the download file name prefix.
+   */
+  vc: {
+    type: string;
+    proofType: string;
+    filePrefix: string;
+  };
   /** The one-screen page for judges at /judges. Event ids and keys come from docs/MEASURED.md. */
   judges: {
     repoUrl: string;
@@ -323,6 +332,10 @@ export function parseConfig(input: unknown): TambatConfig {
   parseAnchor(c.anchor);
   parseReceipt(c.receipt);
   parseAttest(c.attest, c.receipt);
+  for (const k of ['type', 'proofType'] as const) {
+    if (typeof c.vc?.[k] !== 'string' || !/^[A-Z][A-Za-z0-9]+$/.test(c.vc[k])) fail(`vc.${k}`, 'must be a PascalCase term');
+  }
+  if (typeof c.vc.filePrefix !== 'string' || !/^[a-z0-9-]+$/.test(c.vc.filePrefix)) fail('vc.filePrefix', 'must use a-z, 0-9 and - only');
   parseJudges(c.judges);
   return c;
 }

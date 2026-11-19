@@ -1,12 +1,15 @@
 /**
- * What the one-file verifier does with its two fields. A pasted event is checked on this device only; an npub,
+ * What the one-file verifier does with its two fields. A pasted event or attestation credential (ADR 0017) is
+ * checked on this device only; an npub,
  * hex key or BCH address is looked up on the listed relays and every event they return is checked here.
  */
 import { lookupInput, type QueryFn } from '../src/core/discover.js';
 import { verifyBinding, type BindingResult } from '../src/core/verify.js';
+import { verifyCredential, type VcCheck } from '../src/core/vc.js';
 
 export type CheckOutcome =
   | { kind: 'pasted'; result: BindingResult }
+  | { kind: 'credential'; check: VcCheck }
   | { kind: 'found'; results: BindingResult[]; relays: string[] }
   | { kind: 'error'; key: 'verifier.badJson' | 'verifier.badRelays' | 'lookup.inputError'; vars?: Record<string, string> };
 
@@ -27,7 +30,8 @@ export async function check(input: string, relayText: string, query?: QueryFn): 
     } catch (e) {
       return { kind: 'error', key: 'verifier.badJson', vars: { reason: e instanceof Error ? e.message : String(e) } };
     }
-    return { kind: 'pasted', result: verifyBinding(event) };
+    const isCredential = typeof event === 'object' && event !== null && ('@context' in event || 'credentialSubject' in event);
+    return isCredential ? { kind: 'credential', check: verifyCredential(event) } : { kind: 'pasted', result: verifyBinding(event) };
   }
   const relays = parseRelays(relayText);
   if (!Array.isArray(relays)) return { kind: 'error', key: 'verifier.badRelays', vars: { relay: relays.bad } };

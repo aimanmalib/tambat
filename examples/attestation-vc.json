@@ -1,0 +1,67 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2"
+  ],
+  "type": [
+    "VerifiableCredential",
+    "BchNostrBindingAttestation"
+  ],
+  "issuer": "did:nostr:df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb",
+  "validFrom": "2026-11-18T01:28:53Z",
+  "credentialSubject": {
+    "id": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+    "bchAddress": [
+      "bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77"
+    ],
+    "bindingEvent": "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2",
+    "attestationEvent": "e50c7901d6917710faa235bfbbef57a9327a8e41fe3394a5224d10a674fc26e9"
+  },
+  "proof": {
+    "type": "NostrEventProof",
+    "proofPurpose": "assertionMethod",
+    "verificationMethod": "did:nostr:df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb#key1",
+    "created": "2026-11-18T01:28:53Z",
+    "attestation": {
+      "content": "",
+      "created_at": 1794965333,
+      "id": "e50c7901d6917710faa235bfbbef57a9327a8e41fe3394a5224d10a674fc26e9",
+      "kind": 1985,
+      "pubkey": "df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb",
+      "sig": "27e4281826665293e180928006b2f10becfb04f8b2a04527aa4bb1d9aea63bc2b92821ab229a83cf0d25db8d517d038ef468048fb57c3c3ed122df8bd3e43e2b",
+      "tags": [
+        [
+          "L",
+          "cash.tambat.attest"
+        ],
+        [
+          "l",
+          "verified",
+          "cash.tambat.attest"
+        ],
+        [
+          "e",
+          "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2"
+        ],
+        [
+          "p",
+          "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4"
+        ]
+      ]
+    },
+    "binding": {
+      "id": "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2",
+      "pubkey": "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+      "created_at": 1794827488,
+      "kind": 10011,
+      "tags": [
+        [
+          "i",
+          "bch:bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77",
+          "IPphZAZE3UR7FA8yPXwEDMS+VeGAhNNkjQKMBDlcC31GMdhXdcKoYJODiY4qAFDyDAOgrw6E7bfaisNDB67MHOs="
+        ]
+      ],
+      "content": "",
+      "sig": "c62049e82f52c607fa5d59b8e859530d66eab9a7bc79cbabf9e577f05178574520427e63564e1b2574d83318169db8da6be78f176719a461a2e54d75144229e4"
+    }
+  }
+}

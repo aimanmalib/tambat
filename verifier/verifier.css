@@ -4,3 +4,8 @@
 .verifier { display: grid; gap: var(--gap); justify-items: start; margin-top: var(--gap); }
 .verifier .field { width: 100%; }
 .verifier .field .option__help { margin: 0; }
+.vc { display: grid; gap: 0.5rem; margin: var(--gap) 0 0; }
+.vc__row { display: grid; gap: 0.125rem; min-width: 0; }
+.vc dt { font-size: 0.8125rem; color: var(--ink-soft); }
+.vc dd { margin: 0; min-width: 0; }
+.vc code { overflow-wrap: anywhere; font-size: 0.8125rem; }

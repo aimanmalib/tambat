@@ -12,6 +12,8 @@
  *   tambat receipt-publish <payee> <txid>  publish a receipt for a payment you made, signed by the Nostr key in --keys
  *   tambat attest <npub>               attest the current binding of another key, signed by the Nostr key in --keys
  *   tambat attestations <npub>         list attestations of a key's current binding (older bindings drop)
+ *   tambat vc export <attestation id|file> [--binding <file>]  the attestation as a W3C Verifiable Credential 2.0
+ *   tambat vc verify <credential.json|->  verify a credential offline
  * revoke and rotate sign with the phrase in --keys <file> (default from config: cli.keysFile). recover takes the new
  * Nostr key from --keys and the wallet phrase that holds the bound address from --bch-keys.
  * Add --json for machine-readable output. Exit code 0 = verified, 1 = not verified, 2 = usage error.
@@ -31,6 +33,7 @@ import { firstAnswering } from '../src/core/chain-quorum.js';
 import { parseP2pkhAddress } from '../src/core/cashaddr.js';
 import { publishReceipt, receiptLookup } from '../src/node/receipt.js';
 import { attestationLookup, publishAttestation } from '../src/node/attest.js';
+import { vcExport, vcVerify } from '../src/node/vc.js';
 
 const USAGE =
   'usage: tambat text <npub> | verify <event.json|-> | lookup <npub|cashaddr> [--json]\n' +
@@ -38,7 +41,8 @@ const USAGE =
   '       tambat anchor-lookup <cashaddr> [--json]\n' +
   '       tambat recover <old npub> --keys <new key file> --bch-keys <wallet phrase file>\n' +
   '       tambat receipt <txid> [--json] | receipt-publish <payee npub> <txid> [--keys <file>]\n' +
-  '       tambat attest <npub> [--keys <file>] | attestations <npub> [--json]';
+  '       tambat attest <npub> [--keys <file>] | attestations <npub> [--json]\n' +
+  '       tambat vc export <attestation id|file> [--binding <file>] | vc verify <credential.json|-> [--json]';
 
 const nodeDeps: ManageDeps = {
   query: nodeRelayQuery,
@@ -112,7 +116,7 @@ async function anchorLookup(address: string, json: boolean, chain: ChainChoice):
 export async function main(argv: string[], deps: ManageDeps = nodeDeps, chain: ChainChoice = electrumServers()): Promise<number> {
   const openChain: OpenChain = Array.isArray(chain) ? firstAnswering(chain) : chain;
   const json = argv.includes('--json');
-  const flags = new Map<string, number>(['--keys', '--bch-keys'].map((f) => [f, argv.indexOf(f)]));
+  const flags = new Map<string, number>(['--keys', '--bch-keys', '--binding'].map((f) => [f, argv.indexOf(f)]));
   const valueOf = (flag: string) => {
     const i = flags.get(flag) ?? -1;
     return i >= 0 ? argv[i + 1] : undefined;
@@ -165,6 +169,14 @@ export async function main(argv: string[], deps: ManageDeps = nodeDeps, chain: C
       const result = await publishReceipt(readPhrase(keysFile), arg, arg2, deps);
       console.log(JSON.stringify(result, null, 2));
       return result.outcomes.some((o) => o.ok) ? 0 : 1;
+    } catch (err) {
+      return usageError((err as Error).message);
+    }
+  }
+  if (command === 'vc') {
+    if (!arg2 || (arg !== 'export' && arg !== 'verify')) return usageError('vc needs export <attestation id|file> or verify <file>');
+    try {
+      return arg === 'verify' ? vcVerify(arg2, json) : await vcExport(arg2, valueOf('--binding'), deps.query);
     } catch (err) {
       return usageError((err as Error).message);
     }

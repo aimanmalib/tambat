@@ -71,6 +71,10 @@ Beyond the required parts, each live and tested:
 - Sign in to the demo app with a BCH wallet alone: https://tambat.sasateguh.com/demo ([sign-in measured](docs/MEASURED.md#sign-in)).
 - Payment receipts checked on chain ([receipt measured](docs/MEASURED.md#receipt)) and attestations by other keys
   ([attestation measured](docs/MEASURED.md#attestation)).
+- Attestations export as W3C Verifiable Credentials 2.0 with a `did:nostr` issuer
+  ([example](examples/attestation-vc.json), [ADR 0017](docs/decisions/0017-attestation-verifiable-credential.md)):
+  "Download as Verifiable Credential" on Look up, `tambat vc export`, and `tambat vc verify` or the one-file verifier to
+  check one offline.
 - An optional BCH anchor ([SPEC](docs/SPEC.md#optional-bch-anchor), [ADR 0008](docs/decisions/0008-optional-bch-anchor.md)):
   the Paytaca binding is anchored on BCH since block 977901, signed by the Paytaca wallet that holds the address
   ([anchor measured](docs/MEASURED.md#anchor)). `tambat anchor-lookup <address>` reads it from the chain alone, no relays.
@@ -184,6 +188,8 @@ npx tsx bin/tambat.ts receipt <txid> [--json]                        # payment r
 npx tsx bin/tambat.ts receipt-publish <payee npub> <txid> [--keys <file>]   # publish a receipt for a payment you made
 npx tsx bin/tambat.ts attest <npub> [--keys <file>]                  # attest another key's current binding
 npx tsx bin/tambat.ts attestations <npub> [--json]                   # attestations that still count
+npx tsx bin/tambat.ts vc export <attestation id|file> [--binding <file>]  # attestation as a W3C VC 2.0
+npx tsx bin/tambat.ts vc verify examples/attestation-vc.json         # check a credential offline
 ```
 
 `verify` works offline. `lookup` asks the relays in `config/tambat.json` and verifies every event they return. Exit code 0 means
@@ -214,6 +220,12 @@ pins the id of its current binding event ([SPEC](docs/SPEC.md#attestations),
 current binding: once the subject rotates, recovers, revokes or publishes any newer binding, older attestations no longer
 count. An attestation is the attester's word, not a proof. One published on the public relays is in
 [the measurements](docs/MEASURED.md#attestation).
+
+An attestation also exports as a W3C Verifiable Credential 2.0 ([ADR 0017](docs/decisions/0017-attestation-verifiable-credential.md)):
+issuer `did:nostr:<attester>`, subject `did:nostr:<subject>` with its BCH addresses, and a proof that carries the signed
+attestation and binding events. `tambat vc verify` and the one-file verifier check both events and that every field is what
+they say, compared as RFC 8785 canonical JSON, with no JSON-LD processing and nothing fetched. Offline it shows who attested
+which binding and when, not whether that binding is still current.
 
 ## Server
 
@@ -270,7 +282,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-72956f34523c75335b00c015623fb0c05e5d3c936433121644625bb8ac0a801d  tambat-verify.html
+ee813050dd15a0331ce4719440758d5d83c34ebe709759a5bee8ae655b4724a7  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;

@@ -190,5 +190,10 @@
     "kind": 1985,
     "namespace": "cash.tambat.attest",
     "label": "verified"
+  },
+  "vc": {
+    "type": "BchNostrBindingAttestation",
+    "proofType": "NostrEventProof",
+    "filePrefix": "tambat-attestation"
   }
 }

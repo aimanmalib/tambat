@@ -258,8 +258,8 @@
     "tag": "one-file verifier",
     "title": "Verify a BCH and Nostr binding",
     "intro": "This page is a single HTML file. It checks every signature in your browser and talks only to the relays listed below, never to the Tambat server. Save it and open it from disk to check bindings without this site.",
-    "inputLabel": "Signed event JSON, npub or BCH address",
-    "inputHelp": "Paste a kind 10011 event to check it on this device, or enter an npub or address to fetch the newest binding from relays.",
+    "inputLabel": "Signed event JSON, credential JSON, npub or BCH address",
+    "inputHelp": "Paste a kind 10011 event or an attestation credential to check it on this device, or enter an npub or address to fetch the newest binding from relays.",
     "relaysLabel": "Relays",
     "relaysHelp": "One per line. Edit them freely; nothing else is contacted.",
     "submit": "Verify",
@@ -365,7 +365,8 @@
       "readme": "README",
       "verify": "VERIFY.md",
       "measured": "Measurements",
-      "embed": "Embed badge"
+      "embed": "Embed badge",
+      "vc": "Attestation as W3C VC 2.0"
     },
     "critTitle": "Judging criteria",
     "crit": {
@@ -444,6 +445,8 @@
     "by": "Verified by this key on {date}, for this exact binding event:",
     "event": "Attestation event",
     "replaced": "{count} key(s) attested an earlier binding of this key. Those attestations no longer count, because the binding they checked was replaced.",
+    "vcDownload": "Download as Verifiable Credential",
+    "vcHelp": "A W3C Verifiable Credential 2.0 file that carries this attestation and the binding it pins. The one-file verifier and tambat vc verify check it offline.",
     "help": "An attestation is a signed NIP-32 label in which another Nostr key says it checked this binding. It names the binding event by id, so it counts only while that event is this key's current binding. It is that key's word, not a proof."
   },
   "chain": {
@@ -461,5 +464,31 @@
     "silent": "no answer",
     "time": "{seconds} s",
     "judges": "· {answered}/{total} relays"
+  },
+  "vc": {
+    "ok": "Credential verified on this device: the attestation signature, the binding it pins (both signatures) and every credential field match.",
+    "bad": "Credential not verified: {reason}",
+    "issuer": "Issuer",
+    "subject": "Subject",
+    "address": "BCH address",
+    "binding": "Binding event",
+    "attestation": "Attestation event",
+    "validFrom": "Valid from",
+    "current": "This check is offline: it shows who attested which binding and when, not whether that binding is still the newest. Look up the subject to see that.",
+    "reason": {
+      "shape": "it is not a W3C VC 2.0 attestation credential (context or type).",
+      "proof": "it has no proof carrying the signed Nostr events.",
+      "attestation_shape": "the attestation inside the proof is not a Nostr event.",
+      "attestation_event_id": "the attestation inside the proof was changed after signing (its id does not match).",
+      "attestation_signature": "the attestation signature does not verify.",
+      "attestation_not_attestation": "the event inside the proof is not an attestation label.",
+      "attestation_no_subject": "the attestation does not name one subject key.",
+      "attestation_no_binding": "the attestation does not pin one binding event.",
+      "attestation_self": "the attestation vouches for its own key.",
+      "binding": "the binding event inside the proof does not verify.",
+      "pin": "the attestation pins a different binding event.",
+      "issuer": "the issuer is not the key that signed the attestation.",
+      "field": "the field {path} differs from what the signed events say."
+    }
   }
 }

@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { toNpub } from '../src/core/nostr.js';
 import { check, parseRelays } from '../verifier/check.js';
@@ -13,6 +14,18 @@ describe('one-file verifier checks', () => {
     if (out.kind !== 'pasted') return;
     expect(out.result.ok).toBe(true);
     expect(out.result.steps.find((s) => s.name === 'newest')?.status).toBe('skip');
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('checks a pasted attestation credential offline and names what was changed', async () => {
+    const text = readFileSync(new URL('../examples/attestation-vc.json', import.meta.url), 'utf8');
+    const query = vi.fn(fakeRelay([]));
+    const out = await check(text, RELAYS, query);
+    expect(out.kind === 'credential' && out.check.ok).toBe(true);
+    const changed = JSON.parse(text) as { issuer: string; validFrom: string };
+    changed.validFrom = '2020-01-01T00:00:00Z';
+    const bad = await check(JSON.stringify(changed), RELAYS, query);
+    expect(bad.kind === 'credential' && !bad.check.ok && [bad.check.reason, bad.check.path]).toEqual(['field', 'validFrom']);
     expect(query).not.toHaveBeenCalled();
   });
 

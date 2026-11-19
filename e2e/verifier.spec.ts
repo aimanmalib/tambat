@@ -2,6 +2,7 @@
  * The one-file verifier, opened from disk: it finds and checks a binding through relays only. Any request that is
  * not the file itself fails the test, and so does any request to the Tambat origin (the test server or the site).
  */
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { secp256k1 } from '@bitauth/libauth';
@@ -94,6 +95,26 @@ test('from disk: a pasted event is checked without relays and an edit names the 
   await page.getByLabel(en.verifier.inputLabel, { exact: true }).fill(JSON.stringify({ ...binding, content: 'edited after signing' }));
   await page.getByRole('button', exact(en.verifier.submit)).click();
   await expect(page.locator('.result[data-ok="false"] [data-step="event_id"]')).toHaveAttribute('data-status', 'fail');
+  expect(offDisk(requests)).toEqual([]);
+});
+
+test('from disk: a pasted credential is checked offline and a changed field is named', async ({ page }) => {
+  const text = readFileSync(resolve(import.meta.dirname, '..', 'examples', 'attestation-vc.json'), 'utf8');
+  const requests = await watchRequests(page);
+  await page.goto(FILE);
+  const input = page.getByLabel(en.verifier.inputLabel, { exact: true });
+  await input.fill(text);
+  await page.getByRole('button', exact(en.verifier.submit)).click();
+  await expect(page.locator('.result[data-vc="ok"]')).toBeVisible();
+  await expect(page.getByText(en.vc.ok)).toBeVisible();
+  await expectNoOverflow(page);
+
+  const changed = JSON.parse(text) as { validFrom: string };
+  changed.validFrom = '2020-01-01T00:00:00Z';
+  await input.fill(JSON.stringify(changed));
+  await page.getByRole('button', exact(en.verifier.submit)).click();
+  await expect(page.locator('.result[data-ok="false"]')).toHaveAttribute('data-vc-reason', 'field');
+  await expect(page.getByText(en.vc.bad.replace('{reason}', en.vc.reason.field.replace('{path}', 'validFrom')))).toBeVisible();
   expect(offDisk(requests)).toEqual([]);
 });
 

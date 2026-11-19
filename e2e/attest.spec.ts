@@ -6,7 +6,9 @@
 import { secp256k1 } from '@bitauth/libauth';
 import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import type { Page } from '@playwright/test';
+import config from '../config/tambat.json' with { type: 'json' };
 import { createAttestationEvent } from '../src/core/attest.js';
+import { verifyCredential } from '../src/core/vc.js';
 import { signMessage } from '../src/core/bchmsg.js';
 import { createBindingEvent } from '../src/core/binding.js';
 import { addressFromPublicKey } from '../src/core/cashaddr.js';
@@ -60,8 +62,20 @@ test('an attestation of the current binding shows; one of a replaced binding onl
   await expectNoOverflow(page);
   await expectAccessible(page);
 
+  // The attestation downloads as a W3C VC 2.0 that verifies offline and names B as issuer.
+  const download = page.waitForEvent('download');
+  await panel.getByRole('link', { name: en.attest.vcDownload }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toBe(`${config.vc.filePrefix}-${fromB.id.slice(0, 12)}.json`);
+  const stream = await file.createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) chunks.push(chunk as Buffer);
+  const vc = verifyCredential(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+  expect(vc.ok && [vc.credential.issuer, vc.credential.credentialSubject.bindingEvent]).toEqual([`did:nostr:${B.pubkey}`, current.id]);
+
   await page.getByLabel(en.lang.label).selectOption('ms');
   await expect(panel).toContainText(ms.attest.replaced.replace('{count}', '1'));
+  await expect(panel.getByRole('link', { name: ms.attest.vcDownload })).toHaveCount(1);
   await page.setViewportSize({ width: 320, height: 700 });
   await expectNoOverflow(page);
 });

@@ -6,6 +6,7 @@ import { useText } from '../web/i18n';
 import { BindingSummary } from '../web/ui/BindingSummary';
 import { Notice } from '../web/ui/Notice';
 import { check, type CheckOutcome } from './check';
+import { CredentialResult } from './CredentialResult';
 
 type State = { kind: 'idle' } | { kind: 'busy' } | CheckOutcome | { kind: 'failed'; message: string };
 
@@ -45,6 +46,8 @@ function Outcome({ state }: { state: State }) {
           <Result result={state.result} />
         </>
       );
+    case 'credential':
+      return <CredentialResult check={state.check} />;
     case 'found':
       return (
         <>

@@ -34,10 +34,12 @@ function account(index: number): PhraseKeys {
   };
 }
 export const other = account(1);
+/** Account 2 of the same phrase: a third person. */
+export const third = account(2);
 
 export const clone = (e: Event): Event => JSON.parse(JSON.stringify(e)) as Event;
 
-/** An in-process relay: answers authors and tag (#i, #p, #L) filters from a fixed list, like a NIP-01 relay would. */
+/** An in-process relay: answers ids, authors and tag (#i, #p, #L) filters from a fixed list, like a NIP-01 relay would. */
 export function fakeRelay(events: unknown[]): QueryFn {
   return async (_relays: string[], filter: Filter) =>
     events.filter((raw) => {
@@ -45,6 +47,7 @@ export function fakeRelay(events: unknown[]): QueryFn {
       if (!e || typeof e !== 'object' || !Array.isArray(e.tags)) return true; // relays may return junk
       if (filter.kinds && !filter.kinds.includes(e.kind)) return false;
       if (filter.authors && !filter.authors.includes(e.pubkey)) return false;
+      if (filter.ids && !filter.ids.includes(e.id)) return false;
       return Object.entries(filter)
         .filter(([name]) => name.startsWith('#'))
         .every(([name, wanted]) => e.tags.some((t) => t[0] === name.slice(1) && (wanted as string[]).includes(t[1] ?? '')));
