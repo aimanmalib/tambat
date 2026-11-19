@@ -1,35 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import { config } from '../../src/config';
 import { useText } from '../i18n';
-import { EMBED_OPEN_PARAM } from '../ui/EmbedCode';
 import { shortHex } from '../ui/HexId';
 import { AnchorProof } from './AnchorProof';
+import { CRITERIA, look, repo, REQUIREMENTS } from './links';
 import { SampleCheck } from './SampleCheck';
 import './judges.css';
 
 const VERIFIER_PATH = '/verify/';
-const repo = (path: string) => `${config.judges.repoUrl}/blob/main/${path}`;
-const repoDir = (path: string) => `${config.judges.repoUrl}/tree/main/${path}`;
-const look = (q: string) => `/lookup?q=${encodeURIComponent(q)}`;
-
-/** Each bounty requirement with the live pages and files that show it, in the order the bounty lists them. */
-const REQUIREMENTS: { key: string; links: { key: string; href: string }[] }[] = [
-  { key: 'create', links: [{ key: 'link', href: '/' }, { key: 'revoke', href: look(config.judges.revocation.npub) }] },
-  { key: 'binding', links: [{ key: 'vectors', href: repo('examples/vectors.json') }] },
-  { key: 'discovery', links: [{ key: 'lookup', href: look(config.judges.sample.npub) }, { key: 'wall', href: '/wall' }, { key: 'embed', href: `${look(config.judges.sample.npub)}&${EMBED_OPEN_PARAM}=1` }, { key: 'reputation', href: look(config.judges.paytaca.npub) }, { key: 'repBundle', href: repo('examples/reputation-bundle.json') }] },
-  { key: 'auth', links: [{ key: 'demo', href: '/demo' }, { key: 'verify', href: repo('docs/VERIFY.md') }, { key: 'vc', href: repo('examples/attestation-vc.json') }, { key: 'sd', href: repo('examples/sd-presentation.json') }, { key: 'phone', href: `${repo('docs/PAYTACA.md')}#on-an-iphone` }] },
-  { key: 'docs', links: [{ key: 'readme', href: repo('README.md') }, { key: 'measured', href: repo('docs/MEASURED.md') }, { key: 'pkg', href: repoDir('docs/pkg') }] },
-];
-
-/** Each judging criterion with the one file that holds its evidence. */
-const CRITERIA: { key: string; href: string }[] = [
-  { key: 'correctness', href: repo('tests/verify.test.ts') },
-  { key: 'security', href: repo('tests/auth.test.ts') },
-  { key: 'decentralization', href: repo('tests/discover.test.ts') },
-  { key: 'interop', href: repo('docs/NIP-39-bch.md') },
-  { key: 'usability', href: repo('docs/PAYTACA.md') },
-  { key: 'demo', href: repo('docs/MEASURED.md') },
-];
 
 /** A list that starts open on wide screens and closed on narrow ones, so the whole page fits one screen on both. */
 function Fold({ id, title, children }: { id: string; title: string; children: ReactNode }) {

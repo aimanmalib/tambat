@@ -374,9 +374,11 @@
       "verify": "VERIFY.md",
       "measured": "Measurements",
       "embed": "Embed badge",
+      "relays": "Relays that answered",
       "vc": "Attestation as W3C VC 2.0",
       "sd": "Selective disclosure",
       "pkg": "Library package",
+      "release": "Release with checksums",
       "phone": "Pairing link for a phone wallet",
       "reputation": "Reputation summary",
       "repBundle": "Reputation file"

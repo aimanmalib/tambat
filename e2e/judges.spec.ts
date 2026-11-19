@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import type { Page, TestInfo } from '@playwright/test';
 import type { Event } from 'nostr-tools/pure';
 import config from '../config/tambat.json' with { type: 'json' };
+import pkg from '../package.json' with { type: 'json' };
 import { scripthashOf } from '../src/core/anchor-chain.js';
 import demoEvent from './demo-binding-event.json' with { type: 'json' };
 import paytacaAnchor from './paytaca-anchor.json' with { type: 'json' };
@@ -106,6 +107,23 @@ test('one screen with a green live check, the recorded proof and every requireme
 
   await page.locator('[data-proof="paytaca"] a').click();
   await expect(page).toHaveURL(`/lookup?q=${config.judges.paytaca.npub}`);
+});
+
+test('every internal link answers 200 and the release link names the packed version', async ({ page, request }) => {
+  await useJudgesRelay(page);
+  await page.goto('/judges');
+  await expect(page.locator('.jpanel--live')).toHaveAttribute('data-state', 'verified', { timeout: 20_000 });
+  await expect(page.locator('details.jfold')).toHaveCount(2);
+  // Closed on a phone: open each list by its summary (a fixed list, since opening one changes which are closed).
+  for (const fold of await page.locator('details.jfold').all()) {
+    if (!(await fold.evaluate((d: HTMLDetailsElement) => d.open))) await fold.locator('summary').click();
+  }
+  const hrefs = await page.locator('main a[href^="/"]').evaluateAll((as) => as.map((a) => a.getAttribute('href') ?? ''));
+  expect(hrefs.length).toBeGreaterThan(5);
+  for (const href of new Set(hrefs)) expect((await request.get(href)).status(), href).toBe(200);
+  const release = page.locator('[data-req="docs"]').getByRole('link', { name: en.judges.link.release });
+  await expect(release).toHaveAttribute('href', `${config.judges.repoUrl}/releases/tag/core-v${pkg.version}`);
+  await expect(page.locator('[data-req="discovery"]').getByRole('link', { name: en.judges.link.relays })).toHaveAttribute('href', /docs\/MEASURED\.md#relays$/);
 });
 
 test('at 320 px the page does not overflow sideways and the lists still open', async ({ page }) => {

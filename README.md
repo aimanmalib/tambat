@@ -44,8 +44,11 @@ demo identity on the relays when it opens and shows every check, links the Payta
 [the measurements](docs/MEASURED.md), names the Paytaca binding's anchor transaction in block 977901 and reads it again
 from every chain server (a check mark only when they agree that the chain shows that transaction in that block, with the
 number of servers that agreed), links the badge embed code, and opens each requirement and
-judging criterion. `e2e/judges.spec.ts` holds it to one
-screen at 1440 x 900 and on an iPhone 13.
+judging criterion. Under the requirement each one proves it also links the relay measurements, the attestation as a
+VC 2.0, the reputation file, the selective disclosure example, the phone pairing steps, the library package and its
+`core-v0.2.0` release. `tests/judges-links.test.ts` fails when a linked file or heading is missing from the tree or the
+release link is not the one this README installs from; `e2e/judges.spec.ts` holds the page to one screen at 1440 x 900
+and on an iPhone 13 and checks that every internal link answers 200.
 
 | Requirement | Code | Try it or read it |
 | --- | --- | --- |
@@ -332,7 +335,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-5f37f21c527554b6b8b03b01640d96ca56e1c40b3af2b28d8faae8b779317702  tambat-verify.html
+fb295727a4df4572db214f6aa5a49d13bf1d5e9e1ee54f2243afe1b20c8d373a  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;

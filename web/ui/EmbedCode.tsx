@@ -4,10 +4,8 @@ import { EMBED_PATH } from '../../src/core/badge';
 import { embedSnippets } from '../../src/core/embed-code';
 import { useText } from '../i18n';
 import { queryParam } from '../router';
+import { EMBED_OPEN_PARAM } from '../judges/links';
 import { CopyValue } from './Copy';
-
-/** `?embed=1` on a Look up link opens this panel and scrolls to it (the /judges link uses it). */
-export const EMBED_OPEN_PARAM = 'embed';
 
 /** "Embed this badge": the script tag and the iframe for one verified identity, each with a copy button. */
 export function EmbedCode({ npub }: { npub: string }) {

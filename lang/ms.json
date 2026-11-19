@@ -374,9 +374,11 @@
       "verify": "VERIFY.md",
       "measured": "Ukuran",
       "embed": "Benamkan lencana",
+      "relays": "Relay yang menjawab",
       "vc": "Pengesahan sebagai W3C VC 2.0",
       "sd": "Pendedahan terpilih",
       "pkg": "Pakej pustaka",
+      "release": "Keluaran dengan cincangan",
       "phone": "Pautan pasangan untuk dompet telefon",
       "reputation": "Ringkasan reputasi",
       "repBundle": "Fail reputasi"
