@@ -1,7 +1,8 @@
+import { config } from '../src/config.js';
 import { en, expect, expectAccessible, expectNoOverflow, ms, test } from './fixtures.js';
 
 const exact = (name: string) => ({ name, exact: true });
-const accepted = (text: string) => text.replace('{ok}', '3').replace('{total}', '3');
+const accepted = (text: string) => text.replace('{ok}', String(config.nostr.relays.length)).replace('{total}', String(config.nostr.relays.length));
 const before = (text: string) => text.split('{')[0] ?? text;
 
 test('the owner moves a link to a new address and look-ups follow', async ({ page }) => {

@@ -8,6 +8,7 @@ import { BindingSummary } from '../ui/BindingSummary';
 import { EmbedCode } from '../ui/EmbedCode';
 import { errorText } from '../../src/errors';
 import { Notice } from '../ui/Notice';
+import { RelayAnswers } from '../ui/RelayList';
 import { Tamper } from '../ui/Tamper';
 import { AnchorStatus } from './AnchorStatus';
 import { Attestations } from './Attestations';
@@ -97,6 +98,7 @@ export function LookupPage() {
       {state.kind === 'done' && state.via ? <Notice>{t('nip05.points', state.via)}</Notice> : null}
       {state.kind === 'done' && state.results.length === 0 ? <Notice>{t('lookup.none')}</Notice> : null}
       {state.kind === 'done' ? state.results.map((r) => <Result key={r.eventId} result={r} onChanged={() => run(input)} />) : null}
+      {state.kind === 'done' && state.relays ? <RelayAnswers statuses={state.relays} /> : null}
     </section>
   );
 }

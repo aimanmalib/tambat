@@ -67,6 +67,10 @@ test('one screen with a green live check, the recorded proof and every requireme
   expect(await chips.count()).toBeGreaterThan(0);
   await expect(live.locator('.chip:not([data-status="pass"])')).toHaveCount(0);
   await expect(live.locator('.notice--ok')).toContainText(en.judges.verified.split(':')[0] ?? '');
+  // Every relay goes to the fake relay here, so every one answered, and the count is shown with the live check.
+  const answered = live.locator('.jrelays');
+  await expect(answered).toHaveAttribute('data-answered', String(config.nostr.relays.length));
+  await expect(answered).toHaveText(en.relays.judges.replace('{answered}', String(config.nostr.relays.length)).replace('{total}', String(config.nostr.relays.length)));
 
   await expect(page.locator(`[data-proof="paytaca"] a[data-event="${config.judges.paytaca.eventId}"]`)).toHaveAttribute('href', `/lookup?q=${config.judges.paytaca.npub}`);
   await expect(page.locator(`[data-proof="revocation"] a[data-event="${config.judges.revocation.eventId}"]`)).toBeVisible();
@@ -157,5 +161,6 @@ test('blocked relays read as not found, never as verified', async ({ page }, inf
   await expect(live.getByRole('alert')).toBeVisible({ timeout: 15_000 });
   await expect(live).not.toHaveAttribute('data-state', 'verified', { timeout: 20_000 });
   await expect(live.locator('.chip')).toHaveCount(0);
+  await expect(live.locator('.jrelays')).toHaveAttribute('data-answered', '0');
   await expectOneScreen(page);
 });

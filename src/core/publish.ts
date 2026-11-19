@@ -10,6 +10,8 @@ export interface RelayOutcome {
   reason?: string;
   /** Set when the relay did not answer in time, so a user interface can say so in its own language. */
   noAnswer?: boolean;
+  /** Milliseconds from sending to the relay's answer or refusal; absent when it did not answer. */
+  ms?: number;
 }
 
 /**
@@ -28,14 +30,21 @@ export async function publishEvent(
     websocketImplementation: websocketImplementation ?? globalThis.WebSocket,
   });
   try {
-    const answers = pool.publish(relays, event, { maxWait: timeoutMs });
+    const start = Date.now();
+    const times: number[] = [];
+    const answers = pool.publish(relays, event, { maxWait: timeoutMs }).map((p, i) =>
+      p.finally(() => {
+        times[i] = Date.now() - start;
+      }),
+    );
     const settled = await Promise.allSettled(answers);
-    return relays.map((relay, i) => {
+    return relays.map((relay, i): RelayOutcome => {
       const s = settled[i];
-      if (s?.status === 'fulfilled') return { relay, ok: true };
+      const ms = times[i];
+      if (s?.status === 'fulfilled') return { relay, ok: true, ...(ms === undefined ? {} : { ms }) };
       if (s?.status !== 'rejected') return { relay, ok: false, reason: 'no answer', noAnswer: true };
       const reason = String((s.reason as Error)?.message ?? s.reason);
-      return /timed out/.test(reason) ? { relay, ok: false, reason, noAnswer: true } : { relay, ok: false, reason };
+      return /timed out/.test(reason) ? { relay, ok: false, reason, noAnswer: true } : { relay, ok: false, reason, ...(ms === undefined ? {} : { ms }) };
     });
   } finally {
     pool.close(relays);

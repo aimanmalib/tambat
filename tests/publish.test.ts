@@ -43,10 +43,13 @@ describe('publishEvent', () => {
     const relays = [accepting, refusing, silent];
     const outcomes = await publishEvent(clone(vectors.bindingEvent), relays, 600, WebSocket as unknown as typeof globalThis.WebSocket);
     expect(outcomes.map((o) => o.relay)).toEqual(relays);
-    expect(outcomes[0]).toEqual({ relay: accepting, ok: true });
+    expect(outcomes[0]).toMatchObject({ relay: accepting, ok: true });
+    expect(outcomes[0]?.ms).toBeLessThan(600);
     expect(outcomes[1]).toMatchObject({ relay: refusing, ok: false });
+    expect(outcomes[1]?.ms).toBeGreaterThanOrEqual(0);
     expect(outcomes[1]?.reason).toContain('blocked: not on the allow list');
     expect(outcomes[1]?.noAnswer).toBeUndefined();
     expect(outcomes[2]).toMatchObject({ relay: silent, ok: false, noAnswer: true });
+    expect(outcomes[2]?.ms).toBeUndefined();
   });
 });

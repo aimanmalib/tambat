@@ -9,7 +9,9 @@
     "relays": [
       "wss://relay.damus.io",
       "wss://nos.lol",
-      "wss://relay.primal.net"
+      "wss://relay.primal.net",
+      "wss://relay.snort.social",
+      "wss://nostr.mom"
     ],
     "queryTimeoutMs": 4000,
     "publishTimeoutMs": 6000

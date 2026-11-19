@@ -452,5 +452,14 @@
     "differing": "{names} answered differently",
     "missing": "{names} did not answer",
     "tooFew": "{count} answered alike, {quorum} needed"
+  },
+  "relays": {
+    "label": "Relays asked",
+    "summary": "{answered} of {total} relays answered",
+    "answered": "answered",
+    "refused": "refused",
+    "silent": "no answer",
+    "time": "{seconds} s",
+    "judges": "· {answered}/{total} relays"
   }
 }

@@ -8,14 +8,18 @@ import { verifyEvent } from 'nostr-tools/pure';
 import { config } from '../config.js';
 import { claimIdentity } from './binding.js';
 import { parseP2pkhAddress } from './cashaddr.js';
+import { watchedSocket, type RelayWatch } from './relay-watch.js';
 import { markRecovered, parseRecoveryTag, recoveryTagOf, verifyRecovery } from './recover.js';
 import { eventShapeError, idMatches, parsePubkey, signatureValid, type Event } from './nostr.js';
 import { isNewer, verifyBinding, type BindingResult, type VerifyOptions } from './verify.js';
 
 export type { Filter };
 
-/** Queries relays and resolves with whatever events arrived before the timeout. Must not reject. */
-export type QueryFn = (relays: string[], filter: Filter, timeoutMs: number) => Promise<unknown[]>;
+/**
+ * Queries relays and resolves with whatever events arrived before the timeout. Must not reject. When a watch is given,
+ * each relay's answer, refusal or silence is recorded on it.
+ */
+export type QueryFn = (relays: string[], filter: Filter, timeoutMs: number, watch?: RelayWatch) => Promise<unknown[]>;
 
 /**
  * Builds a relay query on a fresh pool. `websocketImplementation` is the WebSocket class to use; browsers pass
@@ -25,12 +29,13 @@ export type QueryFn = (relays: string[], filter: Filter, timeoutMs: number) => P
  * then verify every event itself (the wall does, to count forgeries instead of losing them).
  */
 export function createRelayQuery(websocketImplementation?: typeof WebSocket, options: { keepUnverified?: boolean } = {}): QueryFn {
-  return async (relays, filter, timeoutMs) => {
+  return async (relays, filter, timeoutMs, watch) => {
+    const socket = websocketImplementation ?? globalThis.WebSocket;
     const pool = new AbstractSimplePool({
       verifyEvent: options.keepUnverified ? () => true : verifyEvent,
       // A relay that accepts the TCP connection but never answers must not hold the query past its timeout.
       maxWaitForConnection: timeoutMs,
-      websocketImplementation: websocketImplementation ?? globalThis.WebSocket,
+      websocketImplementation: watch ? watchedSocket(socket, watch) : socket,
     });
     try {
       return await pool.querySync(relays, filter, { maxWait: timeoutMs });
@@ -51,6 +56,8 @@ export interface DiscoverOptions extends Pick<VerifyOptions, 'network'> {
   followRecovery?: boolean;
   timeoutMs?: number;
   query?: QueryFn;
+  /** Records which relays answered every query made for this lookup. */
+  watch?: RelayWatch;
 }
 
 /** Extra wait after a query's own timeout before a stuck relay call is given up. */
@@ -60,13 +67,19 @@ const GRACE_MS = 250;
  * Runs a query so that a relay which throws or never answers cannot break a lookup: errors become an empty
  * result and a query still pending after the timeout (plus a small grace period) resolves empty.
  */
-export async function guardedQuery(query: QueryFn, relays: string[], filter: Filter, timeoutMs: number): Promise<unknown[]> {
+export async function guardedQuery(
+  query: QueryFn,
+  relays: string[],
+  filter: Filter,
+  timeoutMs: number,
+  watch?: RelayWatch,
+): Promise<unknown[]> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const late = new Promise<unknown[]>((resolve) => {
     timer = setTimeout(() => resolve([]), timeoutMs + GRACE_MS);
   });
   try {
-    const result = await Promise.race([query(relays, filter, timeoutMs).catch(() => []), late]);
+    const result = await Promise.race([query(relays, filter, timeoutMs, watch).catch(() => []), late]);
     return Array.isArray(result) ? result : [];
   } finally {
     clearTimeout(timer);
@@ -95,6 +108,7 @@ export async function lookupByPubkey(pubkey: string, options: DiscoverOptions = 
     options.relays ?? config.nostr.relays,
     { kinds: [config.nostr.bindingKind], authors: [pubkey] },
     options.timeoutMs ?? config.nostr.queryTimeoutMs,
+    options.watch,
   );
   const events = validEvents(raw).filter((e) => e.pubkey === pubkey);
   const top = newest(events);
@@ -119,6 +133,7 @@ export async function lookupByAddress(address: string, options: DiscoverOptions 
     options.relays ?? config.nostr.relays,
     { kinds: [config.nostr.bindingKind], '#i': [claimIdentity(parsed.address)] },
     options.timeoutMs ?? config.nostr.queryTimeoutMs,
+    options.watch,
   );
   const authors = [...new Set(validEvents(raw).map((e) => e.pubkey))];
   const results = await Promise.all(authors.map((a) => lookupByPubkey(a, options)));

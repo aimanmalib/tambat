@@ -119,7 +119,7 @@ export async function loadWall(options: WallOptions = {}): Promise<Wall> {
     await Promise.all(
       open.map(async (c) => {
         const filter = { kinds: [config.nostr.bindingKind], limit: pageSize, ...(c.until === undefined ? {} : { until: c.until }) };
-        const got = await guardedQuery(query, [c.relay], filter, timeoutMs);
+        const got = await guardedQuery(query, [c.relay], filter, timeoutMs, options.watch);
         let fresh = 0;
         let oldest = Infinity;
         for (const item of got) {

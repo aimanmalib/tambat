@@ -1,3 +1,4 @@
+import { config } from '../src/config.js';
 /**
  * The tamper demo on a look-up result: each field edit turns exactly its expected named steps red, the real result
  * stays verified, and Reset brings the form back. The edit happens on a local copy; nothing is published.
@@ -8,7 +9,7 @@ import { VERIFY_STEPS } from '../src/core/binding.js';
 import { en, expect, expectAccessible, expectNoOverflow, ms, test } from './fixtures.js';
 
 const exact = (name: string) => ({ name, exact: true });
-const accepted = (text: string) => text.replace('{ok}', '3').replace('{total}', '3');
+const accepted = (text: string) => text.replace('{ok}', String(config.nostr.relays.length)).replace('{total}', String(config.nostr.relays.length));
 
 /** Publishes a demo binding and opens its look-up result, in the language already chosen. */
 async function lookUpFreshBinding(page: Page, text: typeof en) {

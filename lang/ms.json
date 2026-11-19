@@ -452,5 +452,14 @@
     "differing": "{names} menjawab berbeza",
     "missing": "{names} tidak menjawab",
     "tooFew": "{count} menjawab sama, {quorum} diperlukan"
+  },
+  "relays": {
+    "label": "Relay yang ditanya",
+    "summary": "{answered} daripada {total} relay menjawab",
+    "answered": "menjawab",
+    "refused": "menolak",
+    "silent": "tiada jawapan",
+    "time": "{seconds} s",
+    "judges": "· {answered}/{total} relay"
   }
 }

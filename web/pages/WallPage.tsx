@@ -1,23 +1,23 @@
 import { useEffect, useState } from 'react';
 import { config } from '../../src/config';
 import { shortAddress, shortNpub } from '../../src/core/badge';
-import { createProbe } from '../../src/core/probe';
+import { answeredCount, createRelayWatch, type RelayStatus } from '../../src/core/relay-watch';
 import { loadWall, type Wall } from '../../src/core/wall';
 import { useText } from '../i18n';
 import { navigate } from '../router';
 import { Notice } from '../ui/Notice';
+import { RelayAnswers } from '../ui/RelayList';
 import { SinceBadge } from '../ui/SinceBadge';
 
-type State = { kind: 'busy' } | ({ kind: 'done'; reachable: boolean } & Wall);
+type State = { kind: 'busy' } | ({ kind: 'done'; reachable: boolean; relays: RelayStatus[] } & Wall);
 
-const probe = createProbe();
-
-/** Loads the wall; when nothing came back it asks whether any relay answered, so an outage never reads as "empty". */
+/** Loads the wall and records which relays answered, so an outage never reads as "empty". */
 async function load(): Promise<State> {
-  const wall = await loadWall().catch((): Wall => ({ entries: [], hidden: 0, scanned: 0 }));
+  const watch = createRelayWatch(config.nostr.relays);
+  const wall = await loadWall({ watch }).catch((): Wall => ({ entries: [], hidden: 0, scanned: 0 }));
   const empty = wall.entries.length === 0 && wall.hidden === 0;
-  const reachable = !empty || (await probe(config.nostr.relays, config.nostr.queryTimeoutMs)) > 0;
-  return { kind: 'done', reachable, ...wall };
+  const reachable = !empty || answeredCount(watch.statuses()) > 0;
+  return { kind: 'done', reachable, relays: watch.statuses(), ...wall };
 }
 
 /** The newest bindings on the relays, each verified in this browser. Failures are only counted, never listed. */
@@ -73,6 +73,7 @@ export function WallPage() {
         <p className="wall__scanned" data-scanned={state.scanned}>{t('wall.scanned', { shown: state.entries.length, scanned: state.scanned })}</p>
       ) : null}
       {state.kind === 'done' ? <p className="wall__hidden" data-hidden={state.hidden}>{t('wall.hidden', { count: state.hidden })}</p> : null}
+      {state.kind === 'done' ? <RelayAnswers statuses={state.relays} /> : null}
     </section>
   );
 }

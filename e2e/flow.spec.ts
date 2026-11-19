@@ -1,3 +1,4 @@
+import { config } from '../src/config.js';
 import { en, expect, expectAccessible, expectNoOverflow, fakeExtension, ms, otherAddress, test, vectors } from './fixtures.js';
 
 const address = vectors.bch.address.bitcoincash;
@@ -18,7 +19,7 @@ test('link with an extension and a pasted wallet signature, then look up, pay an
   await page.getByRole('button', exact(en.bch.pasteCheck)).click();
 
   await page.getByRole('button', exact(en.link.publish)).click();
-  await expect(page.getByText(en.link.result.replace('{ok}', '3').replace('{total}', '3'))).toBeVisible();
+  await expect(page.getByText(en.link.result.replace('{ok}', String(config.nostr.relays.length)).replace('{total}', String(config.nostr.relays.length)))).toBeVisible();
   await expect(page.locator('.check[data-status="fail"]')).toHaveCount(0);
   await expect(page.locator('.check[data-status="pass"]')).toHaveCount(9);
   await expectAccessible(page);
@@ -54,7 +55,7 @@ test('demo keys link, then the demo app signs in with both keys', async ({ page 
   await expect(page.getByText(en.common.demoBadge)).toBeVisible();
   await page.getByRole('button', exact(en.bch.demo)).click();
   await page.getByRole('button', exact(en.link.publish)).click();
-  await expect(page.getByText(en.link.result.replace('{ok}', '3').replace('{total}', '3'))).toBeVisible();
+  await expect(page.getByText(en.link.result.replace('{ok}', String(config.nostr.relays.length)).replace('{total}', String(config.nostr.relays.length)))).toBeVisible();
   const demoAddress = (await page.locator('.facts dd code').first().textContent()) ?? '';
   expect(demoAddress).toMatch(/^bitcoincash:q/);
 

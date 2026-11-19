@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { config } from '../../src/config';
 import { errorText } from '../../src/errors';
+import { answeredCount, type RelayStatus } from '../../src/core/relay-watch';
 import type { BindingResult } from '../../src/core/verify';
 import { findIdentity } from '../find';
 import { useText } from '../i18n';
@@ -8,7 +9,7 @@ import { Notice } from '../ui/Notice';
 
 type State =
   | { kind: 'busy' }
-  | { kind: 'done'; result: BindingResult | null; ms: number }
+  | { kind: 'done'; result: BindingResult | null; ms: number; relays: RelayStatus[] }
   | { kind: 'error'; reason: string; ms: number };
 
 const seconds = (ms: number) => (ms / 1000).toFixed(1);
@@ -26,7 +27,8 @@ export function SampleCheck() {
       (found) => {
         if (!live) return;
         const result = found === 'bad_input' ? null : (found.results[0] ?? null);
-        setState({ kind: 'done', result, ms: performance.now() - started });
+        const relays = found === 'bad_input' ? [] : (found.relays ?? []);
+        setState({ kind: 'done', result, ms: performance.now() - started, relays });
       },
       (e: unknown) => live && setState({ kind: 'error', reason: errorText(e, t), ms: performance.now() - started }),
     );
@@ -37,17 +39,28 @@ export function SampleCheck() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // How many relays answered this very look-up, so a judge sees the reads are spread over independent relays.
+  const relayCount =
+    state.kind === 'done' && state.relays.length > 0 ? (
+      <span className="jrelays" data-answered={answeredCount(state.relays)} data-total={state.relays.length}>
+        {' '}
+        {t('relays.judges', { answered: answeredCount(state.relays), total: state.relays.length })}
+      </span>
+    ) : null;
   let status;
   if (state.kind === 'busy') status = <Notice>{t('judges.loading')}</Notice>;
   else if (state.kind === 'error') status = <Notice tone="error">{t('judges.failed', { reason: state.reason })}</Notice>;
-  else if (!state.result) status = <Notice tone="error">{t('judges.notFound', { seconds: seconds(state.ms) })}</Notice>;
+  else if (!state.result) status = <Notice tone="error">{t('judges.notFound', { seconds: seconds(state.ms) })}{relayCount}</Notice>;
   else {
     const steps = [...state.result.steps, ...state.result.claims.flatMap((c) => c.steps)];
     const failed = steps.filter((s) => s.status === 'fail').length;
     const vars = { passed: steps.filter((s) => s.status === 'pass').length, failed, total: steps.length, seconds: seconds(state.ms) };
     status = (
       <>
-        <Notice tone={state.result.ok ? 'ok' : 'error'}>{t(state.result.ok ? 'judges.verified' : 'judges.notVerified', vars)}</Notice>
+        <Notice tone={state.result.ok ? 'ok' : 'error'}>
+          {t(state.result.ok ? 'judges.verified' : 'judges.notVerified', vars)}
+          {relayCount}
+        </Notice>
         <ul className="chips" aria-label={t('judges.sampleTitle')}>
           {steps.map((s, i) => (
             <li key={`${s.name}-${i}`} className={`chip chip--${s.status}`} data-step={s.name} data-status={s.status}>
