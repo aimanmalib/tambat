@@ -42,7 +42,8 @@ Where each required part of the "Decentralized Identity" bounty lives:
 The same map is one screen on the live site at https://tambat.sasateguh.com/judges, in English and Malay: it looks up the
 demo identity on the relays when it opens and shows every check, links the Paytaca binding and a revoked link from
 [the measurements](docs/MEASURED.md), names the Paytaca binding's anchor transaction in block 977901 and reads it again
-from the chain (a check mark only when the chain shows that transaction in that block), and opens each requirement and
+from every chain server (a check mark only when they agree that the chain shows that transaction in that block, with the
+number of servers that agreed), links the badge embed code, and opens each requirement and
 judging criterion. `e2e/judges.spec.ts` holds it to one
 screen at 1440 x 900 and on an iPhone 13.
 
@@ -101,7 +102,10 @@ Beyond the required parts, each live and tested:
    signed event and the DID document.
    **Try tampering** on a verified result edits one field of a local copy (content, the BCH address in the `i` tag, or the Nostr
    signature) and checks it again, showing which named steps catch the edit (`src/core/tamper.ts`). Nothing is published.
+   **Embed this badge** on the same result gives the script tag and the iframe for that identity, each with a copy button.
 4. **Pay**: an npub or a NIP-05 name becomes a verified address, a BIP21 link and a QR code. Your own wallet sends the payment.
+   Pay reads the chain first: it shows "Anchored since block N" when the chain servers agree the address is still bound to that
+   key, and refuses to offer a link when the chain shows the address revoked or bound to another key.
 5. **Demo app**: "Sign in with Nostr", or "Sign in with a BCH wallet" (Paytaca over WalletConnect, or a signature pasted from
    any wallet). The demo app's server checks the signed challenge, finds the binding on relays on its own, and the session shows
    the npub and the verified BCH address. Signing in with the wallet alone works because the binding leads from the address

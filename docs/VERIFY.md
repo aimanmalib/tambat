@@ -52,6 +52,11 @@ npx tsx bin/tambat.ts receipt <txid>                     # receipts for a transa
 npx tsx bin/tambat.ts anchor-lookup bitcoincash:<address>  # optional BCH anchor, read from the chain only, no relays
 ```
 
+`anchor-lookup` asks every chain server in `anchor.electrum` and prints a result only when at least `anchor.quorum` of
+them answered alike ("read from N of M chain servers"); otherwise it names the servers that differed or did not answer and
+exits 1. Each commitment is listed oldest block first, and a revocation by transaction is marked `revokes`. The newest
+confirmed commitment decides whether the address is bound, revoked or given to another key ([SPEC](SPEC.md#revoke-by-transaction)).
+
 A recovered binding needs no extra command: `lookup` checks the `replaces` tag and prints where the binding came from.
 
 ## By hand
