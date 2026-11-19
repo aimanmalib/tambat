@@ -118,6 +118,38 @@ test('from disk: a pasted credential is checked offline and a changed field is n
   expect(offDisk(requests)).toEqual([]);
 });
 
+test('from disk: a pasted reputation summary is recounted offline and an inflated count is refused', async ({ page }) => {
+  const text = readFileSync(resolve(import.meta.dirname, '..', 'examples', 'reputation-bundle.json'), 'utf8');
+  const requests = await watchRequests(page);
+  await page.setViewportSize({ width: 390, height: 664 });
+  await page.goto(FILE);
+  const input = page.getByLabel(en.verifier.inputLabel, { exact: true });
+  await input.fill(text);
+  await page.getByRole('button', exact(en.verifier.submit)).click();
+  const ok = page.locator('.result[data-ok="true"]');
+  await expect(ok).toHaveAttribute('data-bundle', '2');
+  await expect(ok.locator('[data-counted]')).toHaveCount(2);
+  await expect(ok.locator('[data-skipped="self"]')).toContainText(en.repBundle.skip.self);
+  await expect(ok.locator('[data-skipped="old_binding"]')).toContainText(en.repBundle.skip.old_binding);
+  await expectNoOverflow(page);
+  await expectAccessible(page);
+
+  const inflated = JSON.parse(text) as { reputationSummary: { attestations: number } };
+  inflated.reputationSummary.attestations += 1;
+  await input.fill(JSON.stringify(inflated));
+  await page.getByRole('button', exact(en.verifier.submit)).click();
+  await expect(page.locator('.result[data-ok="false"]')).toHaveAttribute('data-bundle-reason', 'count');
+  await expect(page.getByText(en.repBundle.recount.replace('{count}', '2'))).toBeVisible();
+
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto(`${FILE}?lang=ms`);
+  await page.getByLabel(ms.verifier.inputLabel, { exact: true }).fill(text);
+  await page.getByRole('button', exact(ms.verifier.submit)).click();
+  await expect(page.getByText(ms.repBundle.ok.replace('{count}', '2').replace('{total}', '4'))).toBeVisible();
+  await expectNoOverflow(page);
+  expect(offDisk(requests)).toEqual([]);
+});
+
 test('from disk in Malay at 320 px: same checks, no horizontal overflow', async ({ page }) => {
   const keys = freshKeys();
   await publish(bindingFromKeys(keys, Math.floor(Date.now() / 1000)));

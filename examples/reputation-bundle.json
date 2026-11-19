@@ -1,0 +1,305 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2"
+  ],
+  "type": [
+    "VerifiablePresentation",
+    "TambatReputationSummary"
+  ],
+  "holder": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+  "verifiableCredential": [
+    {
+      "@context": [
+        "https://www.w3.org/ns/credentials/v2"
+      ],
+      "type": [
+        "VerifiableCredential",
+        "BchNostrBindingAttestation"
+      ],
+      "issuer": "did:nostr:df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb",
+      "validFrom": "2026-11-18T01:28:53Z",
+      "credentialSubject": {
+        "id": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+        "bchAddress": [
+          "bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77"
+        ],
+        "bindingEvent": "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2",
+        "attestationEvent": "e50c7901d6917710faa235bfbbef57a9327a8e41fe3394a5224d10a674fc26e9"
+      },
+      "proof": {
+        "type": "NostrEventProof",
+        "proofPurpose": "assertionMethod",
+        "verificationMethod": "did:nostr:df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb#key1",
+        "created": "2026-11-18T01:28:53Z",
+        "attestation": {
+          "content": "",
+          "created_at": 1794965333,
+          "id": "e50c7901d6917710faa235bfbbef57a9327a8e41fe3394a5224d10a674fc26e9",
+          "kind": 1985,
+          "pubkey": "df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb",
+          "sig": "27e4281826665293e180928006b2f10becfb04f8b2a04527aa4bb1d9aea63bc2b92821ab229a83cf0d25db8d517d038ef468048fb57c3c3ed122df8bd3e43e2b",
+          "tags": [
+            [
+              "L",
+              "cash.tambat.attest"
+            ],
+            [
+              "l",
+              "verified",
+              "cash.tambat.attest"
+            ],
+            [
+              "e",
+              "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2"
+            ],
+            [
+              "p",
+              "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4"
+            ]
+          ]
+        },
+        "binding": {
+          "id": "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2",
+          "pubkey": "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+          "created_at": 1794827488,
+          "kind": 10011,
+          "tags": [
+            [
+              "i",
+              "bch:bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77",
+              "IPphZAZE3UR7FA8yPXwEDMS+VeGAhNNkjQKMBDlcC31GMdhXdcKoYJODiY4qAFDyDAOgrw6E7bfaisNDB67MHOs="
+            ]
+          ],
+          "content": "",
+          "sig": "c62049e82f52c607fa5d59b8e859530d66eab9a7bc79cbabf9e577f05178574520427e63564e1b2574d83318169db8da6be78f176719a461a2e54d75144229e4"
+        }
+      }
+    },
+    {
+      "@context": [
+        "https://www.w3.org/ns/credentials/v2"
+      ],
+      "type": [
+        "VerifiableCredential",
+        "BchNostrBindingAttestation"
+      ],
+      "issuer": "did:nostr:2f5a0aa13246fd8fc4f88b24ff54614de80a5b9818897f43424e4b1e30770e82",
+      "validFrom": "2026-11-19T16:21:26Z",
+      "credentialSubject": {
+        "id": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+        "bchAddress": [
+          "bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77"
+        ],
+        "bindingEvent": "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2",
+        "attestationEvent": "98e3f0422a9bc30444b482b491b95e89ddd851e2e6676ff05264b72c1b86d530"
+      },
+      "proof": {
+        "type": "NostrEventProof",
+        "proofPurpose": "assertionMethod",
+        "verificationMethod": "did:nostr:2f5a0aa13246fd8fc4f88b24ff54614de80a5b9818897f43424e4b1e30770e82#key1",
+        "created": "2026-11-19T16:21:26Z",
+        "attestation": {
+          "kind": 1985,
+          "created_at": 1795105286,
+          "content": "",
+          "tags": [
+            [
+              "L",
+              "cash.tambat.attest"
+            ],
+            [
+              "l",
+              "verified",
+              "cash.tambat.attest"
+            ],
+            [
+              "e",
+              "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2"
+            ],
+            [
+              "p",
+              "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4"
+            ]
+          ],
+          "pubkey": "2f5a0aa13246fd8fc4f88b24ff54614de80a5b9818897f43424e4b1e30770e82",
+          "id": "98e3f0422a9bc30444b482b491b95e89ddd851e2e6676ff05264b72c1b86d530",
+          "sig": "3c79e40f4c4f6893e099ed4bc1fe227d7dc342fd36369da7508f53a2e1e512f475e8f1cc177febf818ddddc7f765a8d8ab679bc12ccde583445447249bd04078"
+        },
+        "binding": {
+          "id": "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2",
+          "pubkey": "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+          "created_at": 1794827488,
+          "kind": 10011,
+          "tags": [
+            [
+              "i",
+              "bch:bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77",
+              "IPphZAZE3UR7FA8yPXwEDMS+VeGAhNNkjQKMBDlcC31GMdhXdcKoYJODiY4qAFDyDAOgrw6E7bfaisNDB67MHOs="
+            ]
+          ],
+          "content": "",
+          "sig": "c62049e82f52c607fa5d59b8e859530d66eab9a7bc79cbabf9e577f05178574520427e63564e1b2574d83318169db8da6be78f176719a461a2e54d75144229e4"
+        }
+      }
+    },
+    {
+      "@context": [
+        "https://www.w3.org/ns/credentials/v2"
+      ],
+      "type": [
+        "VerifiableCredential",
+        "BchNostrBindingAttestation"
+      ],
+      "issuer": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+      "validFrom": "2026-11-19T16:21:26Z",
+      "credentialSubject": {
+        "id": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+        "bchAddress": [
+          "bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77"
+        ],
+        "bindingEvent": "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2",
+        "attestationEvent": "64513c549a01a4294244c4f52879adfebce9bb13560845f9f9f2c5c8cc4b1864"
+      },
+      "proof": {
+        "type": "NostrEventProof",
+        "proofPurpose": "assertionMethod",
+        "verificationMethod": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4#key1",
+        "created": "2026-11-19T16:21:26Z",
+        "attestation": {
+          "kind": 1985,
+          "created_at": 1795105286,
+          "content": "",
+          "tags": [
+            [
+              "L",
+              "cash.tambat.attest"
+            ],
+            [
+              "l",
+              "verified",
+              "cash.tambat.attest"
+            ],
+            [
+              "e",
+              "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2"
+            ],
+            [
+              "p",
+              "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4"
+            ]
+          ],
+          "pubkey": "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+          "id": "64513c549a01a4294244c4f52879adfebce9bb13560845f9f9f2c5c8cc4b1864",
+          "sig": "b2b3cf464070b444c2f54fd7bbe240db19f15b86cb857b74650ac9a64acfe000ff8432ae02f502573d478a6a2fbfa2556d199aba5f2756c0dbe0f558615fde48"
+        },
+        "binding": {
+          "id": "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2",
+          "pubkey": "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+          "created_at": 1794827488,
+          "kind": 10011,
+          "tags": [
+            [
+              "i",
+              "bch:bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77",
+              "IPphZAZE3UR7FA8yPXwEDMS+VeGAhNNkjQKMBDlcC31GMdhXdcKoYJODiY4qAFDyDAOgrw6E7bfaisNDB67MHOs="
+            ]
+          ],
+          "content": "",
+          "sig": "c62049e82f52c607fa5d59b8e859530d66eab9a7bc79cbabf9e577f05178574520427e63564e1b2574d83318169db8da6be78f176719a461a2e54d75144229e4"
+        }
+      }
+    },
+    {
+      "@context": [
+        "https://www.w3.org/ns/credentials/v2"
+      ],
+      "type": [
+        "VerifiableCredential",
+        "BchNostrBindingAttestation"
+      ],
+      "issuer": "did:nostr:df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb",
+      "validFrom": "2026-11-16T10:12:28Z",
+      "credentialSubject": {
+        "id": "did:nostr:392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+        "bchAddress": [
+          "bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77"
+        ],
+        "bindingEvent": "96b57e165291e9da717ba527d2ab97912fea73fb7f0ce6aa8d98fb180aa2327f",
+        "attestationEvent": "588a03482cd1a8dc6b8d174b859eebe21b57e68fe0a5a48c422f05b6dfa38e67"
+      },
+      "proof": {
+        "type": "NostrEventProof",
+        "proofPurpose": "assertionMethod",
+        "verificationMethod": "did:nostr:df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb#key1",
+        "created": "2026-11-16T10:12:28Z",
+        "attestation": {
+          "kind": 1985,
+          "created_at": 1794823948,
+          "content": "",
+          "tags": [
+            [
+              "L",
+              "cash.tambat.attest"
+            ],
+            [
+              "l",
+              "verified",
+              "cash.tambat.attest"
+            ],
+            [
+              "e",
+              "96b57e165291e9da717ba527d2ab97912fea73fb7f0ce6aa8d98fb180aa2327f"
+            ],
+            [
+              "p",
+              "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4"
+            ]
+          ],
+          "pubkey": "df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb",
+          "id": "588a03482cd1a8dc6b8d174b859eebe21b57e68fe0a5a48c422f05b6dfa38e67",
+          "sig": "d39048df1046ac16a233b4632f98b64e59f2f24ba69467e3415747f9decdde9a569a05377fd3184c9605f2c756c016fdf2749dfd7dc1741be3ae720fbde9a42c"
+        },
+        "binding": {
+          "id": "96b57e165291e9da717ba527d2ab97912fea73fb7f0ce6aa8d98fb180aa2327f",
+          "pubkey": "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+          "created_at": 1794823888,
+          "kind": 10011,
+          "tags": [
+            [
+              "i",
+              "bch:bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77",
+              "IPphZAZE3UR7FA8yPXwEDMS+VeGAhNNkjQKMBDlcC31GMdhXdcKoYJODiY4qAFDyDAOgrw6E7bfaisNDB67MHOs="
+            ]
+          ],
+          "content": "",
+          "sig": "193193a88fdcb890a189378d306d79dc8dac71dde44aadc09f64545d9e627fb05dc2eba6bbc1319b1245cb7be10004ce3edd0387b915fe289a0af4d87e24b74f"
+        }
+      }
+    }
+  ],
+  "reputationSummary": {
+    "binding": {
+      "id": "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2",
+      "pubkey": "392df1af01cc6ad1ecaba87879a48bfb8048bf1f965f4e64f27a8a76441c04f4",
+      "created_at": 1794827488,
+      "kind": 10011,
+      "tags": [
+        [
+          "i",
+          "bch:bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77",
+          "IPphZAZE3UR7FA8yPXwEDMS+VeGAhNNkjQKMBDlcC31GMdhXdcKoYJODiY4qAFDyDAOgrw6E7bfaisNDB67MHOs="
+        ]
+      ],
+      "content": "",
+      "sig": "c62049e82f52c607fa5d59b8e859530d66eab9a7bc79cbabf9e577f05178574520427e63564e1b2574d83318169db8da6be78f176719a461a2e54d75144229e4"
+    },
+    "bindingEvent": "f00647858dd2dae400b33d2f7955832c49babc568480c3567ca85cfbe5af46e2",
+    "credentials": 4,
+    "attestations": 2,
+    "issuers": [
+      "did:nostr:2f5a0aa13246fd8fc4f88b24ff54614de80a5b9818897f43424e4b1e30770e82",
+      "did:nostr:df3c97f00101f46378df1770e3dee069a01d89c0e613827543173139b18c46bb"
+    ],
+    "created": "2026-11-19T16:21:26Z"
+  }
+}

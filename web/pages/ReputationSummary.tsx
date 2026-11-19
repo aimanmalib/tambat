@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
-import { summarizeReputation } from '../../src/core/reputation';
+import { buildReputationBundle, bundleFileName, summarizeReputation, type Reputation } from '../../src/core/reputation';
 import { toNpub } from '../../src/core/nostr';
+import { credentialFrom } from '../../src/core/vc';
+import type { BindingResult } from '../../src/core/verify';
 import { useText } from '../i18n';
 import { HexId } from '../ui/HexId';
 import type { IdentityReads } from './useIdentityReads';
@@ -30,11 +32,32 @@ function RowView({ row }: { row: Row }) {
   );
 }
 
+/** The counted attestations as a portable bundle (docs/SPEC.md "Portable reputation"), built here from checked events. */
+function BundleLink({ rep, result }: { rep: Reputation; result: BindingResult }) {
+  const { t } = useText();
+  if (rep.attestations.kind !== 'counted' || !result.ok || !result.event) return null;
+  const s = rep.anchoredSince;
+  const bundle = buildReputationBundle({
+    binding: result,
+    credentials: rep.attestations.items.map((a) => credentialFrom(a, result)),
+    anchoredSince: s.kind === 'block' ? s.commitment : null,
+  });
+  const href = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(bundle, null, 2))}`;
+  return (
+    <p className="option__help rep__bundle">
+      <a className="btn btn--small" href={href} download={bundleFileName(result.pubkey)} data-rep-bundle={bundle.reputationSummary.attestations}>
+        {t('reputation.download')}
+      </a>{' '}
+      {t('reputation.downloadHelp')}
+    </p>
+  );
+}
+
 /**
  * Three checked counts side by side, each opening to its sources: attestations of the current binding, payment
  * receipts the chain confirms, and the block since which the chain binds the address. No score: see docs/SPEC.md.
  */
-export function ReputationSummary({ reads }: { reads: IdentityReads }) {
+export function ReputationSummary({ reads, result }: { reads: IdentityReads; result: BindingResult }) {
   const { t } = useText();
   const rep = summarizeReputation({ attestations: reads.attestations ?? null, receipts: reads.receipts ?? null, chain: reads.chain ?? null });
   const checking = t('reputation.checking');
@@ -90,6 +113,7 @@ export function ReputationSummary({ reads }: { reads: IdentityReads }) {
       <h3 className="picker__title">{t('reputation.title')}</h3>
       <ul className="rep__list">{rows.map((row) => <RowView key={row.name} row={row} />)}</ul>
       <p className="option__help">{t('reputation.help')}</p>
+      {reads.attestations ? <BundleLink rep={rep} result={result} /> : null}
     </div>
   );
 }

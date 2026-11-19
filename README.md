@@ -78,6 +78,10 @@ Beyond the required parts, each live and tested:
 - A reputation summary on Look up ([SPEC](docs/SPEC.md#reputation-summary)): verified attestations, receipts the chain
   confirms, and "anchored since block N", each opening to its sources. A source that could not be read says so instead of 0,
   and there is no combined score. Live for the Paytaca key: https://tambat.sasateguh.com/lookup?q=npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz
+- A portable reputation file ([SPEC](docs/SPEC.md#portable-reputation), [example](examples/reputation-bundle.json)): a W3C
+  Verifiable Presentation 2.0 that carries every counted attestation credential and the holder's binding. "Download
+  reputation summary" on Look up or `tambat rep export <npub>` makes one; `tambat rep verify` or the one-file verifier
+  recounts it offline and rejects a file whose claimed count differs from the recount.
 - An optional BCH anchor ([SPEC](docs/SPEC.md#optional-bch-anchor), [ADR 0008](docs/decisions/0008-optional-bch-anchor.md)):
   the Paytaca binding is anchored on BCH since block 977901, signed by the Paytaca wallet that holds the address
   ([anchor measured](docs/MEASURED.md#anchor)). `tambat anchor-lookup <address>` reads it from the chain alone, no relays.
@@ -235,6 +239,11 @@ attestation and binding events. `tambat vc verify` and the one-file verifier che
 they say, compared as RFC 8785 canonical JSON, with no JSON-LD processing and nothing fetched. Offline it shows who attested
 which binding and when, not whether that binding is still current.
 
+`tambat rep export <npub|nprofile> --out file.json` bundles those credentials into one portable reputation file
+([SPEC](docs/SPEC.md#portable-reputation)). `tambat rep verify file.json` checks every credential again and recounts: one
+per issuer, only attestations of the named binding, never the holder's own; a file that claims more than that is rejected.
+`--chain` also reads the chain to check the claimed "anchored since" block.
+
 ## Use the library
 
 The code that writes, finds and verifies bindings (`src/core`) is also an installable package, `@tambat/core`
@@ -310,7 +319,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-7489eff3ab2ce78a1cdea4a743f77a8f6d860f49127a13eea8e4951d2c02afc3  tambat-verify.html
+f50f811cf0ce2b477559ff66d3e7487e4399692d0f1bdffe41356a4597ff639d  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -365,7 +374,9 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 - **Attestations** are one label ("verified") with no score, expiry or reason; the web app shows them but publishing one is a
   CLI command (`tambat attest`).
 - **Reputation** is three separate counts with no score, and they are lower bounds: only what the queried relays hold is
-  counted, and nothing shows whether attesting or paying keys are distinct people. **Selective disclosure** is out of scope.
+  counted, and nothing shows whether attesting or paying keys are distinct people. The portable reputation file covers attestations
+  only; offline it cannot show whether a newer binding replaced the one it names, and its anchor block stays a claim
+  until checked with `tambat rep verify --chain`. **Selective disclosure** is out of scope.
   A binding says two keys belong together, not who the person is.
 - **Privacy**: a binding is public by design and links a payment address to a social identity. Users who want unlinkable
   payments should bind a separate address.

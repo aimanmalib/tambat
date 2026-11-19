@@ -266,8 +266,8 @@
     "tag": "pengesah satu fail",
     "title": "Sahkan ikatan BCH dan Nostr",
     "intro": "Halaman ini satu fail HTML. Ia menyemak setiap tandatangan dalam pelayar anda dan hanya berhubung dengan relay yang disenaraikan di bawah, tidak sekali-kali dengan pelayan Tambat. Simpan fail ini dan buka dari cakera untuk menyemak ikatan tanpa laman ini.",
-    "inputLabel": "JSON event bertandatangan, JSON kelayakan, npub atau alamat BCH",
-    "inputHelp": "Tampal event kind 10011 atau kelayakan pengesahan untuk menyemaknya pada peranti ini, atau masukkan npub atau alamat untuk mengambil ikatan terbaharu dari relay.",
+    "inputLabel": "JSON event bertandatangan, JSON kelayakan atau ringkasan reputasi, npub atau alamat BCH",
+    "inputHelp": "Tampal event kind 10011, kelayakan pengesahan atau ringkasan reputasi untuk menyemaknya pada peranti ini, atau masukkan npub atau alamat untuk mengambil ikatan terbaharu dari relay.",
     "relaysLabel": "Relay",
     "relaysHelp": "Satu setiap baris. Ubah sesuka hati; tiada yang lain dihubungi.",
     "submit": "Sahkan",
@@ -377,7 +377,8 @@
       "vc": "Pengesahan sebagai W3C VC 2.0",
       "pkg": "Pakej pustaka",
       "phone": "Pautan pasangan untuk dompet telefon",
-      "reputation": "Ringkasan reputasi"
+      "reputation": "Ringkasan reputasi",
+      "repBundle": "Fail reputasi"
     },
     "critTitle": "Kriteria penilaian",
     "crit": {
@@ -518,6 +519,33 @@
     "receiptTx": "Transaksi",
     "anchoredSince": "Ditambat sejak blok {height}",
     "notAnchored": "Tidak ditambat pada rantaian",
-    "help": "Tiga semakan berasingan, setiap satu dikira dari data bertandatangan yang disahkan sendiri oleh halaman ini. Buka satu baris untuk melihat apa yang dikira. Ia tidak dijumlahkan menjadi satu skor: pengesahan pihak lain, bayaran dan sauh membawa maksud berbeza. Sumber yang tidak dapat dibaca dinyatakan begitu; ia tidak dikira sifar."
+    "help": "Tiga semakan berasingan, setiap satu dikira dari data bertandatangan yang disahkan sendiri oleh halaman ini. Buka satu baris untuk melihat apa yang dikira. Ia tidak dijumlahkan menjadi satu skor: pengesahan pihak lain, bayaran dan sauh membawa maksud berbeza. Sumber yang tidak dapat dibaca dinyatakan begitu; ia tidak dikira sifar.",
+    "download": "Muat turun ringkasan reputasi",
+    "downloadHelp": "Fail W3C Verifiable Presentation 2.0 dengan setiap pengesahan yang dikira di sini dan event bertandatangan di sebaliknya. Sesiapa boleh mengiranya semula luar talian dengan pengesah satu fail atau tambat rep verify."
+  },
+  "repBundle": {
+    "ok": "Ringkasan reputasi disahkan pada peranti ini: {count} pengesahan dikira daripada {total} kelayakan, dikira semula daripada event bertandatangan di dalamnya. Setiap kiraan yang didakwa sepadan.",
+    "bad": "Ringkasan reputasi tidak disahkan: {reason}",
+    "recount": "Dikira semula daripada event bertandatangan di dalamnya: {count} pengesahan.",
+    "holder": "Pemegang",
+    "counted": "Dikira",
+    "skipped": "Tidak dikira (kelayakan {n})",
+    "anchorClaimed": "Didakwa: berlabuh sejak blok {height}. Halaman ini tidak membaca rantaian; semak dengan tambat rep verify --chain.",
+    "offline": "Disemak luar talian: satu kiraan bagi setiap penerbit, hanya pengesahan bagi ikatan yang dinamakan, tidak sekali-kali pengesahan pemegang sendiri. Sama ada ikatan lebih baharu wujud sejak fail dibuat memerlukan relay: cari pemegang.",
+    "skip": {
+      "credential": "Ia tidak sah:",
+      "self": "Pemegang mengesahkan dirinya sendiri.",
+      "subject": "Ia tentang kunci lain.",
+      "old_binding": "Ia menyemat ikatan lama pemegang.",
+      "duplicate_issuer": "Penerbit ini sudah dikira."
+    },
+    "reason": {
+      "shape": "ia bukan ringkasan reputasi W3C VP 2.0 (konteks, jenis, kelayakan atau ringkasan).",
+      "holder": "pemegang bukan kunci did:nostr.",
+      "binding": "ikatan yang dinamakan tidak sah atau bukan milik pemegang.",
+      "stale_binding": "satu kelayakan di dalamnya membawa ikatan pemegang yang lebih baharu daripada yang dinamakan.",
+      "count": "{path} yang didakwa berbeza daripada kiraan semula event bertandatangan di dalamnya.",
+      "anchor": "rantaian tidak mengikat alamat sejak blok yang didakwa."
+    }
   }
 }

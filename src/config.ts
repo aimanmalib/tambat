@@ -160,6 +160,10 @@ export interface TambatConfig {
     type: string;
     proofType: string;
     filePrefix: string;
+    /** The presentation type after "VerifiablePresentation" of a portable reputation summary (docs/SPEC.md). */
+    presentationType: string;
+    /** Download file name prefix of a reputation summary. */
+    reputationFilePrefix: string;
   };
   /** The one-screen page for judges at /judges. Event ids and keys come from docs/MEASURED.md. */
   judges: {
@@ -332,10 +336,12 @@ export function parseConfig(input: unknown): TambatConfig {
   parseAnchor(c.anchor);
   parseReceipt(c.receipt);
   parseAttest(c.attest, c.receipt);
-  for (const k of ['type', 'proofType'] as const) {
+  for (const k of ['type', 'proofType', 'presentationType'] as const) {
     if (typeof c.vc?.[k] !== 'string' || !/^[A-Z][A-Za-z0-9]+$/.test(c.vc[k])) fail(`vc.${k}`, 'must be a PascalCase term');
   }
-  if (typeof c.vc.filePrefix !== 'string' || !/^[a-z0-9-]+$/.test(c.vc.filePrefix)) fail('vc.filePrefix', 'must use a-z, 0-9 and - only');
+  for (const k of ['filePrefix', 'reputationFilePrefix'] as const) {
+    if (typeof c.vc[k] !== 'string' || !/^[a-z0-9-]+$/.test(c.vc[k])) fail(`vc.${k}`, 'must use a-z, 0-9 and - only');
+  }
   parseJudges(c.judges);
   return c;
 }

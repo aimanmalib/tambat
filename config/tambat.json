@@ -194,6 +194,8 @@
   "vc": {
     "type": "BchNostrBindingAttestation",
     "proofType": "NostrEventProof",
-    "filePrefix": "tambat-attestation"
+    "filePrefix": "tambat-attestation",
+    "presentationType": "TambatReputationSummary",
+    "reputationFilePrefix": "tambat-reputation"
   }
 }

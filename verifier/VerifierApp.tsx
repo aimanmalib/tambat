@@ -6,6 +6,7 @@ import { useText } from '../web/i18n';
 import { BindingSummary } from '../web/ui/BindingSummary';
 import { Notice } from '../web/ui/Notice';
 import { check, type CheckOutcome } from './check';
+import { BundleResult } from './BundleResult';
 import { CredentialResult } from './CredentialResult';
 
 type State = { kind: 'idle' } | { kind: 'busy' } | CheckOutcome | { kind: 'failed'; message: string };
@@ -48,6 +49,8 @@ function Outcome({ state }: { state: State }) {
       );
     case 'credential':
       return <CredentialResult check={state.check} />;
+    case 'bundle':
+      return <BundleResult check={state.check} credentials={state.credentials} />;
     case 'found':
       return (
         <>

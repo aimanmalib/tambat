@@ -16,7 +16,7 @@ const look = (q: string) => `/lookup?q=${encodeURIComponent(q)}`;
 const REQUIREMENTS: { key: string; links: { key: string; href: string }[] }[] = [
   { key: 'create', links: [{ key: 'link', href: '/' }, { key: 'revoke', href: look(config.judges.revocation.npub) }] },
   { key: 'binding', links: [{ key: 'vectors', href: repo('examples/vectors.json') }] },
-  { key: 'discovery', links: [{ key: 'lookup', href: look(config.judges.sample.npub) }, { key: 'wall', href: '/wall' }, { key: 'embed', href: `${look(config.judges.sample.npub)}&${EMBED_OPEN_PARAM}=1` }, { key: 'reputation', href: look(config.judges.paytaca.npub) }] },
+  { key: 'discovery', links: [{ key: 'lookup', href: look(config.judges.sample.npub) }, { key: 'wall', href: '/wall' }, { key: 'embed', href: `${look(config.judges.sample.npub)}&${EMBED_OPEN_PARAM}=1` }, { key: 'reputation', href: look(config.judges.paytaca.npub) }, { key: 'repBundle', href: repo('examples/reputation-bundle.json') }] },
   { key: 'auth', links: [{ key: 'demo', href: '/demo' }, { key: 'verify', href: repo('docs/VERIFY.md') }, { key: 'vc', href: repo('examples/attestation-vc.json') }, { key: 'phone', href: `${repo('docs/PAYTACA.md')}#on-an-iphone` }] },
   { key: 'docs', links: [{ key: 'readme', href: repo('README.md') }, { key: 'measured', href: repo('docs/MEASURED.md') }, { key: 'pkg', href: repoDir('docs/pkg') }] },
 ];

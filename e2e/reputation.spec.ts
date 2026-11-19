@@ -16,6 +16,7 @@ import { addressFromPublicKey } from '../src/core/cashaddr.js';
 import { toNpub } from '../src/core/nostr.js';
 import { bindingFromKeys } from '../src/core/paytaca.js';
 import { createReceiptEvent } from '../src/core/receipt.js';
+import { verifyReputationBundle } from '../src/core/reputation.js';
 import { hexOf, signP2pkh } from '../tests/anchor-wallet.js';
 import { headerWithTime, type FakeChain } from '../tests/fake-fulcrum.js';
 import { transaction } from '../tests/receipt-chain.js';
@@ -94,10 +95,24 @@ test('the summary counts verified attestations, verified receipts and the anchor
   await expect(page.locator('.result .attest')).toHaveAttribute('data-attest', '1');
   await expect(page.locator('.result .anchor')).toHaveAttribute('data-chain', 'bound');
 
+  // The counted attestations download as a portable bundle that recounts offline to the same number.
+  const download = page.waitForEvent('download');
+  await page.locator('.rep').getByRole('link', { name: en.reputation.download }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toBe(`${config.vc.reputationFilePrefix}-${A.pubkey.slice(0, 12)}.json`);
+  const chunks: Buffer[] = [];
+  for await (const chunk of await file.createReadStream()) chunks.push(chunk as Buffer);
+  const bundle = verifyReputationBundle(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+  expect(bundle.ok && [bundle.count.counted.map((c) => c.attestationEvent), bundle.anchor]).toEqual([
+    [attestation.id],
+    { kind: 'claimed', height: BLOCK, txid: anchorTx.txid },
+  ]);
+
   await expectNoOverflow(page);
   await expectAccessible(page);
   await page.getByLabel(en.lang.label).selectOption('ms');
   await expect(page.locator('.rep h3')).toHaveText(ms.reputation.title);
+  await expect(page.locator('.rep').getByRole('link', { name: ms.reputation.download })).toHaveCount(1);
   await expect(anchor).toContainText(ms.reputation.anchoredSince.replace('{height}', String(BLOCK)));
   await page.setViewportSize({ width: 320, height: 700 });
   await expectNoOverflow(page);

@@ -266,8 +266,8 @@
     "tag": "one-file verifier",
     "title": "Verify a BCH and Nostr binding",
     "intro": "This page is a single HTML file. It checks every signature in your browser and talks only to the relays listed below, never to the Tambat server. Save it and open it from disk to check bindings without this site.",
-    "inputLabel": "Signed event JSON, credential JSON, npub or BCH address",
-    "inputHelp": "Paste a kind 10011 event or an attestation credential to check it on this device, or enter an npub or address to fetch the newest binding from relays.",
+    "inputLabel": "Signed event JSON, credential or reputation summary JSON, npub or BCH address",
+    "inputHelp": "Paste a kind 10011 event, an attestation credential or a reputation summary to check it on this device, or enter an npub or address to fetch the newest binding from relays.",
     "relaysLabel": "Relays",
     "relaysHelp": "One per line. Edit them freely; nothing else is contacted.",
     "submit": "Verify",
@@ -377,7 +377,8 @@
       "vc": "Attestation as W3C VC 2.0",
       "pkg": "Library package",
       "phone": "Pairing link for a phone wallet",
-      "reputation": "Reputation summary"
+      "reputation": "Reputation summary",
+      "repBundle": "Reputation file"
     },
     "critTitle": "Judging criteria",
     "crit": {
@@ -518,6 +519,33 @@
     "receiptTx": "Transaction",
     "anchoredSince": "Anchored since block {height}",
     "notAnchored": "Not anchored on the chain",
-    "help": "Three separate checks, each counted from signed data this page verified itself. Open a line to see what it counts. They are not added into one score: an attestation, a payment and an anchor say different things. A source that could not be read says so; it is not counted as zero."
+    "help": "Three separate checks, each counted from signed data this page verified itself. Open a line to see what it counts. They are not added into one score: an attestation, a payment and an anchor say different things. A source that could not be read says so; it is not counted as zero.",
+    "download": "Download reputation summary",
+    "downloadHelp": "A W3C Verifiable Presentation 2.0 file with every attestation counted here and the signed events behind them. Anyone can recount it offline with the one-file verifier or tambat rep verify."
+  },
+  "repBundle": {
+    "ok": "Reputation summary verified on this device: {count} attestation(s) counted of {total} credential(s), recounted from the signed events inside. Every claimed count matches.",
+    "bad": "Reputation summary not verified: {reason}",
+    "recount": "Recounted from the signed events inside: {count} attestation(s).",
+    "holder": "Holder",
+    "counted": "Counted",
+    "skipped": "Not counted (credential {n})",
+    "anchorClaimed": "Claimed: anchored since block {height}. This page reads no chain; check it with tambat rep verify --chain.",
+    "offline": "Checked offline: one count per issuer, only attestations of the named binding, never the holder's own. Whether a newer binding exists since the file was made needs the relays: look up the holder.",
+    "skip": {
+      "credential": "It does not verify:",
+      "self": "The holder vouches for itself.",
+      "subject": "It is about another key.",
+      "old_binding": "It pins an older binding of the holder.",
+      "duplicate_issuer": "This issuer is already counted."
+    },
+    "reason": {
+      "shape": "it is not a W3C VP 2.0 reputation summary (context, type, credentials or summary).",
+      "holder": "the holder is not a did:nostr key.",
+      "binding": "the binding it names does not verify or is not the holder's.",
+      "stale_binding": "a credential inside carries a newer binding of the holder than the one it names.",
+      "count": "the claimed {path} differs from the recount of the signed events inside.",
+      "anchor": "the chain does not bind the address since the claimed block."
+    }
   }
 }

@@ -25,7 +25,7 @@ function CheckedPanels({ result }: { result: BindingResult }) {
   const reads = useIdentityReads(result);
   return (
     <>
-      <ReputationSummary reads={reads} />
+      <ReputationSummary reads={reads} result={result} />
       <AnchorStatus result={result} read={reads.chain} />
       <Attestations result={result} summary={reads.attestations} />
     </>
