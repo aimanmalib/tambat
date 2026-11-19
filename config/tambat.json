@@ -129,7 +129,8 @@
     "limit": 30,
     "pageSize": 200,
     "maxPages": 5,
-    "chainConcurrency": 2
+    "chainConcurrency": 2,
+    "sinceRootMargin": "0px 0px 100% 0px"
   },
   "anchor": {
     "prefix": "TMBT",

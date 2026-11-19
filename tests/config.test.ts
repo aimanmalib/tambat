@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { config, cspHeader, NIP32_LABEL_KIND, parseConfig } from '../src/config.js';
+import { config, cspHeader, NIP32_LABEL_KIND, isRootMargin, parseConfig } from '../src/config.js';
 
 const fresh = () => JSON.parse(readFileSync(new URL('../config/tambat.json', import.meta.url), 'utf8'));
 
@@ -50,6 +50,16 @@ describe('config/tambat.json', () => {
       const c = fresh();
       c.wall[key] = value;
       expect(() => parseConfig(c)).toThrow(new RegExp(`wall.${key}`));
+    }
+  });
+
+  it('takes a wall badge margin only in the form IntersectionObserver accepts', () => {
+    expect(config.wall.sinceRootMargin).toBe('0px 0px 100% 0px');
+    for (const ok of ['0px', '10% 0px', '-5px 0px 50% 0px']) expect(isRootMargin(ok)).toBe(true);
+    for (const value of ['', '100', '0px 0px 100% 0px 0px', '1em', '0px,0px', 100, undefined]) {
+      const c = fresh();
+      c.wall.sinceRootMargin = value;
+      expect(() => parseConfig(c)).toThrow(/wall.sinceRootMargin/);
     }
   });
 

@@ -39,3 +39,19 @@ export function createLimiter(max: number): <T>(task: () => Promise<T>) => Promi
       next();
     });
 }
+
+/**
+ * Remembers each finished read by key, so an entry read once is not read again when it scrolls back into view or its list
+ * is drawn again. A read in flight is shared; a read that fails is forgotten, so a later view may try again.
+ */
+export function createReadOnce<T>(): (key: string, read: () => Promise<T>) => Promise<T> {
+  const reads = new Map<string, Promise<T>>();
+  return (key, read) => {
+    const known = reads.get(key);
+    if (known) return known;
+    const started = read();
+    reads.set(key, started);
+    started.catch(() => reads.delete(key));
+    return started;
+  };
+}

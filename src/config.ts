@@ -94,6 +94,11 @@ export interface TambatConfig {
     maxPages: number;
     /** Chain reads for "anchored since" badges running at once; only entries on screen are read. */
     chainConcurrency: number;
+    /**
+     * How far beyond the screen an entry counts as on screen for its chain read (IntersectionObserver `rootMargin`), so
+     * entries just below the fold already carry their badge when scrolled to. Pixels or percent of the screen, 1 to 4 values.
+     */
+    sinceRootMargin: string;
   };
   /** Optional BCH anchor (docs/SPEC.md "Optional BCH anchor"). The server never signs or sends a transaction. */
   anchor: {
@@ -167,6 +172,11 @@ const NETWORKS: readonly Network[] = ['bitcoincash', 'bchtest'];
 
 function fail(path: string, why: string): never {
   throw new Error(`config ${path}: ${why}`);
+}
+
+/** An IntersectionObserver `rootMargin`: 1 to 4 lengths, each in px or %. Browsers throw on anything else. */
+export function isRootMargin(value: unknown): value is string {
+  return typeof value === 'string' && /^-?\d+(\.\d+)?(px|%)( -?\d+(\.\d+)?(px|%)){0,3}$/.test(value);
 }
 
 function positiveInt(value: unknown, path: string): number {
@@ -307,6 +317,7 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.wall.pageSize, 'wall.pageSize');
   positiveInt(c.wall.maxPages, 'wall.maxPages');
   positiveInt(c.wall.chainConcurrency, 'wall.chainConcurrency');
+  if (!isRootMargin(c.wall.sinceRootMargin)) fail('wall.sinceRootMargin', 'must be 1 to 4 lengths in px or %, like "0px 0px 100% 0px"');
   if (typeof c.nostr?.recoveryTag !== 'string' || !/^[a-z_]{2,}$/.test(c.nostr.recoveryTag)) fail('nostr.recoveryTag', 'must be a lower-case tag name of two or more letters');
   if (typeof c.nostr.recoveryText !== 'string' || !c.nostr.recoveryText.includes('{npub}')) fail('nostr.recoveryText', 'must contain {npub}');
   parseAnchor(c.anchor);

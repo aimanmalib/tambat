@@ -1,6 +1,6 @@
 /**
  * "Anchored since block N" on the wall and on Pay. Every binding is fresh and every chain is a fake Fulcrum
- * (tests/fake-fulcrum.ts): no transaction is sent anywhere. The wall reads the chain only for entries on screen.
+ * (tests/fake-fulcrum.ts): no transaction is sent anywhere. The wall reads the chain only for entries on or near the screen.
  */
 import { secp256k1 } from '@bitauth/libauth';
 import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
@@ -111,6 +111,33 @@ test('the wall badges bound entries on screen, reads the rest only when scrolled
   await expect(card(page, last).locator('.badge--anchor')).toHaveCount(0);
   await expectNoOverflow(page);
   await expectAccessible(page);
+});
+
+test('on a phone the wall reads entries just below the fold before they are reached, and badges them as the reader scrolls', async ({ page }) => {
+  await routes(page, chain);
+  await page.setViewportSize({ width: 390, height: 664 });
+  await page.goto('/wall');
+  await expect(page.locator('.wall__card')).toHaveCount(COUNT);
+  const anchored = bindings[2] as Binding;
+  const further = bindings[8] as Binding;
+  const last = bindings[COUNT - 1] as Binding;
+  // Not the first entry, and below the fold before any scroll: read already because of wall.sinceRootMargin.
+  const below = await card(page, anchored).evaluate((el) => el.getBoundingClientRect().top >= innerHeight);
+  expect(below).toBe(true);
+  await expect(card(page, anchored).locator('.since')).toHaveAttribute('data-since-read', 'yes', { timeout: 10_000 });
+  await expect(card(page, anchored).locator('.badge--anchor')).toHaveText(badgeText(en, BLOCK + 2), { timeout: 20_000 });
+  await expect(card(page, last).locator('.since')).toHaveAttribute('data-since-read', 'no');
+  // Scroll the way a reader does, a screen at a time, until the further entry is on screen.
+  for (let i = 0; i < 20; i += 1) {
+    const top = await card(page, further).evaluate((el) => el.getBoundingClientRect().top);
+    if (top < 664 / 2) break;
+    await page.evaluate(() => window.scrollBy(0, Math.round(innerHeight * 0.8)));
+    await page.waitForFunction(() => document.readyState === 'complete');
+  }
+  await expect(card(page, further).locator('.since')).toHaveAttribute('data-since-read', 'yes');
+  await expect(card(page, further).locator('.badge--anchor')).toHaveText(badgeText(en, BLOCK + 8), { timeout: 20_000 });
+  await expect(card(page, anchored).locator('.badge--anchor')).toHaveText(badgeText(en, BLOCK + 2));
+  await expectNoOverflow(page);
 });
 
 test('the wall with chain servers down shows every entry, no badge and no error', async ({ page }) => {

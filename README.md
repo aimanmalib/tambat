@@ -87,8 +87,10 @@ Beyond the required parts, each live and tested:
   (`tests/chain-quorum.test.ts`, `e2e/chain-status.spec.ts`, `e2e/judges.spec.ts`); the live reading is in [anchor measured](docs/MEASURED.md#anchor).
 - A wall of verified links read from the relays, paging back past identity events of other platforms: https://tambat.sasateguh.com/wall ([wall measured](docs/MEASURED.md#wall)).
 - "Anchored since block N" on wall entries and on Pay, shown only when the chain servers agree that the address is still
-  bound to that key; the wall reads the chain only for entries on screen, `wall.chainConcurrency` at a time, and a failed
-  read shows no badge rather than an error (`tests/since.test.ts`, `e2e/since.spec.ts`).
+  bound to that key; the wall reads the chain only for entries on screen or within `wall.sinceRootMargin` of it (one screen
+  below the fold, so on a phone the entries you scroll to next already carry their badge), `wall.chainConcurrency` at a
+  time, each entry once, and a failed read shows no badge rather than an error (`tests/since.test.ts`, `e2e/since.spec.ts`
+  in WebKit on an iPhone 13 and Chromium, [ADR 0016](docs/decisions/0016-wall-badge-read-margin.md)).
 - A NIP-05 name for the demo identity, an [embeddable badge](#embeddable-badge), a [one-file verifier](#one-file-verifier)
   and a "Try tampering" demo on every verified look-up.
 
@@ -264,7 +266,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-97d0a535571313a2a6e23d3fece941bfa73a9a1b7ac8f04e290f52d0ef357ea9  tambat-verify.html
+0fd5c348293bd13799b472b474a98c1f2d064b859ea559894cf9401ff9ce1a81  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;

@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { buildAnchorTransaction, txidOf, type AnchorPayload } from '../src/core/anchor.js';
 import { addressStatus, scripthashOf } from '../src/core/anchor-chain.js';
 import type { ChainServer } from '../src/core/chain-quorum.js';
-import { boundSince, createLimiter } from '../src/core/since.js';
+import { boundSince, createLimiter, createReadOnce } from '../src/core/since.js';
 import { signP2pkh, hexOf } from './anchor-wallet.js';
 import { fakeSource, headerWithTime, type FakeChain } from './fake-fulcrum.js';
 import { keys, other, vectors } from './helpers.js';
@@ -89,5 +89,21 @@ describe('createLimiter', () => {
     const next = limit(async () => 'ok');
     await expect(failed).rejects.toThrow('no');
     expect(await next).toBe('ok');
+  });
+});
+
+describe('createReadOnce', () => {
+  it('reads each key once, shares a read in flight and forgets a failed one', async () => {
+    const once = createReadOnce<number>();
+    let calls = 0;
+    const read = async () => (calls += 1);
+    const [a, b] = await Promise.all([once('k', read), once('k', read)]);
+    expect([a, b, calls]).toEqual([1, 1, 1]);
+    expect(await once('k', read)).toBe(1);
+    expect(await once('other', read)).toBe(2);
+
+    await expect(once('bad', () => Promise.reject(new Error('down')))).rejects.toThrow('down');
+    expect(await once('bad', read)).toBe(3);
+    expect(calls).toBe(3);
   });
 });
