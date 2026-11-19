@@ -60,8 +60,16 @@
     "wc": "Paytaca",
     "wcHelp": "Bersambung melalui WalletConnect. Dompet menandatangan mesej dan tidak pernah menghantar transaksi.",
     "wcStart": "Sambung Paytaca",
-    "wcWaiting": "Imbas kod ini dengan Paytaca, atau buka pautan di telefon ini, kemudian luluskan sambungan.",
+    "wcWaiting": "Imbas kod ini dengan Paytaca, atau salin pautan pasangan ke Paytaca di telefon ini, kemudian luluskan sambungan.",
     "wcOpen": "Buka dalam aplikasi dompet",
+    "wcLink": "Pautan pasangan",
+    "wcPhoneTitle": "Paytaca di telefon ini",
+    "wcPhoneSteps": {
+      "copy": "Salin pautan pasangan.",
+      "open": "Buka Paytaca dan pergi ke WalletConnect.",
+      "paste": "Tampal pautan itu dan luluskan sambungan.",
+      "back": "Kembali ke halaman ini dalam pelayar anda. Ia bersambung sendiri."
+    },
     "wcSign": "Minta dompet menandatangan",
     "wcSigning": "Sahkan tandatangan dalam dompet anda.",
     "wcUnavailable": "WalletConnect belum disediakan di laman ini. Tampal tandatangan sebagai ganti.",
@@ -367,7 +375,8 @@
       "measured": "Ukuran",
       "embed": "Benamkan lencana",
       "vc": "Pengesahan sebagai W3C VC 2.0",
-      "pkg": "Pakej pustaka"
+      "pkg": "Pakej pustaka",
+      "phone": "Pautan pasangan untuk dompet telefon"
     },
     "critTitle": "Kriteria penilaian",
     "crit": {

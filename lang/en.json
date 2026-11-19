@@ -60,8 +60,16 @@
     "wc": "Paytaca",
     "wcHelp": "Connects over WalletConnect. The wallet signs a message and never sends a transaction.",
     "wcStart": "Connect Paytaca",
-    "wcWaiting": "Scan this code with Paytaca, or open the link on this phone, then approve the connection.",
+    "wcWaiting": "Scan this code with Paytaca, or copy the pairing link into Paytaca on this phone, then approve the connection.",
     "wcOpen": "Open in wallet app",
+    "wcLink": "Pairing link",
+    "wcPhoneTitle": "Paytaca on this phone",
+    "wcPhoneSteps": {
+      "copy": "Copy the pairing link.",
+      "open": "Open Paytaca and go to WalletConnect.",
+      "paste": "Paste the link and approve the connection.",
+      "back": "Come back to this page in your browser. It carries on by itself."
+    },
     "wcSign": "Ask the wallet to sign",
     "wcSigning": "Confirm the signature in your wallet.",
     "wcUnavailable": "WalletConnect is not set up on this site. Paste a signature instead.",
@@ -367,7 +375,8 @@
       "measured": "Measurements",
       "embed": "Embed badge",
       "vc": "Attestation as W3C VC 2.0",
-      "pkg": "Library package"
+      "pkg": "Library package",
+      "phone": "Pairing link for a phone wallet"
     },
     "critTitle": "Judging criteria",
     "crit": {
