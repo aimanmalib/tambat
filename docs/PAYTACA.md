@@ -22,6 +22,22 @@ An anchor (an optional BCH transaction recording the binding, [SPEC.md](SPEC.md#
 Paytaca binding above was anchored in block 977901 by a transaction that spends from its address, so the Paytaca wallet
 holding that address signed it; [the measurements](MEASURED.md#anchor) give the txid and the reading from the chain.
 
+## On an iPhone
+
+A phone cannot scan the QR code on its own screen. When **Link** (or **Sign in with a BCH wallet** in the demo app) starts a
+WalletConnect pairing, the page shows the pairing link (`wc:...`) as text with a **Copy** button; on a narrow screen it comes
+before the QR code. The pairing link can be pasted into a phone wallet:
+
+1. Tap **Copy** next to "Pairing link".
+2. Open Paytaca and go to WalletConnect.
+3. Paste the link and approve the connection.
+4. Come back to the page in the browser. It carries on by itself once the wallet approves.
+
+The same steps are shown on the page in English and Malay. **Anchor this link on BCH** uses the wallet paired this way, so
+it needs no second pairing. `e2e/wc-pairing.spec.ts` checks, in Chromium and in WebKit on an iPhone 13, that the copied text
+is the pairing link of the session, that the link sits above the QR code at phone widths, and that nothing overflows at
+320 px. It uses a fake wallet; a paste into Paytaca on an iPhone has not been measured.
+
 ## Inside the wallet
 
 1. Build the verification text from the wallet's own npub:

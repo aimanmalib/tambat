@@ -106,6 +106,7 @@ Beyond the required parts, each live and tested:
 
 1. Open https://tambat.sasateguh.com. **Link**: connect a Nostr key (a NIP-07 extension, a NIP-46 remote signer, or "Use a
    demo key"), then a BCH key (Paytaca over WalletConnect, a signature pasted from any wallet with "Sign message", or a demo key).
+   On a phone, the pairing link can be copied and pasted into a phone wallet ([steps](docs/PAYTACA.md#on-an-iphone)).
 2. Sign. The page runs every verification step on the event before you publish, then publishes to the five public relays and shows
    which ones accepted it and how fast.
 3. **Look up**: paste the npub, the address or a NIP-05 name such as `demo@tambat.sasateguh.com`. The browser asks the relays and verifies the result itself: the step list, the
@@ -302,7 +303,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-355ffe3c3eeb907171836a24a22ed28356151e5b30854a92d7daea9c98a52b14  tambat-verify.html
+aabe45ab7f2a4246122354155a7155e30a146521bf870e7797a525e17a331c63  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -347,8 +348,9 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 
 - **Paytaca over WalletConnect** (`bch_signMessage`) has been used once with a real Paytaca wallet, recorded in
   [the measurements](docs/MEASURED.md). The app's WalletConnect calls are tested end to end against a fake wallet that answers
-  the way Paytaca does (`e2e/paytaca-login.spec.ts`), but the WalletConnect relay network and a real phone wallet are
-  not covered by automated tests. The paste path and the signature format are tested.
+  the way Paytaca does (`e2e/paytaca-login.spec.ts`, and `e2e/wc-pairing.spec.ts` for the copied pairing link), but the
+  WalletConnect relay network and a real phone wallet are not covered by automated tests; pasting the pairing link into
+  Paytaca on an iPhone has not been measured. The paste path and the signature format are tested.
 - **Recovery** covers a lost Nostr key, not a stolen one: a thief holding the old key can publish a newer event without the
   claim, and the recovery then fails its `old_binding` step. Publishing a recovery is a CLI command (`tambat recover`); the web
   app shows recoveries but has no form to make one.
