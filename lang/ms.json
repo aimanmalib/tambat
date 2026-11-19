@@ -376,7 +376,8 @@
       "embed": "Benamkan lencana",
       "vc": "Pengesahan sebagai W3C VC 2.0",
       "pkg": "Pakej pustaka",
-      "phone": "Pautan pasangan untuk dompet telefon"
+      "phone": "Pautan pasangan untuk dompet telefon",
+      "reputation": "Ringkasan reputasi"
     },
     "critTitle": "Kriteria penilaian",
     "crit": {
@@ -457,7 +458,8 @@
     "replaced": "{count} kunci mengesahkan ikatan lebih awal kunci ini. Pengesahan itu tidak lagi dikira, kerana ikatan yang disemak telah diganti.",
     "vcDownload": "Muat turun sebagai Verifiable Credential",
     "vcHelp": "Fail W3C Verifiable Credential 2.0 yang membawa pengesahan ini dan ikatan yang ditunjuknya. Pengesah satu fail dan tambat vc verify menyemaknya tanpa talian.",
-    "help": "Pengesahan ialah label NIP-32 bertandatangan di mana kunci Nostr lain menyatakan ia telah menyemak ikatan ini. Ia menamakan event ikatan dengan id, jadi ia dikira hanya selagi event itu ikatan semasa kunci ini. Ia kata-kata kunci itu, bukan bukti."
+    "help": "Pengesahan ialah label NIP-32 bertandatangan di mana kunci Nostr lain menyatakan ia telah menyemak ikatan ini. Ia menamakan event ikatan dengan id, jadi ia dikira hanya selagi event itu ikatan semasa kunci ini. Ia kata-kata kunci itu, bukan bukti.",
+    "unreadable": "Pengesahan pihak lain tidak dapat dibaca: tiada relay menjawab."
   },
   "chain": {
     "agreed": "Dibaca dari {agreed} daripada {total} pelayan rantaian BCH, semuanya sama ({names}).",
@@ -500,5 +502,22 @@
       "issuer": "pengeluar bukan kunci yang menandatangani pengesahan.",
       "field": "medan {path} berbeza daripada apa yang dikatakan event bertandatangan."
     }
+  },
+  "reputation": {
+    "title": "Ringkasan reputasi",
+    "attestations": "Pengesahan pihak lain",
+    "receipts": "Resit bayaran",
+    "anchor": "Sauh BCH",
+    "checking": "Sedang membaca",
+    "unreadableRelays": "Tidak dapat dibaca: tiada relay menjawab.",
+    "unreadableChain": "Tidak dapat dibaca: tiada pelayan rantaian menjawab, atau terlalu sedikit yang sepakat.",
+    "attestationCount": "{count} disahkan",
+    "receiptCount": "{count} disahkan",
+    "receiptsUnchecked": "{count} lagi resit dari relay tidak dapat disemak pada rantaian.",
+    "receiptsUnproven": "{count} lagi resit tidak membuktikan bayaran dari alamat terikat penulisnya kepada kunci ini.",
+    "receiptTx": "Transaksi",
+    "anchoredSince": "Ditambat sejak blok {height}",
+    "notAnchored": "Tidak ditambat pada rantaian",
+    "help": "Tiga semakan berasingan, setiap satu dikira dari data bertandatangan yang disahkan sendiri oleh halaman ini. Buka satu baris untuk melihat apa yang dikira. Ia tidak dijumlahkan menjadi satu skor: pengesahan pihak lain, bayaran dan sauh membawa maksud berbeza. Sumber yang tidak dapat dibaca dinyatakan begitu; ia tidak dikira sifar."
   }
 }

@@ -376,7 +376,8 @@
       "embed": "Embed badge",
       "vc": "Attestation as W3C VC 2.0",
       "pkg": "Library package",
-      "phone": "Pairing link for a phone wallet"
+      "phone": "Pairing link for a phone wallet",
+      "reputation": "Reputation summary"
     },
     "critTitle": "Judging criteria",
     "crit": {
@@ -457,7 +458,8 @@
     "replaced": "{count} key(s) attested an earlier binding of this key. Those attestations no longer count, because the binding they checked was replaced.",
     "vcDownload": "Download as Verifiable Credential",
     "vcHelp": "A W3C Verifiable Credential 2.0 file that carries this attestation and the binding it pins. The one-file verifier and tambat vc verify check it offline.",
-    "help": "An attestation is a signed NIP-32 label in which another Nostr key says it checked this binding. It names the binding event by id, so it counts only while that event is this key's current binding. It is that key's word, not a proof."
+    "help": "An attestation is a signed NIP-32 label in which another Nostr key says it checked this binding. It names the binding event by id, so it counts only while that event is this key's current binding. It is that key's word, not a proof.",
+    "unreadable": "Attestations could not be read: no relay answered."
   },
   "chain": {
     "agreed": "Read from {agreed} of {total} BCH chain servers, all alike ({names}).",
@@ -500,5 +502,22 @@
       "issuer": "the issuer is not the key that signed the attestation.",
       "field": "the field {path} differs from what the signed events say."
     }
+  },
+  "reputation": {
+    "title": "Reputation summary",
+    "attestations": "Attestations",
+    "receipts": "Payment receipts",
+    "anchor": "BCH anchor",
+    "checking": "Reading",
+    "unreadableRelays": "Could not be read: no relay answered.",
+    "unreadableChain": "Could not be read: no chain server answered, or too few agreed.",
+    "attestationCount": "{count} verified",
+    "receiptCount": "{count} verified",
+    "receiptsUnchecked": "{count} more receipt(s) found on the relays could not be checked on the chain.",
+    "receiptsUnproven": "{count} more receipt(s) do not prove a payment from the author's bound address to this key.",
+    "receiptTx": "Transaction",
+    "anchoredSince": "Anchored since block {height}",
+    "notAnchored": "Not anchored on the chain",
+    "help": "Three separate checks, each counted from signed data this page verified itself. Open a line to see what it counts. They are not added into one score: an attestation, a payment and an anchor say different things. A source that could not be read says so; it is not counted as zero."
   }
 }

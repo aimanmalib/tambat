@@ -209,3 +209,13 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
 .hexid { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 0.375rem; max-width: 100%; vertical-align: baseline; }
 .hexid__text { overflow-wrap: anywhere; }
 .hexid__copy { min-height: 24px; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; text-decoration: underline; cursor: pointer; }
+
+/* Reputation summary on the look-up page (web/pages/ReputationSummary.tsx): one row per checked source, no score. */
+.rep__list, .rep__sources { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; min-width: 0; }
+.rep__row { display: grid; gap: 0.25rem; min-width: 0; padding: 0.5rem 0.75rem; background: var(--paper); border-radius: 10px; }
+.rep__line, .rep__more > summary { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: center; justify-content: space-between; margin: 0; min-height: var(--touch); }
+.rep__label { color: var(--ink-soft); font-weight: 400; }
+.rep__value { font-weight: 600; color: var(--ink); }
+.rep__more > summary .rep__value { color: var(--accent); }
+.rep__sources li { display: flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; align-items: center; min-width: 0; font-size: 0.8125rem; }
+.rep__npub { overflow-wrap: anywhere; min-width: 0; }

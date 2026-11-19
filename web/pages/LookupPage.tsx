@@ -13,10 +13,24 @@ import { Tamper } from '../ui/Tamper';
 import { AnchorStatus } from './AnchorStatus';
 import { Attestations } from './Attestations';
 import { OwnerActions } from './OwnerActions';
+import { ReputationSummary } from './ReputationSummary';
+import { useIdentityReads } from './useIdentityReads';
 
 const VERIFIER_PATH = '/verify/';
 
 type State = { kind: 'idle' } | { kind: 'busy' } | ({ kind: 'done' } & Found) | { kind: 'error'; message: string };
+
+/** Panels read from relays and the chain for a verified binding; each source is read once and shared. */
+function CheckedPanels({ result }: { result: BindingResult }) {
+  const reads = useIdentityReads(result);
+  return (
+    <>
+      <ReputationSummary reads={reads} />
+      <AnchorStatus result={result} read={reads.chain} />
+      <Attestations result={result} summary={reads.attestations} />
+    </>
+  );
+}
 
 function Result({ result, onChanged }: { result: BindingResult; onChanged: () => void }) {
   const { t, lang } = useText();
@@ -31,8 +45,7 @@ function Result({ result, onChanged }: { result: BindingResult; onChanged: () =>
       {result.ok ? (
         <button type="button" className="btn" onClick={() => navigate('/pay', `?npub=${result.npub}`)}>{t('lookup.pay')}</button>
       ) : null}
-      {result.ok ? <AnchorStatus result={result} /> : null}
-      {result.ok ? <Attestations result={result} /> : null}
+      {result.ok ? <CheckedPanels result={result} /> : null}
       {result.ok ? <Tamper result={result} /> : null}
       {result.ok ? <EmbedCode npub={result.npub} /> : null}
       <details className="more">

@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react';
-import { attestationsOf } from '../../src/core/attest-find';
 import type { AttestationSummary, ParsedAttestation } from '../../src/core/attest';
 import { credentialFileName, credentialFrom } from '../../src/core/vc';
 import { toNpub } from '../../src/core/nostr';
@@ -25,27 +23,16 @@ function CredentialLink({ attestation, binding }: { attestation: ParsedAttestati
 }
 
 /**
- * Attestations of a verified binding, read from the relays in the browser: other keys that signed "verified" for
+ * Attestations of a verified binding, read from the relays in the browser (useIdentityReads): other keys that signed "verified" for
  * this exact binding event. Attestations of an earlier binding of the same key no longer count and are only counted.
  */
-export function Attestations({ result }: { result: BindingResult }) {
+export function Attestations({ result, summary }: { result: BindingResult; summary: AttestationSummary | null | undefined }) {
   const { t, lang } = useText();
-  const [summary, setSummary] = useState<AttestationSummary | null>(null);
-  useEffect(() => {
-    let live = true;
-    void attestationsOf(result.pubkey, {}, result).then(
-      (s) => live && setSummary(s),
-      () => live && setSummary({ current: [], replaced: 0 }),
-    );
-    return () => {
-      live = false;
-    };
-  }, [result]);
-
   return (
-    <div className="picker attest" data-attest={summary ? summary.current.length : 'checking'}>
+    <div className="picker attest" data-attest={summary ? summary.current.length : summary === null ? 'unreadable' : 'checking'}>
       <h3 className="picker__title">{t('attest.title')}</h3>
-      {!summary ? <Notice>{t('attest.checking')}</Notice> : null}
+      {summary === undefined ? <Notice>{t('attest.checking')}</Notice> : null}
+      {summary === null ? <Notice>{t('attest.unreadable')}</Notice> : null}
       {summary && summary.current.length === 0 ? <Notice>{t('attest.none')}</Notice> : null}
       {summary && summary.current.length > 0 ? (
         <ul className="attest__list">

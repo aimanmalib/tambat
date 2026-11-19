@@ -15,6 +15,7 @@ export async function findAttestations(subject: string, options: DiscoverOptions
     options.relays ?? config.nostr.relays,
     { kinds: [kind], '#p': [subject], '#L': [namespace] },
     options.timeoutMs ?? config.nostr.queryTimeoutMs,
+    options.watch,
   );
   const seen = new Map<string, ParsedAttestation>();
   for (const item of raw) {

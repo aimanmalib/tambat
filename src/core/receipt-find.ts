@@ -21,6 +21,7 @@ export async function findReceipts(by: ReceiptQuery, options: DiscoverOptions = 
     options.relays ?? config.nostr.relays,
     filter,
     options.timeoutMs ?? config.nostr.queryTimeoutMs,
+    options.watch,
   );
   const seen = new Map<string, ParsedReceipt>();
   for (const item of raw) {

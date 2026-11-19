@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { addressStatus, electrumServers, type AddressStatus } from '../../src/core/anchor-chain';
+import type { AddressStatus } from '../../src/core/anchor-chain';
 import { toNpub } from '../../src/core/nostr';
 import type { BindingResult } from '../../src/core/verify';
 import { useText } from '../i18n';
@@ -12,22 +11,11 @@ import { tallyAgreed, tallyDetail } from '../ui/chainTally';
  * The optional BCH anchor of a verified binding, read from the chain in the browser: since which block the address
  * has committed to this Nostr key, or that it has not. When the chain's newest commitment revokes this key or names
  * another one, that is said first: the chain record wins over relays (docs/decisions/0013-revoke-by-transaction.md).
- * Every configured chain server is read; an answer counts only when enough of them agree (docs/decisions/0014-chain-quorum.md).
+ * Every configured chain server is read (once per look-up, src/core reads shared through useIdentityReads); an answer
+ * counts only when enough of them agree (docs/decisions/0014-chain-quorum.md).
  */
-export function AnchorStatus({ result }: { result: BindingResult }) {
+export function AnchorStatus({ result, read }: { result: BindingResult; read: AddressStatus | undefined }) {
   const { t, lang } = useText();
-  const address = result.claims[0]?.address ?? '';
-  const [read, setRead] = useState<AddressStatus | null>(null);
-  useEffect(() => {
-    let live = true;
-    void addressStatus(address, result.pubkey, result.eventId, electrumServers()).then((s) => {
-      if (live) setRead(s);
-    });
-    return () => {
-      live = false;
-    };
-  }, [address, result.pubkey, result.eventId]);
-
   const status = read?.anchor ?? null;
   const verdict = read?.verdict ?? null;
   const day = (time?: number) => new Date((time ?? 0) * 1000).toLocaleDateString(lang, { dateStyle: 'medium' });
