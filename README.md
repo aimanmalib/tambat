@@ -326,6 +326,8 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 - **Optional BCH anchor**: one anchor exists, for the Paytaca binding, made by its owner; the demo key has none yet. The
   wallet request (`bch_signTransaction`) is tested end to end against a fake wallet only. Revoke by transaction is tested
   against a simulated chain only; no revocation has been sent on mainnet.
+- **WizardConnect** is not supported: its protocol signs transactions but not messages, so it cannot sign a binding
+  ([ADR 0015](docs/decisions/0015-no-wizardconnect-connector.md)). Wallets without WalletConnect can paste a signed message.
 - **Single sign-in instance**: nonces and sessions live in memory, so more than one server process needs a shared store.
 
 ## Web app
