@@ -8,6 +8,7 @@ import { binToHex, cashAddressToLockingBytecode, hexToBin, sha256 } from '@bitau
 import { config } from '../config.js';
 import { commitmentFromTransaction, earliestCommitment, type Commitment, type Utxo } from './anchor.js';
 import { chainVerdict, type ChainVerdict } from './chain-status.js';
+import { firstAnswering, readQuorum, type ChainServer, type Tally } from './chain-quorum.js';
 
 export interface HistoryItem {
   tx_hash: string;
@@ -73,11 +74,11 @@ function electrumSource(client: ElectrumClient<never>, timeoutMs: number): Chain
   };
 }
 
-/** Opens the first configured Electrum server that answers. Throws when none does. */
-export function electrumChain(servers: string[] = config.anchor.electrum, timeoutMs: number = config.anchor.timeoutMs): OpenChain {
-  return async () => {
-    for (const server of servers) {
-      const url = new URL(server);
+/** One chain server per configured URL, named by its host name, each opened on its own. */
+export function electrumServers(servers: string[] = config.anchor.electrum, timeoutMs: number = config.anchor.timeoutMs): ChainServer[] {
+  return servers.map((server) => {
+    const url = new URL(server);
+    const open: OpenChain = async () => {
       const socket = new ElectrumWebSocket(url.hostname, {
         port: Number(url.port || (url.protocol === 'wss:' ? 443 : 80)),
         encrypted: url.protocol === 'wss:',
@@ -87,12 +88,18 @@ export function electrumChain(servers: string[] = config.anchor.electrum, timeou
       try {
         await withTimeout(client.connect(), timeoutMs);
         return electrumSource(client, timeoutMs);
-      } catch {
+      } catch (err) {
         await client.disconnect(true).catch(() => false);
+        throw err;
       }
-    }
-    throw new Error('no chain server answered');
-  };
+    };
+    return { name: url.hostname, open };
+  });
+}
+
+/** Opens the first configured Electrum server that answers. Throws when none does. */
+export function electrumChain(servers: string[] = config.anchor.electrum, timeoutMs: number = config.anchor.timeoutMs): OpenChain {
+  return firstAnswering(electrumServers(servers, timeoutMs));
 }
 
 /** Every commitment made from an address, oldest block first, with block times. Unconfirmed ones have height 0. */
@@ -115,12 +122,25 @@ export async function readCommitments(address: string, chain: ChainSource): Prom
 export type AnchorStatus =
   | { kind: 'anchored'; commitment: Commitment; sameEvent: boolean }
   | { kind: 'none' }
+  /** Servers answered but too few of them, or not alike: no answer is given (src/core/chain-quorum.ts). */
+  | { kind: 'unknown' }
   | { kind: 'unreachable' };
 
-/** The anchor of a binding and the chain's verdict on it, from one read; null verdict when the chain was unreachable. */
+/** The anchor of a binding and the chain's verdict on it, from one read; null verdict when there is no agreed answer. */
 export interface AddressStatus {
   anchor: AnchorStatus;
   verdict: ChainVerdict | null;
+  /** Which chain servers agreed, differed or did not answer. */
+  servers: Tally;
+}
+
+/** The chain servers to read: a list is read with the configured quorum; one opener is a single trusted source. */
+export type ChainChoice = OpenChain | ChainServer[];
+
+/** Every commitment from `address`, read from the servers in `chain` under the quorum rule. */
+export function readAgreedCommitments(address: string, chain: ChainChoice, quorum: number = config.anchor.quorum) {
+  const servers = Array.isArray(chain) ? chain : [{ name: 'chain', open: chain }];
+  return readQuorum(servers, Array.isArray(chain) ? quorum : 1, (source) => readCommitments(address, source));
 }
 
 /**
@@ -128,27 +148,16 @@ export interface AddressStatus {
  * last revocation, and what the newest commitment says about the binding (src/core/chain-status.ts). `sameEvent` is
  * false when the anchored event is not the binding event now on the relays (the pair still counts).
  */
-export async function addressStatus(address: string, pubkey: string, eventId: string, open: OpenChain = electrumChain()): Promise<AddressStatus> {
-  const unreachable: AddressStatus = { anchor: { kind: 'unreachable' }, verdict: null };
-  let chain: ChainSource;
-  try {
-    chain = await open();
-  } catch {
-    return unreachable;
-  }
-  try {
-    const commitments = await readCommitments(address, chain);
-    const earliest = earliestCommitment(commitments, pubkey);
-    const anchor: AnchorStatus = earliest ? { kind: 'anchored', commitment: earliest, sameEvent: earliest.eventId === eventId } : { kind: 'none' };
-    return { anchor, verdict: chainVerdict(commitments, pubkey) };
-  } catch {
-    return unreachable;
-  } finally {
-    await chain.close();
-  }
+export async function addressStatus(address: string, pubkey: string, eventId: string, chain: ChainChoice = electrumServers()): Promise<AddressStatus> {
+  const read = await readAgreedCommitments(address, chain);
+  if (read.kind === 'unreachable') return { anchor: { kind: 'unreachable' }, verdict: null, servers: read.tally };
+  if (read.kind === 'unknown') return { anchor: { kind: 'unknown' }, verdict: null, servers: read.tally };
+  const earliest = earliestCommitment(read.value, pubkey);
+  const anchor: AnchorStatus = earliest ? { kind: 'anchored', commitment: earliest, sameEvent: earliest.eventId === eventId } : { kind: 'none' };
+  return { anchor, verdict: chainVerdict(read.value, pubkey), servers: read.tally };
 }
 
 /** The anchor part of addressStatus. */
-export async function anchorStatus(address: string, pubkey: string, eventId: string, open: OpenChain = electrumChain()): Promise<AnchorStatus> {
-  return (await addressStatus(address, pubkey, eventId, open)).anchor;
+export async function anchorStatus(address: string, pubkey: string, eventId: string, chain: ChainChoice = electrumServers()): Promise<AnchorStatus> {
+  return (await addressStatus(address, pubkey, eventId, chain)).anchor;
 }

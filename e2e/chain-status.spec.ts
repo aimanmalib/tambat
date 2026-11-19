@@ -10,7 +10,8 @@ import { scripthashOf } from '../src/core/anchor-chain.js';
 import { toNpub } from '../src/core/nostr.js';
 import { signP2pkh, hexOf } from '../tests/anchor-wallet.js';
 import { headerWithTime, type FakeChain } from '../tests/fake-fulcrum.js';
-import { chainServers, en, expect, expectAccessible, expectNoOverflow, ms, phraseKeys, routeChain, test, vectors } from './fixtures.js';
+import { chainServers, en, expect, expectAccessible, expectNoOverflow, ms, phraseKeys, routeChain, routeOneServer, test, vectors } from './fixtures.js';
+import { config } from '../src/config.js';
 import { E2E } from './ports.js';
 
 const exact = (name: string) => ({ name, exact: true });
@@ -107,4 +108,49 @@ test('Look up shows the chain status: revoked, and conflict with the other key',
   await expect(anchor.locator('.notice--error')).toContainText(toNpub(otherKey));
   await expectNoOverflow(page);
   await expectAccessible(page);
+});
+
+// Several chain servers must agree (docs/decisions/0014-chain-quorum.md).
+const total = String(config.anchor.electrum.length);
+
+test('Look up says how many chain servers agreed', async ({ page }) => {
+  await routeChain(page, chainOf(bind));
+  await page.goto(`/lookup?q=${vectors.nostr.npub}`);
+  const anchor = page.locator('.anchor');
+  await expect(anchor).toHaveAttribute('data-anchor', 'anchored', { timeout: 20_000 });
+  await expect(anchor.locator('[data-servers]')).toHaveText(
+    en.chain.agreed.replace('{agreed}', total).replace('{total}', total).replace('{names}', config.anchor.electrum.map((u) => new URL(u).hostname).join(', ')),
+  );
+});
+
+test('one chain server that hides a revocation makes Look up and Pay say unknown, naming it', async ({ page }) => {
+  await routeChain(page, revoked);
+  const liar = await routeOneServer(page, 2, chainOf(bind));
+  await page.goto(`/lookup?q=${vectors.nostr.npub}`);
+  const anchor = page.locator('.anchor');
+  await expect(anchor).toHaveAttribute('data-anchor', 'unknown', { timeout: 20_000 });
+  await expect(anchor).toHaveAttribute('data-chain', 'unknown');
+  await expect(anchor.locator('.notice--error')).toContainText(en.chain.differing.replace('{names}', liar));
+  await expect(anchor.locator('[data-servers]')).toHaveCount(0);
+
+  await page.goto(`/pay?npub=${vectors.nostr.npub}`);
+  await expect(page.getByText(before(en.pay.unknown))).toContainText(en.chain.differing.replace('{names}', liar), { timeout: 20_000 });
+  await expect(page.locator('[data-pay="refused"]')).toHaveCount(0);
+  await expect(page.getByRole('link', exact(en.pay.open))).toHaveAttribute('href', address);
+  await expectAccessible(page);
+});
+
+test('in Malay at 320 px the disagreement reads in Malay and fits after scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await routeChain(page, chainOf(bind));
+  const liar = await routeOneServer(page, 0, conflict);
+  await page.goto('/');
+  await page.getByLabel(en.lang.label).selectOption('ms');
+  await page.goto(`/lookup?q=${vectors.nostr.npub}`);
+  const anchor = page.locator('.anchor');
+  await expect(anchor.locator('.notice--error')).toContainText(ms.chain.differing.replace('{names}', liar), { timeout: 20_000 });
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await expectNoOverflow(page);
+  const widths = await anchor.evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }));
+  expect(widths.scroll).toBeLessThanOrEqual(widths.client);
 });

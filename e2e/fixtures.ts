@@ -54,6 +54,20 @@ export async function routeChain(page: Page, chain: FakeChain = { history: {}, h
   });
 }
 
+/**
+ * Answers one chain server (by its index in `config.anchor.electrum`) from `chain`, after routeChain: that server then
+ * disagrees with the others. Returns the server's host name, as the pages name it.
+ */
+export async function routeOneServer(page: Page, index: number, chain: FakeChain = { history: {}, headers: {} }): Promise<string> {
+  const url = config.anchor.electrum[index] ?? '';
+  await page.routeWebSocket(new RegExp(`^${url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`), (ws) => {
+    ws.onMessage((m) => {
+      for (const line of String(m).split('\n')) if (line.trim()) ws.send(answer(chain, line));
+    });
+  });
+  return new URL(url).hostname;
+}
+
 /** Installs window.nostr backed by the test phrase's Nostr key. Call before the first navigation. */
 export async function fakeExtension(page: Page) {
   await page.exposeFunction('__tambatSign', (template: EventTemplate) => finalizeEvent(template, phraseKeys.nostrSecretKey));

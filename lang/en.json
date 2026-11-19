@@ -192,7 +192,8 @@
     "checking": "Reading the BCH chain before showing the payment link.",
     "revoked": "Payment refused: this address revoked this Nostr key on BCH in block {height}. Ask the person for a current address.",
     "conflict": "Payment refused: the BCH chain says this address now belongs to another Nostr key, {npub}. The chain record wins over the binding found on the relays.",
-    "unreachable": "Chain servers unreachable, so the BCH chain was not checked. The address comes from the binding verified on the relays."
+    "unreachable": "Chain servers unreachable, so the BCH chain was not checked. The address comes from the binding verified on the relays.",
+    "unknown": "The BCH chain servers did not give one answer ({detail}), so the chain was not checked. The address comes from the binding verified on the relays."
   },
   "footer": {
     "built": "Built for BCH BLAZE 2026.",
@@ -329,7 +330,8 @@
       "checking": "Reading the chain",
       "confirmed": "On chain now",
       "differs": "Chain reads differently",
-      "unreachable": "Chain unreachable"
+      "unreachable": "Chain unreachable",
+      "unknown": "Chain servers disagree"
     },
     "revocation": "A revoked link (no current address)",
     "open": "Look up",
@@ -366,7 +368,8 @@
       "usability": "Usability: English and Malay, phone and desktop, Paytaca over WalletConnect",
       "demo": "Demo quality: live on public relays, every claim measured"
     },
-    "proof": "Proof"
+    "proof": "Proof",
+    "anchorServers": "{agreed} of {total} chain servers agree"
   },
   "anchor": {
     "title": "BCH anchor (optional)",
@@ -433,5 +436,12 @@
     "event": "Attestation event",
     "replaced": "{count} key(s) attested an earlier binding of this key. Those attestations no longer count, because the binding they checked was replaced.",
     "help": "An attestation is a signed NIP-32 label in which another Nostr key says it checked this binding. It names the binding event by id, so it counts only while that event is this key's current binding. It is that key's word, not a proof."
+  },
+  "chain": {
+    "agreed": "Read from {agreed} of {total} BCH chain servers, all alike ({names}).",
+    "unknown": "The BCH chain servers did not give one answer ({detail}), so nothing from the chain is shown.",
+    "differing": "{names} answered differently",
+    "missing": "{names} did not answer",
+    "tooFew": "{count} answered alike, {quorum} needed"
   }
 }

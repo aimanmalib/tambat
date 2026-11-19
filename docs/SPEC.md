@@ -308,6 +308,12 @@ So address to Nostr key works with no relay: `tambat anchor-lookup <address>`. C
 page runs both. Servers are listed in `anchor.electrum`; none answering is shown as "chain servers unreachable", never as
 "not anchored".
 
+**Several servers must agree.** The list of commitments of an address is read from every server in `anchor.electrum` at
+once ([ADR 0014](decisions/0014-chain-quorum.md)). It counts only when every server that answered gave the same list and at
+least `anchor.quorum` of them answered; a server that does not answer is left out and named. Any server that answers
+differently makes the result unknown: no anchor and no verdict, with the names of the servers that differed or did not
+answer. Readers show how many servers agreed (`tambat anchor-lookup` prints "read from N of M chain servers").
+
 **Why it is optional.**
 
 - Every anchor costs a fee, and the address must hold coins. The base binding is free and works for an empty address.

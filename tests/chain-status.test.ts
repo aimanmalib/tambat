@@ -125,6 +125,6 @@ describe('addressStatus on a fake chain', () => {
   });
 
   it('gives no verdict when the chain cannot be read', async () => {
-    expect(await addressStatus(keys.address, P, bind.eventId, async () => Promise.reject(new Error('down')))).toEqual({ anchor: { kind: 'unreachable' }, verdict: null });
+    expect(await addressStatus(keys.address, P, bind.eventId, async () => Promise.reject(new Error('down')))).toMatchObject({ anchor: { kind: 'unreachable' }, verdict: null });
   });
 });

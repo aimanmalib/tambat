@@ -54,6 +54,11 @@ for the pair (SPEC "Optional BCH anchor", check 3).
 | 00:01:46 | demo address | - | - | - | demo key | not funded |
 | 16:03 | qp2n90ka…m56u | a3cf6e76c990b851d2de0381d547eb9cde043454b4420bdde8270f7a69b74263 | 977901 | d7c03eee… | Paytaca (owner) | ok |
 
+On 2026-11-19 at 00:18:13 UTC, after the reader was changed to require agreement (ADR 0014, `anchor.quorum` 2),
+`tambat anchor-lookup` on the Paytaca binding's address printed "read from 3 of 3 chain servers, all alike:
+bch.imaginary.cash, bch.loping.net, fulcrum.greyh.at (quorum 2)", then block 977901, the same npub, event `d7c03eee…` and
+transaction `a3cf6e76…4263` as the row above (exit code 0).
+
 ## Wall
 
 The wall's own code (`loadWall` in `src/core/wall.ts`, with the query that keeps events whose signature fails) run from the

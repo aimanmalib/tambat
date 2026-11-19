@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { addressStatus, electrumChain } from '../../src/core/anchor-chain';
+import { addressStatus, electrumServers } from '../../src/core/anchor-chain';
+import type { Tally } from '../../src/core/chain-quorum';
 import { refusesPayment, type ChainVerdict } from '../../src/core/chain-status';
 import { toNpub } from '../../src/core/nostr';
 import { parseNip05 } from '../../src/core/nip05';
@@ -12,10 +13,11 @@ import { CopyValue } from '../ui/Copy';
 import { errorText } from '../../src/errors';
 import { Notice } from '../ui/Notice';
 import { Qr } from '../ui/Qr';
+import { tallyDetail } from '../ui/chainTally';
 import { ReceiptPanel } from './ReceiptPanel';
 
 type Found = { address: string; npub: string; pubkey: string; eventId: string } | 'none' | null;
-/** The chain's verdict on the found binding: 'checking' while it is read, null when no chain server answered. */
+/** The chain's verdict on the found binding: 'checking' while it is read, null when the chain servers gave no agreed answer. */
 type Chain = ChainVerdict | null | 'checking';
 type Via = { name: string; npub: string } | null;
 type Resolved = { found: Found; error: string; via: Via };
@@ -29,14 +31,14 @@ export function PayPage() {
   const [busy, setBusy] = useState(() => queryParam('npub') !== '');
   const [error, setError] = useState('');
   const [via, setVia] = useState<Via>(null);
-  const [read, setRead] = useState<{ of: Found; verdict: ChainVerdict | null } | null>(null);
+  const [read, setRead] = useState<{ of: Found; verdict: ChainVerdict | null; unknown: Tally | null } | null>(null);
 
   // Chain first (docs/decisions/0013-revoke-by-transaction.md): no payment link until the chain has been read.
   useEffect(() => {
     if (!found || found === 'none') return;
     let live = true;
-    void addressStatus(found.address, found.pubkey, found.eventId, electrumChain()).then((s) => {
-      if (live) setRead({ of: found, verdict: s.verdict });
+    void addressStatus(found.address, found.pubkey, found.eventId, electrumServers()).then((s) => {
+      if (live) setRead({ of: found, verdict: s.verdict, unknown: s.anchor.kind === 'unknown' ? s.servers : null });
     });
     return () => {
       live = false;
@@ -79,6 +81,7 @@ export function PayPage() {
   }, []);
 
   const chain: Chain = read && read.of === found ? read.verdict : 'checking';
+  const unknown = read && read.of === found ? read.unknown : null;
   const badAmount = amountProblem(amount);
   const refused = chain !== 'checking' && chain !== null && refusesPayment(chain) ? chain : null;
   const uri = found && found !== 'none' && !badAmount && chain !== 'checking' && !refused ? paymentUri({ address: found.address, amount }) : '';
@@ -107,7 +110,7 @@ export function PayPage() {
           </label>
           {badAmount ? <Notice tone="error">{t(badAmount === 'zero' ? 'pay.amountZero' : 'pay.amountFormat')}</Notice> : null}
           {chain === 'checking' ? <Notice>{t('pay.checking')}</Notice> : null}
-          {chain === null ? <Notice>{t('pay.unreachable')}</Notice> : null}
+          {chain === null ? <Notice>{unknown ? t('pay.unknown', { detail: tallyDetail(unknown, t) }) : t('pay.unreachable')}</Notice> : null}
           {refused ? (
             <div className="stack" data-pay="refused">
               <Notice tone="error">

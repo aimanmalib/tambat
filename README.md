@@ -79,6 +79,11 @@ Beyond the required parts, each live and tested:
   OP_RETURN format and a revoke type byte. The newest confirmed commitment decides (bound, revoked, conflict or none), Look up
   shows it, and Pay refuses an address the chain revoked or gave to another key. Tested against a simulated chain
   (`tests/chain-status.test.ts`, `e2e/chain-status.spec.ts`).
+- Chain reads need agreement ([ADR 0014](docs/decisions/0014-chain-quorum.md)): commitments are read from every Fulcrum
+  server in `config/tambat.json` at once and count only when at least `anchor.quorum` (2) answer alike and none answers
+  differently; otherwise the result is unknown and the servers that differed or did not answer are named. Look up, the
+  judges page and `tambat anchor-lookup` show how many servers agreed. Tested with fake servers
+  (`tests/chain-quorum.test.ts`, `e2e/chain-status.spec.ts`, `e2e/judges.spec.ts`); the live reading is in [anchor measured](docs/MEASURED.md#anchor).
 - A wall of verified links read from the relays, paging back past identity events of other platforms: https://tambat.sasateguh.com/wall ([wall measured](docs/MEASURED.md#wall)).
 - A NIP-05 name for the demo identity, an [embeddable badge](#embeddable-badge), a [one-file verifier](#one-file-verifier)
   and a "Try tampering" demo on every verified look-up.
@@ -252,7 +257,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-0ed821970dc2c08a0962e256526e9f7e272973c4299390e5c49c1000bcf2f939  tambat-verify.html
+f642c2b38516ca74e04e3080bd2f10dabc0349919d01dc37320663f08be4922e  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;

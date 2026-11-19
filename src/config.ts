@@ -106,8 +106,10 @@ export interface TambatConfig {
     feePerByte: number;
     /** The change output must keep at least this much, or the transaction is refused. */
     dustSats: number;
-    /** Fulcrum servers, read only, tried in order. */
+    /** Fulcrum servers, read only. Commitments are read from all of them; other reads use the first that answers. */
     electrum: string[];
+    /** How many servers must answer alike before a commitment read counts; any server that answers differently makes it unknown. */
+    quorum: number;
     timeoutMs: number;
     /** How many transactions of an address are read when looking for commitments. */
     historyLimit: number;
@@ -191,6 +193,8 @@ function parseAnchor(a: TambatConfig['anchor']): void {
   positiveInt(a.feePerByte, 'anchor.feePerByte');
   positiveInt(a.dustSats, 'anchor.dustSats');
   nonEmptyStrings(a.electrum, 'anchor.electrum', (s) => /^wss?:\/\/[^\s/:]+(:\d+)?\/?$/.test(s));
+  positiveInt(a.quorum, 'anchor.quorum');
+  if (a.quorum > a.electrum.length) fail('anchor.quorum', 'cannot be more than the number of anchor.electrum servers');
   positiveInt(a.timeoutMs, 'anchor.timeoutMs');
   positiveInt(a.historyLimit, 'anchor.historyLimit');
   if (typeof a.confirmedCoinsOnly !== 'boolean') fail('anchor.confirmedCoinsOnly', 'must be true or false');

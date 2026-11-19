@@ -26,7 +26,8 @@ import { readPhrase, recoverFrom, revokeAddress, rotateAddress, type ManageDeps 
 import { verifyRecovery } from '../src/core/recover.js';
 import { RelaySocket } from '../src/node/relay.js';
 import { verifyBinding, type BindingResult } from '../src/core/verify.js';
-import { electrumChain, readCommitments, type OpenChain } from '../src/core/anchor-chain.js';
+import { electrumServers, readAgreedCommitments, type ChainChoice, type OpenChain } from '../src/core/anchor-chain.js';
+import { firstAnswering } from '../src/core/chain-quorum.js';
 import { parseP2pkhAddress } from '../src/core/cashaddr.js';
 import { publishReceipt, receiptLookup } from '../src/node/receipt.js';
 import { attestationLookup, publishAttestation } from '../src/node/attest.js';
@@ -69,38 +70,47 @@ function out(json: boolean, results: BindingResult[], emptyMessage: string): num
   return results.length > 0 && results.every((r) => r.ok) ? 0 : 1;
 }
 
-/** Chain only: every commitment the address made, oldest block first. Exit 0 when one is confirmed. */
-async function anchorLookup(address: string, json: boolean, open: OpenChain): Promise<number> {
+/**
+ * Chain only: every commitment the address made, oldest block first, read from every configured chain server and
+ * kept only when enough of them agree (src/core/chain-quorum.ts). Exit 0 when one is confirmed.
+ */
+async function anchorLookup(address: string, json: boolean, chain: ChainChoice): Promise<number> {
   const parsed = parseP2pkhAddress(address);
   if (typeof parsed === 'string') return usageError(parsed);
-  let chain;
-  try {
-    chain = await open();
-  } catch (err) {
-    console.error(`chain servers unreachable: ${(err as Error).message}`);
+  const read = await readAgreedCommitments(parsed.address, chain);
+  const t = read.tally;
+  if (read.kind === 'unreachable') {
+    console.error(`chain servers unreachable: ${t.unreachable.join(', ')}`);
     return 1;
   }
-  try {
-    const found = (await readCommitments(parsed.address, chain)).map((c) => ({ ...c, npub: toNpub(c.pubkey) }));
-    if (json) console.log(JSON.stringify(found, null, 2));
-    else if (found.length === 0) console.log(`no commitment found on BCH for ${parsed.address}`);
-    else {
-      for (const c of found) {
-        const when = c.height > 0 ? `block ${c.height} (${new Date((c.blockTime ?? 0) * 1000).toISOString()})` : 'unconfirmed';
-        console.log(`${when}  ${c.action === 'revoke' ? 'revokes ' : ''}${c.npub}\n  event ${c.eventId}\n  tx ${c.txid}`);
-      }
-      console.log('A commitment counts only while that key\'s newest binding still names this address: tambat lookup <npub>');
+  if (read.kind === 'unknown') {
+    const why = [
+      t.differing.length > 0 ? `${t.differing.join(', ')} answered differently` : '',
+      t.unreachable.length > 0 ? `${t.unreachable.join(', ')} did not answer` : '',
+      t.differing.length === 0 ? `${t.agreed.length} answered alike, ${t.quorum} needed` : '',
+    ].filter(Boolean);
+    console.error(`chain servers did not give one answer: ${why.join('; ')}`);
+    return 1;
+  }
+  const agreement = `read from ${t.agreed.length} of ${t.total} chain servers, all alike: ${t.agreed.join(', ')} (quorum ${t.quorum})`;
+  const found = read.value.map((c) => ({ ...c, npub: toNpub(c.pubkey) }));
+  if (json) {
+    console.log(JSON.stringify(found, null, 2));
+    console.error(agreement);
+  } else {
+    console.log(agreement);
+    if (found.length === 0) console.log(`no commitment found on BCH for ${parsed.address}`);
+    for (const c of found) {
+      const when = c.height > 0 ? `block ${c.height} (${new Date((c.blockTime ?? 0) * 1000).toISOString()})` : 'unconfirmed';
+      console.log(`${when}  ${c.action === 'revoke' ? 'revokes ' : ''}${c.npub}\n  event ${c.eventId}\n  tx ${c.txid}`);
     }
-    return found.some((c) => c.height > 0) ? 0 : 1;
-  } catch (err) {
-    console.error(`chain servers unreachable: ${(err as Error).message}`);
-    return 1;
-  } finally {
-    await chain.close();
+    if (found.length > 0) console.log('A commitment counts only while that key\'s newest binding still names this address: tambat lookup <npub>');
   }
+  return found.some((c) => c.height > 0) ? 0 : 1;
 }
 
-export async function main(argv: string[], deps: ManageDeps = nodeDeps, openChain: OpenChain = electrumChain()): Promise<number> {
+export async function main(argv: string[], deps: ManageDeps = nodeDeps, chain: ChainChoice = electrumServers()): Promise<number> {
+  const openChain: OpenChain = Array.isArray(chain) ? firstAnswering(chain) : chain;
   const json = argv.includes('--json');
   const flags = new Map<string, number>(['--keys', '--bch-keys'].map((f) => [f, argv.indexOf(f)]));
   const valueOf = (flag: string) => {
@@ -144,7 +154,7 @@ export async function main(argv: string[], deps: ManageDeps = nodeDeps, openChai
     const result = await lookupByPubkey(key.hex, { query: deps.query });
     return out(json, result ? [result] : [], `no binding event found for ${toNpub(key.hex)}`);
   }
-  if (command === 'anchor-lookup') return anchorLookup(arg, json, openChain);
+  if (command === 'anchor-lookup') return anchorLookup(arg, json, chain);
   if (command === 'receipt') {
     if (!/^[0-9a-fA-F]{64}$/.test(arg)) return usageError('receipt needs a 64-character hex transaction id');
     return receiptLookup(arg.toLowerCase(), json, deps, openChain);
