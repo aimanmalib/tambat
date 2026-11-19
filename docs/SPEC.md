@@ -273,6 +273,45 @@ Readers keep the newest attestation per attester. Relays find attestations with 
 `tambat attest <npub> --keys <file>` (it pins the subject's current binding, read from the relays); list:
 `tambat attestations <npub>`.
 
+### Attestations as Verifiable Credentials
+
+An attestation exports as a W3C Verifiable Credential 2.0 (ADR 0017). The attestation event stays the source of truth.
+
+```json
+{
+  "@context": ["https://www.w3.org/ns/credentials/v2"],
+  "type": ["VerifiableCredential", "BchNostrBindingAttestation"],
+  "issuer": "did:nostr:<attester hex>",
+  "validFrom": "<attestation created_at, ISO 8601, seconds>",
+  "credentialSubject": {
+    "id": "did:nostr:<subject hex>",
+    "bchAddress": ["<each verified address of the binding>"],
+    "bindingEvent": "<binding event id>",
+    "attestationEvent": "<attestation event id>"
+  },
+  "proof": {
+    "type": "NostrEventProof",
+    "proofPurpose": "assertionMethod",
+    "verificationMethod": "did:nostr:<attester hex>#key1",
+    "created": "<same as validFrom>",
+    "attestation": { "<the signed attestation event>": "" },
+    "binding": { "<the signed binding event>": "" }
+  }
+}
+```
+
+A verifier, offline:
+
+1. checks `@context` starts with the VC 2.0 context and `type` holds both types, and that `proof.type` is `NostrEventProof`;
+2. checks `proof.attestation` as an attestation (id, signature, label, one `p`, one `e`, not self);
+3. verifies `proof.binding` with the algorithm of section 5 (newest-event step skipped);
+4. requires the attestation's `e` to be the binding's id and its `p` to be the binding's author;
+5. rebuilds the credential from the two events and requires the RFC 8785 (JCS) text of the whole input to equal it. A
+   different issuer fails as `issuer`; any other difference fails as `field` with its path.
+
+Export: `tambat vc export <attestation id|file> [--binding <file>]`; verify: `tambat vc verify <file>`. Example:
+`examples/attestation-vc.json`. Offline the credential cannot show that the binding is still the subject's newest.
+
 ## Optional BCH anchor
 
 The binding above needs no blockchain transaction. An anchor is an optional extra: an ordinary BCH transaction, signed by
