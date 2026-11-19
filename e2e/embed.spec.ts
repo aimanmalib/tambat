@@ -131,3 +131,55 @@ test('blocked relays read as unreachable, not as not linked', async ({ page, con
   await expect(viaScript.locator('.embed[data-state="unreachable"] .embed__state')).toHaveText(ms.embed.unreachable);
   await shot(page, info, consoleErrors, 'unreachable');
 });
+
+test('Look up offers the embed code; pasted into another site, both snippets verify', async ({ page, context, consoleErrors }, info) => {
+  const keys = freshKeys();
+  await publish(bindingFromKeys(keys, Math.floor(Date.now() / 1000)));
+
+  await page.goto('/judges');
+  const judgesLink = page.locator('[data-req="discovery"] a[href$="&embed=1"]');
+  await expect(judgesLink).toHaveText(en.judges.link.embed);
+  await expect(judgesLink).toHaveAttribute('href', `/lookup?q=${encodeURIComponent(config.judges.sample.npub)}&embed=1`);
+
+  await page.goto(`/lookup?q=${encodeURIComponent(keys.npub)}&embed=1&lang=ms`);
+  const panel = page.locator('details[data-embed]');
+  await expect(panel).toHaveAttribute('open', '');
+  await expect(panel.locator('summary')).toHaveText(ms.lookup.embed.title);
+  const codes = panel.locator('.value__text');
+  await expect(codes).toHaveCount(2);
+  const [script, iframe] = await codes.allTextContents();
+  expect(script).toContain(`data-tambat-id="${keys.npub}"`);
+  expect(iframe).toContain(`${E2E.origin}/embed/${keys.npub}?lang=ms`);
+
+  if (info.project.name === 'chromium') {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await panel.getByRole('button', { name: `${ms.common.copy}: ${ms.lookup.embed.iframe}` }).click();
+    await expect(panel.getByText(ms.common.copied)).toBeVisible();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(iframe);
+  }
+
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    await panel.scrollIntoViewIfNeeded();
+    const fit = await page.evaluate(() => {
+      const card = document.querySelector('.result') as HTMLElement;
+      return { pageSw: document.documentElement.scrollWidth, pageCw: document.documentElement.clientWidth, cardSw: card.scrollWidth, cardCw: card.clientWidth };
+    });
+    expect(fit.pageSw).toBeLessThanOrEqual(fit.pageCw);
+    expect(fit.cardSw).toBeLessThanOrEqual(fit.cardCw);
+  }
+  await expectAccessible(page);
+  await shot(page, info, consoleErrors, 'lookup-embed');
+
+  const path = `/host-${pages.size}`;
+  pages.set(path, `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Host</title></head><body><main><h1>Pasted</h1>
+${iframe}
+${script}
+</main></body></html>`);
+  await page.goto(`${HOST}${path}`);
+  await expect(page.locator('iframe')).toHaveCount(2);
+  for (const frame of [page.frameLocator('iframe').first(), page.frameLocator('iframe').last()]) {
+    await expect(frame.locator('.embed[data-state="verified"] .embed__state')).toHaveText(ms.embed.verified);
+    await expect(frame.locator('.embed__detail')).toContainText(keys.npub.slice(0, 10));
+  }
+});

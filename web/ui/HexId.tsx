@@ -14,7 +14,7 @@ export function HexId({ value, label }: { value: string; label: string }) {
   return (
     <span className="hexid">
       <code className="hexid__text" title={value} data-full={value}>{shortHex(value)}</code>
-      <button type="button" className="hexid__copy" onClick={copy} aria-label={`${t('common.copy')}: ${label}`}>
+      <button type="button" className="hexid__copy" onClick={copy} aria-label={`${copied ? t('common.copied') : t('common.copy')}: ${label}`}>
         <span aria-live="polite">{copied ? t('common.copied') : t('common.copy')}</span>
       </button>
     </span>

@@ -25,7 +25,7 @@ export function CopyValue({ label, value }: { label: string; value: string }) {
       <span className="value__label">{label}</span>
       <div className="value__row">
         <code className="value__text">{value}</code>
-        <button type="button" className="btn btn--small" onClick={copy} aria-label={`${t('common.copy')}: ${label}`}>
+        <button type="button" className="btn btn--small" onClick={copy} aria-label={`${copied ? t('common.copied') : t('common.copy')}: ${label}`}>
           <span aria-live="polite">{copied ? t('common.copied') : t('common.copy')}</span>
         </button>
       </div>

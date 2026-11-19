@@ -5,6 +5,7 @@ import { findIdentity, type Found } from '../find';
 import { useText } from '../i18n';
 import { navigate, queryParam } from '../router';
 import { BindingSummary } from '../ui/BindingSummary';
+import { EmbedCode } from '../ui/EmbedCode';
 import { errorText } from '../../src/errors';
 import { Notice } from '../ui/Notice';
 import { Tamper } from '../ui/Tamper';
@@ -32,6 +33,7 @@ function Result({ result, onChanged }: { result: BindingResult; onChanged: () =>
       {result.ok ? <AnchorStatus result={result} /> : null}
       {result.ok ? <Attestations result={result} /> : null}
       {result.ok ? <Tamper result={result} /> : null}
+      {result.ok ? <EmbedCode npub={result.npub} /> : null}
       <details className="more">
         <summary>{t('lookup.event')}</summary>
         <pre className="json" tabIndex={0} aria-label={t('lookup.event')}>{JSON.stringify(result.event, null, 2)}</pre>

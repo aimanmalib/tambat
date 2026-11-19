@@ -111,7 +111,14 @@
     "did": "DID document",
     "didLink": "Resolve from the server",
     "pay": "Pay this identity",
-    "noLink": "This key has no current BCH link. Its newest identity event, published {date}, names no BCH address."
+    "noLink": "This key has no current BCH link. Its newest identity event, published {date}, names no BCH address.",
+    "embed": {
+      "title": "Embed this badge",
+      "help": "Paste one of these into any web page. The badge checks this link against the public relays in each visitor's browser and shows \"No verified link\" if it stops verifying.",
+      "script": "Script tag",
+      "iframe": "Plain iframe",
+      "preview": "Open the badge"
+    }
   },
   "steps": {
     "event_shape": "Event format",
@@ -357,7 +364,8 @@
       "demo": "Demo app",
       "readme": "README",
       "verify": "VERIFY.md",
-      "measured": "Measurements"
+      "measured": "Measurements",
+      "embed": "Embed badge"
     },
     "critTitle": "Judging criteria",
     "crit": {

@@ -260,7 +260,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-02b94e4eff3bc24d2d1d4b2613d12e9349421779a94ab99f2fda87c0aea101af  tambat-verify.html
+97d0a535571313a2a6e23d3fece941bfa73a9a1b7ac8f04e290f52d0ef357ea9  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -271,7 +271,9 @@ request that is not the file itself.
 
 ## Embeddable badge
 
-Any page can show whether an identity is linked, checked in the visitor's browser:
+Any page can show whether an identity is linked, checked in the visitor's browser. Every verified result in
+[Look up](https://tambat.sasateguh.com/lookup?q=npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt&embed=1)
+has an "Embed this badge" panel with both snippets for that identity and a copy button for each; /judges links to it.
 
 ```html
 <script src="https://tambat.sasateguh.com/embed.js" data-tambat-id="npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt" data-lang="en" async></script>
@@ -284,7 +286,8 @@ address, and `lang` is `en` or `ms`. The badge is a 320 by 96 frame that looks t
 states: linked (short npub and address), no verified link, relays unreachable (no relay answered, checked separately so an
 outage never reads as "not linked"), or not an npub or address. Only `/embed/` may be framed by other sites
 (`embed.frameAncestors` in the config); every other page keeps `frame-ancestors 'none'`. Tested by
-`tests/badge.test.ts`, `tests/server-embed.test.ts` and `e2e/embed.spec.ts` (a page on another origin embeds both forms).
+`tests/badge.test.ts`, `tests/server-embed.test.ts`, `tests/embed-code.test.ts` (the offered snippets point at routes
+the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds both forms, including the code copied from Look up).
 
 ## Decentralisation
 

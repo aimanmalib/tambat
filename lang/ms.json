@@ -111,7 +111,14 @@
     "did": "Dokumen DID",
     "didLink": "Selesaikan dari pelayan",
     "pay": "Bayar identiti ini",
-    "noLink": "Kunci ini tiada ikatan BCH semasa. Event identiti terbaharunya, diterbitkan {date}, tidak menamakan alamat BCH."
+    "noLink": "Kunci ini tiada ikatan BCH semasa. Event identiti terbaharunya, diterbitkan {date}, tidak menamakan alamat BCH.",
+    "embed": {
+      "title": "Benamkan lencana ini",
+      "help": "Tampal salah satu daripada ini ke mana-mana laman web. Lencana menyemak ikatan ini dengan relay awam dalam pelayar setiap pelawat dan memaparkan \"Tiada ikatan yang sah\" jika ia tidak lagi sah.",
+      "script": "Tag skrip",
+      "iframe": "Iframe biasa",
+      "preview": "Buka lencana"
+    }
   },
   "steps": {
     "event_shape": "Format event",
@@ -357,7 +364,8 @@
       "demo": "Aplikasi demo",
       "readme": "README",
       "verify": "VERIFY.md",
-      "measured": "Ukuran"
+      "measured": "Ukuran",
+      "embed": "Benamkan lencana"
     },
     "critTitle": "Kriteria penilaian",
     "crit": {

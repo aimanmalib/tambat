@@ -10,10 +10,9 @@ import en from '../lang/en.json' with { type: 'json' };
 import ms from '../lang/ms.json' with { type: 'json' };
 import { config, cspHeader } from '../src/config.js';
 import { EMBED_PATH } from '../src/core/badge.js';
+import { EMBED_SCRIPT_PATH as EMBED_SCRIPT } from '../src/core/embed-code.js';
 
-export { EMBED_PATH };
-
-export const EMBED_SCRIPT = '/embed.js';
+export { EMBED_PATH, EMBED_SCRIPT };
 
 /** The server policy with frame-ancestors taken from config embed.frameAncestors. */
 export function embedPolicy(): string {
