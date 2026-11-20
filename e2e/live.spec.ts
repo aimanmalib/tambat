@@ -171,7 +171,8 @@ test('the badge for the demo identity may be framed and verifies from the real r
 test('the wall checks the newest bindings from the real relays and lists only verified ones', async ({ page }) => {
   await page.goto('/wall');
   const hidden = page.locator('.wall__hidden');
-  await expect(hidden).toBeVisible({ timeout: 20_000 });
+  // The wall pages every real relay back before it shows; on 2026-11-20 that took 29 to 35 s on this host under load.
+  await expect(hidden).toBeVisible({ timeout: 45_000 });
   await expect(page.getByRole('alert')).toHaveCount(0);
   const cards = page.locator('.wall__card');
   const shown = await cards.count();
