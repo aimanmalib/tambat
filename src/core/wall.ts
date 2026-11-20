@@ -28,6 +28,8 @@ export interface Wall {
   hidden: number;
   /** Distinct identity events read from the relays to find the entries. */
   scanned: number;
+  /** Bindings whose on-chain proof was not read yet: neither listed nor hidden. Absent when there are none. */
+  unchecked?: number;
 }
 
 export interface WallOptions extends DiscoverOptions {
@@ -36,8 +38,10 @@ export interface WallOptions extends DiscoverOptions {
   pageSize?: number;
   /** Pages asked of each relay at most. */
   maxPages?: number;
-  /** Chain servers for on-chain proofs (`tx:<txid>`); without them those bindings cannot pass and count as hidden. */
+  /** Chain servers for on-chain proofs (`tx:<txid>`); without them those bindings stay unchecked. */
   chain?: ChainReading;
+  /** Called with the wall built from the relays alone, before the chain is read, so a page can show it at once. */
+  onRelays?: (wall: Wall) => void;
 }
 
 /** Browser relay query that keeps events with bad signatures, so the wall can count them instead of losing them. */
@@ -53,6 +57,12 @@ function namesBch(item: unknown): boolean {
 
 const genuine = (e: Event): boolean => idMatches(e) && signatureValid(e);
 
+/** Nothing failed, but an on-chain proof was not read from the chain: the binding is not checked yet. */
+function awaitsChain(r: BindingResult): boolean {
+  const all = [...r.steps, ...r.claims.flatMap((c) => c.steps)];
+  return !all.some((s) => s.status === 'fail') && r.claims.some((c) => c.steps.some((s) => s.code === 'chain_unreadable'));
+}
+
 /** Only the `newest` step failed: a genuine event that a newer one from the same key replaced. */
 function onlyReplaced(r: BindingResult): boolean {
   const failed = r.steps.filter((s) => s.status === 'fail');
@@ -63,6 +73,7 @@ function onlyReplaced(r: BindingResult): boolean {
 export function buildWall(raw: unknown[], limit: number, network = config.network, txLookups: Record<string, TxLookup> = {}): Wall {
   const byId = new Map<string, Event>();
   let hidden = 0;
+  let unchecked = 0;
   for (const item of raw) {
     const shaped = !eventShapeError(item) && (item as Event).kind === config.nostr.bindingKind;
     if (!shaped) {
@@ -83,6 +94,7 @@ export function buildWall(raw: unknown[], limit: number, network = config.networ
     if (!namesBch(e)) continue;
     const r = verifyBinding(e, { network, sameAuthorEvents, txLookups });
     if (r.ok) results.push(r);
+    else if (awaitsChain(r)) unchecked += 1;
     else if (!onlyReplaced(r)) hidden += 1;
   }
   const entries = results
@@ -96,7 +108,7 @@ export function buildWall(raw: unknown[], limit: number, network = config.networ
       eventId: r.eventId,
       proof: r.claims[0]?.proof ?? 'message',
     }));
-  return { entries, hidden, scanned: byId.size };
+  return unchecked > 0 ? { entries, hidden, scanned: byId.size, unchecked } : { entries, hidden, scanned: byId.size };
 }
 
 /** Where one relay's paging stands: the `until` for its next page, or done. */
@@ -125,13 +137,7 @@ export async function loadWall(options: WallOptions = {}): Promise<Wall> {
   const cursors: Cursor[] = (options.relays ?? config.nostr.relays).map((relay) => ({ relay, done: false }));
   const raw: unknown[] = [];
   const seen = new Set<string>();
-  let txLookups: Record<string, TxLookup> = {};
-  // Transactions named by on-chain proofs are read once each, only for bindings that name one.
-  const build = async (): Promise<Wall> => {
-    if (options.chain) txLookups = await readTxLookups(proofTxids(raw.filter(namesBch)), options.chain, txLookups);
-    return buildWall(raw, limit, options.network, txLookups);
-  };
-  let wall = await build();
+  let wall = buildWall(raw, limit, options.network);
   for (let page = 0; page < maxPages && wall.entries.length < limit; page += 1) {
     const open = cursors.filter((c) => !c.done);
     if (open.length === 0) break;
@@ -157,7 +163,11 @@ export async function loadWall(options: WallOptions = {}): Promise<Wall> {
         c.until = oldest;
       }),
     );
-    wall = await build();
+    wall = buildWall(raw, limit, options.network);
   }
-  return wall;
+  // Transactions named by on-chain proofs are read once, after paging, and only when some binding names one.
+  const txids = options.chain ? proofTxids(raw.filter(namesBch)) : [];
+  if (!options.chain || txids.length === 0) return wall;
+  options.onRelays?.(wall);
+  return buildWall(raw, limit, options.network, await readTxLookups(txids, options.chain));
 }

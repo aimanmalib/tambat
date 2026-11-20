@@ -13,12 +13,18 @@ import { SinceBadge } from '../ui/SinceBadge';
 type State = { kind: 'busy' } | ({ kind: 'done'; reachable: boolean; relays: RelayStatus[] } & Wall);
 
 /** Loads the wall and records which relays answered, so an outage never reads as "empty". */
-async function load(): Promise<State> {
+async function load(show: (s: State) => void): Promise<void> {
   const watch = createRelayWatch(config.nostr.relays);
-  const wall = await loadWall({ watch, chain: { servers: electrumServers() } }).catch((): Wall => ({ entries: [], hidden: 0, scanned: 0 }));
-  const empty = wall.entries.length === 0 && wall.hidden === 0;
-  const reachable = !empty || answeredCount(watch.statuses()) > 0;
-  return { kind: 'done', reachable, relays: watch.statuses(), ...wall };
+  const done = (wall: Wall): State => {
+    const empty = wall.entries.length === 0 && wall.hidden === 0;
+    const reachable = !empty || answeredCount(watch.statuses()) > 0;
+    return { kind: 'done', reachable, relays: watch.statuses(), ...wall };
+  };
+  // The wall from the relays shows at once; bindings with an on-chain proof join it once the chain servers answer.
+  const wall = await loadWall({ watch, chain: { servers: electrumServers() }, onRelays: (w) => show(done(w)) }).catch(
+    (): Wall => ({ entries: [], hidden: 0, scanned: 0 }),
+  );
+  show(done(wall));
 }
 
 /** The newest bindings on the relays, each verified in this browser. Failures are only counted, never listed. */
@@ -27,10 +33,10 @@ export function WallPage() {
   const [state, setState] = useState<State>({ kind: 'busy' });
   const refresh = () => {
     setState({ kind: 'busy' });
-    void load().then(setState);
+    void load(setState);
   };
   useEffect(() => {
-    void load().then(setState);
+    void load(setState);
   }, []);
 
   return (

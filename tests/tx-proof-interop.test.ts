@@ -16,7 +16,7 @@ import { verificationText, type Event } from '../src/core/nostr.js';
 import { checkTxProof, parseProof, proofOutput, readTxEvidence, type TxEvidence } from '../src/core/tx-proof.js';
 import { proofTxids, verifyBindingOnChain } from '../src/core/verify-chain.js';
 import { verifyBinding } from '../src/core/verify.js';
-import { buildWall, loadWall } from '../src/core/wall.js';
+import { buildWall, loadWall, type Wall } from '../src/core/wall.js';
 import { lookupByAddress } from '../src/core/discover.js';
 import { signMessage } from '../src/core/bchmsg.js';
 import { signP2pkh } from './anchor-wallet.js';
@@ -206,16 +206,30 @@ describe('other clients on the wall and in look-ups', () => {
   const t = proofTx(keys.npub);
   const onChain = finalizeEvent(createBindingEvent({ claim: { address: keys.address, signature: `tx:${t.txid}` }, createdAt: 1_800_000_000 }), keys.nostrSecretKey);
 
-  it('the wall lists an on-chain proof once the chain was read, and hides it otherwise', () => {
-    expect(buildWall([onChain], 30)).toMatchObject({ entries: [], hidden: 1 });
+  it('the wall lists an on-chain proof once the chain was read, and leaves it unchecked otherwise', () => {
+    expect(buildWall([onChain], 30)).toEqual({ entries: [], hidden: 0, scanned: 1, unchecked: 1 });
     const wall = buildWall([onChain], 30, 'bitcoincash', { [t.txid]: { kind: 'found', evidence: t.evidence } });
     expect(wall.entries).toEqual([expect.objectContaining({ eventId: onChain.id, proof: 'tx', address: keys.address })]);
   });
 
   it('loadWall reads each proof transaction from the chain servers', async () => {
     const servers = ['a', 'b'].map((n) => server(n, holding(t.evidence)));
-    const wall = await loadWall({ relays: ['wss://a.example'], timeoutMs: 200, query: fakeRelay([onChain]), chain: { servers, quorum: 2 } });
+    const early: Wall[] = [];
+    const wall = await loadWall({ relays: ['wss://a.example'], timeoutMs: 200, query: fakeRelay([onChain]), chain: { servers, quorum: 2 }, onRelays: (w) => early.push(w) });
+    expect(early).toEqual([{ entries: [], hidden: 0, scanned: 1, unchecked: 1 }]);
     expect(wall.entries.map((e) => e.proof)).toEqual(['tx']);
+    expect(wall.unchecked).toBeUndefined();
+  });
+
+  it('a forged on-chain proof is hidden once read, and the wall without one makes no chain call', async () => {
+    const wrong = finalizeEvent(createBindingEvent({ claim: { address: other.address, signature: `tx:${t.txid}` }, createdAt: 1_800_000_000 }), other.nostrSecretKey);
+    const servers = ['a', 'b'].map((n) => server(n, holding(t.evidence)));
+    expect(await loadWall({ relays: ['wss://a.example'], timeoutMs: 200, query: fakeRelay([wrong]), chain: { servers, quorum: 2 } })).toMatchObject({ entries: [], hidden: 1 });
+    let opened = 0;
+    const counting: ChainServer = { name: 'x', open: async () => { opened += 1; return server('x', {}).open(); } };
+    const early: Wall[] = [];
+    await loadWall({ relays: ['wss://a.example'], timeoutMs: 200, query: fakeRelay([vectors.bindingEvent]), chain: { servers: [counting], quorum: 1 }, onRelays: (w) => early.push(w) });
+    expect([opened, early.length]).toEqual([0, 0]);
   });
 
   it('finds and verifies a msg: signature on an address written without prefix', async () => {
