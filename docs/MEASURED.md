@@ -200,6 +200,12 @@ it was committed: 55.77 s, 1920 by 1080, H.264 at 30 frames per second, no audio
 captions burned in from one caption list (7 cues, contrast 15.6 to 15.9 against their box), no QR code in any frame
 sampled twice a second (112 frames). `tests/video.test.ts` reads the length, the tracks and the box order from the file.
 
+After the first deploy (tag `5e3a3b2`) a byte range request through the CDN came back 200 with the whole file: the proxy
+compressed the MP4 and the CDN kept that copy. The proxy now leaves MP4, JPEG, PNG and PDF alone and the media URLs carry
+`?v=` with the file hash. After the deploy of `5491bbd` (18:12 UTC) `Range: bytes=0-1` gave 206 with `content-range: bytes
+0-1/2741657`, and /video read 55.77 s from the file in WebKit with the iPhone 13 profile (page 390 of 390 px) and in
+Chromium at 320 px (320 of 320).
+
 ## Wall
 
 The wall's own code (`loadWall` in `src/core/wall.ts`, with the query that keeps events whose signature fails) run from the
