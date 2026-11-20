@@ -2,7 +2,8 @@
 # affect any other name. deploy/deploy.sh fills the @...@ values from deploy/hos.env and copies the result into the
 # proxy's dynamic configuration folder.
 # HTML is sent with `Cache-Control: no-transform`, so a CDN in front does not compress it: the `compress` middleware
-# does, with its 1024-byte floor lowered so the small index page is compressed too.
+# does, with its 1024-byte floor lowered so the small index page is compressed too. Media that is compressed already is
+# left alone: a gzipped MP4 answers a byte range with the whole file, and Safari plays video only from range responses.
 http:
   routers:
     tambat:
@@ -23,6 +24,7 @@ http:
     tambat-compress:
       compress:
         minResponseBodyBytes: 256
+        excludedContentTypes: [application/grpc, text/event-stream, video/mp4, image/jpeg, image/png, application/pdf]
     tambat-https:
       redirectScheme:
         scheme: https
