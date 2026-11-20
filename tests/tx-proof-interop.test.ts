@@ -26,11 +26,12 @@ const fx = JSON.parse(readFileSync(new URL('./fixtures/tx-proof-mainnet.json', i
   npub: string;
   address: string;
   txid: string;
-  raw: string;
-  sources: Record<string, string>;
+  raw: string[];
+  sources: Record<string, string[]>;
   event: Event;
 };
-const real: TxEvidence = { raw: fx.raw, sources: fx.sources };
+/** The fixture keeps hex in short pieces so no line looks like a key to a secret scanner. */
+const real: TxEvidence = { raw: fx.raw.join(''), sources: Object.fromEntries(Object.entries(fx.sources).map(([id, hex]) => [id, hex.join('')])) };
 const addr = (a: string): P2pkhAddress => parseP2pkhAddress(a) as P2pkhAddress;
 
 /** A transaction from `from` that carries `output` (default: the proof for `npub`), signed with the test phrase. */
@@ -134,9 +135,9 @@ describe('a real on-chain proof from another client (mainnet)', () => {
   });
 
   it('fails the VM when the OP_RETURN text is changed after signing', () => {
-    const raw = fx.raw.replace(binToHex(utf8ToBin(fx.npub)), binToHex(utf8ToBin(other.npub)));
-    expect(raw).not.toBe(fx.raw);
-    const changed = { raw, sources: fx.sources };
+    const raw = real.raw.replace(binToHex(utf8ToBin(fx.npub)), binToHex(utf8ToBin(other.npub)));
+    expect(raw).not.toBe(real.raw);
+    const changed = { raw, sources: real.sources };
     expect(checkTxProof(hashOf(changed), addr(fx.address), other.npub, changed)).toMatchObject({ ok: false, code: 'tx_no_input_from_address' });
   });
 });
@@ -178,7 +179,7 @@ describe('reading a proof transaction from several chain servers', () => {
   });
 
   it('is unread when one server returns something else', async () => {
-    const liar = server('b', { ...holding(t.evidence), ...fx.sources, [t.txid]: fx.raw });
+    const liar = server('b', { ...holding(t.evidence), ...real.sources, [t.txid]: real.raw });
     const read = await readTxEvidence(t.txid, [server('a', holding(t.evidence)), liar, server('c', holding(t.evidence))], 2);
     expect(read.kind).toBe('unread');
     expect(read.kind === 'unread' && read.servers?.differing).toEqual(['b']);

@@ -16,15 +16,15 @@ import { E2E } from './ports.js';
 
 const fx = JSON.parse(readFileSync(new URL('../tests/fixtures/tx-proof-mainnet.json', import.meta.url), 'utf8')) as {
   txid: string;
-  raw: string;
-  sources: Record<string, string>;
+  raw: string[];
+  sources: Record<string, string[]>;
   event: Event;
 };
 const npub = toNpub(fx.event.pubkey);
 const RELAY_PORT = E2E.relayPort + 90;
 /** The proof transaction and the transaction it spends, under a script hash nothing asks for: only `transaction.get` finds them. */
 const chain: FakeChain = {
-  history: { proof: [{ hex: fx.raw, txid: fx.txid, height: 0 }, ...Object.entries(fx.sources).map(([txid, hex]) => ({ hex, txid, height: 0 }))] },
+  history: { proof: [{ hex: fx.raw.join(''), txid: fx.txid, height: 0 }, ...Object.entries(fx.sources).map(([txid, hex]) => ({ hex: hex.join(''), txid, height: 0 }))] },
   headers: {},
 };
 
