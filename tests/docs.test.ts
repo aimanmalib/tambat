@@ -1,7 +1,7 @@
 /** The protocol documents quote code and vectors; these checks fail when the documents and the code drift apart. */
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { VERIFY_STEPS } from '../src/core/binding.js';
+import { TX_PROOF_STEPS, VERIFY_STEPS } from '../src/core/binding.js';
 import { vectors } from './helpers.js';
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
@@ -62,6 +62,13 @@ describe('docs', () => {
       const file = command.split(' ').at(-1) ?? '';
       expect(existsSync(new URL(`../${file}`, import.meta.url)), file).toBe(true);
     }
+  });
+
+  it('VERIFY.md shows how to check an on-chain proof with the steps the verifier runs', () => {
+    const section = read('docs/VERIFY.md').split('## An on-chain proof')[1]?.split('\n## ')[0] ?? '';
+    expect(section).toContain('jq .event tests/fixtures/tx-proof-mainnet.json | npx tsx bin/tambat.ts verify -');
+    expect(existsSync(new URL('../tests/fixtures/tx-proof-mainnet.json', import.meta.url))).toBe(true);
+    for (const step of TX_PROOF_STEPS) expect(section).toContain(`\`${step}\``);
   });
 
   it('README and the docs link files that exist', () => {

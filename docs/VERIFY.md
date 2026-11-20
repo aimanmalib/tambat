@@ -109,6 +109,31 @@ address over the text for this author.
 - The BCH key is not the Nostr key. A wallet message verifier does not show the recovered key; `tambat verify --json` prints it
   as `bchPublicKey`. Its 32 bytes after the first byte must differ from the event `pubkey`.
 
+## An on-chain proof
+
+Some NIP-39 clients, and the WizardConnect option on Link, write `bitcoincash:tx:<txid>` in place of a signature: a
+transaction spent from the claimed address with one output `OP_RETURN <verification text>` ([SPEC](SPEC.md)). The CLI reads
+the transaction from the chain servers in `anchor.electrum` and counts it only when at least `anchor.quorum` of them agree.
+A real one, written by another client and kept as test data:
+
+```sh
+jq .event tests/fixtures/tx-proof-mainnet.json | npx tsx bin/tambat.ts verify -
+```
+
+It exits 0 and prints `tx_found`, `address_match`, `tx_text`, `network` and `key_separation` as passed for the claim marked
+`on-chain proof`. With no chain server answering, the claim is skipped and does not pass: there is no proof without the chain.
+
+By hand, with any block explorer:
+
+1. Open the transaction `<txid>` from the tag. Its id is the double SHA-256 of the raw transaction, so a confirmed
+   transaction cannot be swapped for another.
+2. One input spends from the claimed address (explorers show the input address).
+3. One output is `OP_RETURN` with a single push. Decode its hex as UTF-8: it must equal the output of
+   `npx tsx bin/tambat.ts text <npub of the event author>`, byte for byte.
+
+The CLI also runs the whole transaction through the BCH virtual machine (libauth), which an explorer's address label does
+not prove on its own.
+
 ## An attestation credential
 
 An attestation exported as a W3C Verifiable Credential 2.0 ([ADR 0017](decisions/0017-attestation-verifiable-credential.md))
