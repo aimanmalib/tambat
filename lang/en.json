@@ -8,7 +8,10 @@
   "hero": {
     "line": "One person, two keys: this Nostr name is also a BCH address.",
     "label": "Live check of a real binding",
-    "by": "Signed with a Paytaca wallet",
+    "signedBy": {
+      "paytaca": "Signed with a Paytaca wallet",
+      "demo": "Signed with this project's demo key"
+    },
     "nostr": "Nostr",
     "bch": "BCH",
     "steps": {
@@ -25,8 +28,8 @@
       "skip": "not shown"
     },
     "block": "since block {block}",
-    "anchorNone": "no BCH commitment found",
-    "anchorUnreadable": "chain not read right now",
+    "anchorNone": "none yet",
+    "anchorUnreadable": "chain not read",
     "failed": "Could not check right now: {step} did not pass.",
     "open": "Open the full check in Look up",
     "own": "Link your own keys"
@@ -417,9 +420,9 @@
     "link": {
       "link": "Link",
       "revoke": "Revoke and move",
-      "hero": "Live check of a Paytaca binding",
+      "hero": "Live check of a real binding (Paytaca first, else the demo key)",
       "wizard": "WizardConnect wallets: proof by transaction (not yet tested with a wallet)",
-      "otherClients": "Bindings by other NIP-39 clients, including an on-chain proof",
+      "interop": "Verified by {verifiedBy} of {verifiers} independent NIP-39 verifiers; verifies {verifiesTheirs} of {theirs} of their bindings",
       "vectors": "Test vectors",
       "lookup": "Look up",
       "wall": "Live wall with counts",

@@ -20,7 +20,7 @@ const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as 
  * is compared without them; the test below checks the library code never reads them.
  */
 /** Config the web app reads and src/core never does: whole sections, or `section.key` for one key in a shared section. */
-const APP_ONLY = ['hero', 'wizardConnect', 'wall.refreshSeconds', 'banner.firstCommit', 'banner.note'] as const;
+const APP_ONLY = ['hero', 'wizardConnect', 'wall.refreshSeconds', 'banner.firstCommit', 'banner.note', 'judges.interop'] as const;
 /**
  * Library settings added after the released tarball. The released library writes the prefixed claim form and reads no
  * platform alias (README "Known limits"); the next release carries them.

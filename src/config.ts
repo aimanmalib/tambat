@@ -209,12 +209,19 @@ export interface TambatConfig {
     revocation: { eventId: string; npub: string };
     /** CSS width from which the requirement and criteria lists start open; below it they start closed. */
     openFromWidth: string;
+    /**
+     * Interoperability counts written by the measuring tool, never by hand (docs/MEASURED.md "## Interoperability"): how
+     * many of the independent NIP-39 verifiers checked verify a binding written by Tambat, and how many third-party
+     * bindings on the relays Tambat verifies.
+     */
+    interop: { verifiedBy: number; verifiers: number; verifiesTheirs: number; theirs: number; measuredAt: string };
   };
   /**
    * The first card of the home page: a real binding, fetched from the relays and checked in the browser step by step.
-   * `timeoutMs` bounds each step that waits on the network (relays, chain servers).
+   * `candidates` in order of preference (src/core/hero-check.ts pickHeroCandidate); `signer` is a key of the lang text
+   * hero.signedBy. `timeoutMs` bounds each step that waits on the network (relays, chain servers).
    */
-  hero: { npub: string; eventId: string; timeoutMs: number };
+  hero: { candidates: { npub: string; signer: string }[]; timeoutMs: number };
   /**
    * The second wallet option on Link (docs/decisions/0023-wizardconnect-transaction-proof.md): the wallet signs a small
    * transaction whose OP_RETURN is the NIP-39 text. `relay` carries the encrypted session messages; `scan` is how many
@@ -311,6 +318,23 @@ function parseJudges(j: TambatConfig['judges']): void {
   positiveInt(j.anchor.block, 'judges.anchor.block');
   if (!EVENT_ID.test(j.anchor.eventId ?? '')) fail('judges.anchor.eventId', 'must be a 64-character hex event id');
   if (!/^\d+(\.\d+)?(rem|px|em)$/.test(j.openFromWidth ?? '')) fail('judges.openFromWidth', 'must be a CSS length');
+  const i = j.interop;
+  for (const k of ['verifiedBy', 'verifiers', 'verifiesTheirs', 'theirs'] as const) {
+    if (!Number.isInteger(i?.[k]) || i[k] < 0) fail(`judges.interop.${k}`, 'must be a whole number, 0 or more');
+  }
+  if (i.verifiedBy > i.verifiers) fail('judges.interop.verifiedBy', 'must not exceed verifiers');
+  if (i.verifiesTheirs > i.theirs) fail('judges.interop.verifiesTheirs', 'must not exceed theirs');
+  if (!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(i.measuredAt ?? '')) fail('judges.interop.measuredAt', 'must be a UTC time like 2026-11-20T15:00:00Z');
+}
+
+function parseHero(h: TambatConfig['hero']): void {
+  if (!Array.isArray(h?.candidates) || h.candidates.length === 0) fail('hero.candidates', 'must be a non-empty list');
+  h.candidates.forEach((c, n) => {
+    if (!NPUB.test(c?.npub ?? '')) fail(`hero.candidates.${n}.npub`, 'must be an npub');
+    if (!/^[a-z][a-zA-Z]*$/.test(c.signer ?? '')) fail(`hero.candidates.${n}.signer`, 'must be a lang key under hero.signedBy');
+  });
+  if (new Set(h.candidates.map((c) => c.npub)).size !== h.candidates.length) fail('hero.candidates', 'must not repeat an npub');
+  positiveInt(h.timeoutMs, 'hero.timeoutMs');
 }
 
 /** Checks the shape of a config object and returns it typed. Throws with the offending path. */
@@ -401,9 +425,7 @@ export function parseConfig(input: unknown): TambatConfig {
   }
   parseSd(c.sd, [c.attest.namespace, c.receipt.namespace]);
   parseJudges(c.judges);
-  if (!NPUB.test(c.hero?.npub ?? '')) fail('hero.npub', 'must be an npub');
-  if (!EVENT_ID.test(c.hero.eventId ?? '')) fail('hero.eventId', 'must be a 64-character hex event id');
-  positiveInt(c.hero.timeoutMs, 'hero.timeoutMs');
+  parseHero(c.hero);
   parseWizardConnect(c.wizardConnect);
   return c;
 }

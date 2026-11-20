@@ -8,7 +8,10 @@
   "hero": {
     "line": "Satu orang, dua kunci: nama Nostr ini juga alamat BCH.",
     "label": "Semakan langsung ikatan sebenar",
-    "by": "Ditandatangani dengan dompet Paytaca",
+    "signedBy": {
+      "paytaca": "Ditandatangani dengan dompet Paytaca",
+      "demo": "Ditandatangani dengan kunci demo projek ini"
+    },
     "nostr": "Nostr",
     "bch": "BCH",
     "steps": {
@@ -25,8 +28,8 @@
       "skip": "tidak ditunjuk"
     },
     "block": "sejak blok {block}",
-    "anchorNone": "tiada komitmen BCH ditemui",
-    "anchorUnreadable": "rantaian tidak dapat dibaca sekarang",
+    "anchorNone": "belum ada",
+    "anchorUnreadable": "rantaian tidak terbaca",
     "failed": "Tidak dapat menyemak sekarang: {step} tidak lulus.",
     "open": "Buka semakan penuh di Cari",
     "own": "Pautkan kunci anda sendiri"
@@ -417,9 +420,9 @@
     "link": {
       "link": "Pautkan",
       "revoke": "Batal dan pindah",
-      "hero": "Semakan langsung ikatan Paytaca",
+      "hero": "Semakan langsung ikatan sebenar (Paytaca dahulu, jika tidak kunci demo)",
       "wizard": "Dompet WizardConnect: bukti melalui transaksi (belum diuji dengan dompet)",
-      "otherClients": "Ikatan oleh klien NIP-39 lain, termasuk bukti dalam rantaian",
+      "interop": "Disahkan oleh {verifiedBy} daripada {verifiers} pengesah NIP-39 bebas; mengesahkan {verifiesTheirs} daripada {theirs} ikatan mereka",
       "vectors": "Vektor ujian",
       "lookup": "Cari",
       "wall": "Dinding hidup dengan kiraan",

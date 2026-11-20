@@ -15,7 +15,11 @@ export const look = (q: string) => `/lookup?q=${encodeURIComponent(q)}`;
 /** The GitHub release of the library package at the version this tree packs (scripts/pack-core.ts reads the same field). */
 export const releaseUrl = `${config.judges.repoUrl}/releases/tag/core-v${pkg.version}`;
 
-export type JudgeLink = { key: string; href: string };
+/** `params` fill the placeholders of the link's lang text (judges.link.<key>). */
+export type JudgeLink = { key: string; href: string; params?: Record<string, number> };
+
+const { verifiedBy, verifiers, verifiesTheirs, theirs } = config.judges.interop;
+const interopCounts = { verifiedBy, verifiers, verifiesTheirs, theirs };
 
 /** Each bounty requirement with the live pages and files that show it, in the order the bounty lists them. */
 export const REQUIREMENTS: { key: string; links: JudgeLink[] }[] = [
@@ -32,7 +36,7 @@ export const REQUIREMENTS: { key: string; links: JudgeLink[] }[] = [
     links: [
       { key: 'hero', href: '/' },
       { key: 'vectors', href: repo('examples/vectors.json') },
-      { key: 'otherClients', href: `${repo('docs/MEASURED.md')}#interoperability` },
+      { key: 'interop', href: `${repo('docs/MEASURED.md')}#interoperability`, params: interopCounts },
     ],
   },
   {

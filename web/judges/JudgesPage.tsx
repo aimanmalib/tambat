@@ -56,7 +56,7 @@ export function JudgesPage() {
             <li key={r.key} data-req={r.key}>
               <span className="jlist__name">{t(`judges.req.${r.key}`)}</span>
               <span className="jlinks">
-                {r.links.map((l) => <a key={l.key} href={l.href}>{t(`judges.link.${l.key}`)}</a>)}
+                {r.links.map((l) => <a key={l.key} href={l.href}>{t(`judges.link.${l.key}`, l.params)}</a>)}
               </span>
             </li>
           ))}

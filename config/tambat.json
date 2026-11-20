@@ -183,7 +183,8 @@
       "eventId": "6aa1a2d0fe533d3a68a17d53c6a91d166ee01c339ee1827e5d6e125065909ae0",
       "npub": "npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql"
     },
-    "openFromWidth": "60rem"
+    "openFromWidth": "60rem",
+    "interop": { "verifiedBy": 1, "verifiers": 4, "verifiesTheirs": 12, "theirs": 13, "measuredAt": "2026-11-20T15:03:34Z" }
   },
   "receipt": {
     "kind": 1985,
@@ -214,8 +215,10 @@
     "filePrefix": "tambat-disclosure"
   },
   "hero": {
-    "npub": "npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz",
-    "eventId": "d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b",
+    "candidates": [
+      { "npub": "npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz", "signer": "paytaca" },
+      { "npub": "npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt", "signer": "demo" }
+    ],
     "timeoutMs": 10000
   },
   "wizardConnect": {
