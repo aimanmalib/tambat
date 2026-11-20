@@ -31,7 +31,8 @@ import { publishEvent } from '../src/core/publish.js';
 import { readPhrase, recoverFrom, revokeAddress, rotateAddress, type ManageDeps } from '../src/node/manage.js';
 import { verifyRecovery } from '../src/core/recover.js';
 import { RelaySocket } from '../src/node/relay.js';
-import { verifyBinding, type BindingResult } from '../src/core/verify.js';
+import type { BindingResult } from '../src/core/verify.js';
+import { verifyBindingOnChain, type ChainReading } from '../src/core/verify-chain.js';
 import { electrumServers, readAgreedCommitments, type ChainChoice, type OpenChain } from '../src/core/anchor-chain.js';
 import { firstAnswering } from '../src/core/chain-quorum.js';
 import { parseP2pkhAddress } from '../src/core/cashaddr.js';
@@ -64,7 +65,7 @@ function render(result: BindingResult): string {
   for (const s of result.steps) lines.push(`  ${s.status.padEnd(4)} ${s.name}${s.reason ? `: ${s.reason}` : ''}`);
   if (result.steps.length > 1 && result.claims.length === 0) lines.push('  fail claims: event has no bch: identity tag');
   for (const c of result.claims) {
-    lines.push(`  claim ${c.address}`);
+    lines.push(`  claim ${c.address} (${c.proof === 'tx' ? `on-chain proof, tx ${c.txid ?? ''}` : 'signed message'})`);
     for (const s of c.steps) lines.push(`    ${s.status.padEnd(4)} ${s.name}${s.reason ? `: ${s.reason}` : ''}`);
   }
   if (result.recoveredBy) lines.push(`  note: the owner of this address recovered to ${result.recoveredBy}`);
@@ -124,6 +125,8 @@ async function anchorLookup(address: string, json: boolean, chain: ChainChoice):
 
 export async function main(argv: string[], deps: ManageDeps = nodeDeps, chain: ChainChoice = electrumServers()): Promise<number> {
   const openChain: OpenChain = Array.isArray(chain) ? firstAnswering(chain) : chain;
+  // On-chain proofs (`tx:<txid>`) are read from every chain server; a single test chain stands alone.
+  const chainReading: ChainReading = Array.isArray(chain) ? { servers: chain } : { servers: [{ name: 'chain', open: chain }], quorum: 1 };
   const json = argv.includes('--json');
   const readChain = argv.includes('--chain');
   const flags = new Map<string, number>(['--keys', '--bch-keys', '--binding', '--out', '--reveal'].map((f) => [f, argv.indexOf(f)]));
@@ -151,21 +154,21 @@ export async function main(argv: string[], deps: ManageDeps = nodeDeps, chain: C
     } catch (err) {
       return usageError(`cannot read event: ${(err as Error).message}`);
     }
-    const result = verifyBinding(event);
+    const result = await verifyBindingOnChain(event, { chain: chainReading });
     const recovery = verifyRecovery(result);
     return out(json, [recovery ? { ...result, recovery } : result], '');
   }
   if (command === 'lookup') {
     if (arg.includes(':')) {
       try {
-        return out(json, await lookupByAddress(arg, { query: deps.query }), `no verified binding found for ${arg}`);
+        return out(json, await lookupByAddress(arg, { query: deps.query, chain: chainReading }), `no verified binding found for ${arg}`);
       } catch (err) {
         return usageError((err as Error).message);
       }
     }
     const key = parsePubkey(arg);
     if ('error' in key) return usageError(key.error);
-    const result = await lookupByPubkey(key.hex, { query: deps.query });
+    const result = await lookupByPubkey(key.hex, { query: deps.query, chain: chainReading });
     return out(json, result ? [result] : [], `no binding event found for ${toNpub(key.hex)}`);
   }
   if (command === 'anchor-lookup') return anchorLookup(arg, json, chain);

@@ -45,6 +45,7 @@ describe('buildWall', () => {
       address: other.address,
       createdAt: second.created_at,
       eventId: second.id,
+      proof: 'message',
     });
     expect(wall.hidden).toBe(1);
   });

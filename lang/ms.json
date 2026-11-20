@@ -152,7 +152,11 @@
       "script": "Tag skrip",
       "iframe": "Iframe biasa",
       "preview": "Buka lencana"
-    }
+    },
+    "proof": "Bukti",
+    "proofMessage": "Mesej bertandatangan",
+    "proofTx": "Bukti dalam rantaian",
+    "proofTxid": "Transaksi bukti"
   },
   "steps": {
     "event_shape": "Format event",
@@ -190,8 +194,15 @@
       "recovery_wrong_signer": "Tandatangan pemulihan bukan dibuat oleh kunci {address} atas \"replaces {npub}\".",
       "old_not_bound": "Ikatan terbaharu {npub} tidak menuntut {address}.",
       "recovery_self": "Kunci tidak boleh memulihkan daripada dirinya sendiri.",
-      "recovery_cycle": "{npub} pula mendakwa memulihkan daripada kunci ini, jadi kedua-dua pemulihan ditolak."
-    }
+      "recovery_cycle": "{npub} pula mendakwa memulihkan daripada kunci ini, jadi kedua-dua pemulihan ditolak.",
+      "tx_not_found": "Pelayan rantaian tiada transaksi {txid}.",
+      "tx_id_mismatch": "Transaksi yang dipulangkan rantaian tidak sepadan dengan id {txid}.",
+      "tx_no_input_from_address": "Transaksi tidak membelanjakan dari {address} dengan tandatangan yang sah.",
+      "tx_text_mismatch": "Tiada output transaksi yang membawa teks pengesahan untuk {npub}.",
+      "chain_unreadable": "Tidak disemak: pelayan rantaian tidak dapat dibaca atau tidak sepakat, jadi bukti ini tidak lulus."
+    },
+    "tx_found": "Transaksi bukti dijumpai",
+    "tx_text": "Transaksi membawa teks"
   },
   "demo": {
     "title": "Aplikasi demo: log masuk",
@@ -393,6 +404,7 @@
       "link": "Pautkan",
       "revoke": "Batal dan pindah",
       "hero": "Semakan langsung ikatan Paytaca",
+      "otherClients": "Ikatan oleh klien NIP-39 lain, termasuk bukti dalam rantaian",
       "vectors": "Vektor ujian",
       "lookup": "Cari",
       "wall": "Dinding dengan lencana rantaian",

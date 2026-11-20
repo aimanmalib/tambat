@@ -1,4 +1,5 @@
 /** One search box for the web app: npub, hex key, BCH address or NIP-05 name. Names resolve on the domain, then verify on relays. */
+import { electrumServers } from '../src/core/anchor-chain';
 import { lookupInput } from '../src/core/discover';
 import { lookupByNip05, parseNip05 } from '../src/core/nip05';
 import type { BindingResult } from '../src/core/verify';
@@ -20,11 +21,11 @@ export async function findIdentity(input: string): Promise<Found | 'bad_input'> 
   const target = parseNip05(value);
   const watch = createRelayWatch(config.nostr.relays);
   if (!target) {
-    const results = await lookupInput(value, { watch });
+    const results = await lookupInput(value, { watch, chain: { servers: electrumServers() } });
     return results === 'bad_input' ? results : { results, relays: watch.statuses() };
   }
   const name = `${target.name}@${target.domain}`;
-  const { resolution, binding } = await lookupByNip05(target, { watch });
+  const { resolution, binding } = await lookupByNip05(target, { watch, chain: { servers: electrumServers() } });
   if (!resolution.ok) throw new TextError(`nip05.${resolution.problem}`, { name });
   return { results: binding ? [binding] : [], via: { name, npub: resolution.npub }, relays: watch.statuses() };
 }

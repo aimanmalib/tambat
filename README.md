@@ -53,7 +53,7 @@ and on an iPhone 13 and checks that every internal link answers 200.
 | Requirement | Code | Try it or read it |
 | --- | --- | --- |
 | Identity creation and management | `src/core/binding.ts` (create, revoke, rotate), `src/core/recover.ts` (recover a lost Nostr key), `src/node/manage.ts`, `web/pages/LinkPage.tsx`, `web/pages/OwnerActions.tsx`, `web/keys/` | **Link** on https://tambat.sasateguh.com; **Revoke this link** and **Move to a new address** on your own look-up result; [revocation measured](docs/MEASURED.md) |
-| Cryptographic identity binding | `src/core/binding.ts`, `src/core/bchmsg.ts`, `src/core/verify.ts` | [SPEC.md](docs/SPEC.md), [vectors](examples/vectors.json), [third-party vectors](examples/third-party-vectors.json) |
+| Cryptographic identity binding | `src/core/binding.ts`, `src/core/bchmsg.ts`, `src/core/verify.ts`, `src/core/tx-proof.ts` | [SPEC.md](docs/SPEC.md), [vectors](examples/vectors.json), [third-party vectors](examples/third-party-vectors.json), [bindings by other NIP-39 clients](docs/MEASURED.md#interoperability) |
 | Decentralized discovery | `src/core/discover.ts`, `src/core/nip05.ts`, `src/core/publish.ts`, `web/pages/LookupPage.tsx` | **Look up** or **Pay** on the live site by npub, address or NIP-05 name (`demo@tambat.sasateguh.com`), the [one-file verifier](#one-file-verifier) at https://tambat.sasateguh.com/verify/, [the measurements](docs/MEASURED.md) |
 | Verification and authentication | `src/core/verify.ts`, `src/core/auth.ts`, `src/core/auth-bch.ts`, `server/`, `bin/tambat.ts`, `verifier/` | **Demo app** on the live site: sign in with Nostr or with a BCH wallet only ([sign-in measured](docs/MEASURED.md)), [the verification guide](docs/VERIFY.md) |
 | Working demonstration and documentation | `web/`, `deploy/`, `examples/` | https://tambat.sasateguh.com, this README, [docs/](docs/) |
@@ -198,6 +198,16 @@ section 5):
 A look-up by address asks relays for events tagged with the address, then for each author re-reads the newest event and keeps
 the author only when that event still claims the address and verifies.
 
+Bindings written by any client that follows NIP-39 are read the same way. Some write the address without its prefix or the
+signature as `msg:<base64>`; some prove the address with a transaction instead of a signed message (`tx:<txid>`: the
+transaction spends from the address and carries the same text in an OP_RETURN output). For those, Look up, the wall and the
+CLI read the transaction from the chain servers, keep it only when they agree, run it through the BCH virtual machine with
+the outputs it spends and compare the OP_RETURN with the text for the author's npub (steps `tx_found`, `address_match`,
+`tx_text`; [SPEC](docs/SPEC.md) section 4, [ADR 0021](docs/decisions/0021-tx-proof.md)). Each result is labelled "Signed
+message" or "On-chain proof". On 2026-11-20 seven mainnet bindings by other clients verified this way, one of them a
+`tx:` proof; before this change one of the seven did ([measured](docs/MEASURED.md#interoperability),
+`tests/tx-proof-interop.test.ts` with that transaction as test data).
+
 ## Command-line verifier
 
 ```
@@ -339,7 +349,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-c9b59bb8282d515645bfd2a7c7c2f35ee4ec1c3e3c57197646c015afa4a03f67  tambat-verify.html
+619caa7dec4deee28c24643ffaf1e28d323efa2f2df32a47999660d310c2485d  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -415,6 +425,9 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
   against a simulated chain only; no revocation has been sent on mainnet.
 - **WizardConnect** is not supported: its protocol signs transactions but not messages, so it cannot sign a binding
   ([ADR 0015](docs/decisions/0015-no-wizardconnect-connector.md)). Wallets without WalletConnect can paste a signed message.
+- **On-chain proofs** (`tx:<txid>`) written by other clients are read and checked, but Tambat does not write them. They need
+  the chain: the one-file verifier and the server's sign-in do not read it, so there such a claim shows as not checked and
+  does not pass. The released library `core-v0.2.0` predates them and checks signed-message proofs only.
 - **Credentials** carry the signed attestation and binding events as their proof, not a Data Integrity proof, so a
   generic VC verifier cannot check them; `tambat vc verify` and the one-file verifier can. The official W3C test suite was
   not run ([ADR 0017](docs/decisions/0017-attestation-verifiable-credential.md)).

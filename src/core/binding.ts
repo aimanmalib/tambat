@@ -27,7 +27,14 @@ export const VERIFY_STEPS = [
  */
 export const RECOVERY_STEPS = ['recovery_tag', 'recovery_claim', 'recovery_sig', 'old_binding', 'no_cycle'] as const;
 
-export type StepName = (typeof VERIFY_STEPS)[number] | (typeof RECOVERY_STEPS)[number];
+/**
+ * The checks that take the place of `bch_sig` when a claim carries an on-chain proof (`tx:<txid>`) instead of a
+ * signed message: the transaction was found and hashes to the txid, and it carries the verification text. Spending
+ * from the address is reported as `address_match`. The checks live in `tx-proof.ts`.
+ */
+export const TX_PROOF_STEPS = ['tx_found', 'tx_text'] as const;
+
+export type StepName = (typeof VERIFY_STEPS)[number] | (typeof RECOVERY_STEPS)[number] | (typeof TX_PROOF_STEPS)[number];
 
 export interface BchClaim {
   /** Full CashAddr with prefix. */

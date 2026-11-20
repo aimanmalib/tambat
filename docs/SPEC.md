@@ -72,6 +72,33 @@ A NIP-39 identity event:
 - A replacing event must have a `created_at` greater than the event it replaces, so ordering does not fall to the id tie-break.
 - The BCH key and the Nostr key must be different keys.
 
+### Proof forms other clients write
+
+Any client that follows NIP-39 can write a binding a Tambat verifier reads. Besides the form above, a verifier accepts:
+
+- **An address without prefix** (`bch:qq…`). It is read on the verifier's network. The CashAddr checksum covers the prefix, so
+  an address of another network fails instead of being read on the wrong one.
+- **`msg:<base64>`**: a signed message with a `msg:` marker in front. The marker is dropped before the signature is read.
+- **`tx:<txid>`**: an on-chain proof instead of a signed message, for wallets that can sign a transaction but not a message.
+  The address owner sends a transaction that spends from the claimed P2PKH address and has an output whose locking bytecode
+  is exactly `OP_RETURN <one push of the verification text for the author's npub>` (section 2; `proofOutput` in
+  `src/core/tx-proof.ts`). For a 63-character npub the text is 120 bytes, so the output starts `6a4c78`.
+
+A `tx:<txid>` claim runs these steps in place of `bch_sig`:
+
+| Step | Check |
+|---|---|
+| `tx_found` | The configured chain servers agree on the transaction (the same quorum rule as the anchor, below), and it hashes to `txid`. Fails `tx_not_found` when the servers agree they do not have it, `tx_id_mismatch` when it hashes to something else. Skipped (`chain_unreadable`) when the chain was not read or the servers did not agree. |
+| `address_match` | At least one input spends a P2PKH output of the claimed address with that address's public key, and the whole transaction, with the outputs it spends, passes the BCH virtual machine. Fails `tx_no_input_from_address`. |
+| `tx_text` | One output is exactly the `OP_RETURN` above for the event author's npub. Fails `tx_text_mismatch`. |
+| `network` | As for a signed message. |
+| `key_separation` | As for a signed message, with the public key from the spending input. |
+
+Unlike the other steps, a skipped step makes a `tx:<txid>` claim fail to verify: without the chain there is no proof. The
+offline verifier (`verifier/`) never reads the chain, so it shows such a claim as not checked. Reference:
+`verifyBindingOnChain` in `src/core/verify-chain.ts`; test data from a real mainnet proof in
+`tests/fixtures/tx-proof-mainnet.json`.
+
 ## 5. Verification algorithm
 
 A verifier runs these named steps in this order and reports each one as `pass`, `fail` or `skip`, with a reason when it does not

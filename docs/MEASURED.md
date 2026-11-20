@@ -95,6 +95,35 @@ On 2026-11-19 at 00:18:13 UTC, after the reader was changed to require agreement
 bch.imaginary.cash, bch.loping.net, fulcrum.greyh.at (quorum 2)", then block 977901, the same npub, event `d7c03eee…` and
 transaction `a3cf6e76…4263` as the row above (exit code 0).
 
+## Interoperability
+
+Bindings written by another NIP-39 client, read from the default relays on 2026-11-20 and checked with the CLI from this
+repository (`tambat lookup <hex key>`: newest event of the key from the relays, then every step; on-chain proofs read from
+the three chain servers in `anchor.electrum`, quorum 2). The scan asked each relay for the newest 2000 kind 10011 events and
+kept those with a `bch:` identity; events signed by this project's demo keys and the Paytaca binding are left out. "before"
+is the verifier at tag 9c95138, which read only a prefixed CashAddr with a bare base64 signature.
+
+Three spellings were found besides the one Tambat writes: a CashAddr without its prefix (`bch:qq…`), a signature written
+`msg:<base64>`, and an on-chain proof `tx:<txid>` in place of a signature. The verifier now reads all three. A bare address
+is read on the verifier's network; its checksum covers the prefix, so an address of another network fails. An on-chain
+proof passes only when the chain servers agree on the transaction, it hashes to the txid, an input spends from the claimed
+P2PKH address and the whole transaction passes the BCH virtual machine (libauth), and one output is exactly
+`OP_RETURN <verification text for the author's npub>`. Without a chain read the proof is skipped and does not pass.
+
+| UTC | event id | proof form | txid | before | result |
+| --- | --- | --- | --- | --- | --- |
+| 01:32:06 | `f156ff149bfafedb9b2caa08c9cb2af2847c7d6369f9d84c2990f71a106181f9` | `tx:1f765b727ee92b10c4c9d2d08439126c5e33bd53634e53dd6dfacd818b00895f` on an address without prefix, plus a second claim with a base64 signature on an address without prefix | `1f765b727ee92b10c4c9d2d08439126c5e33bd53634e53dd6dfacd818b00895f` | fail (`bch_sig`, `address_match`, `network`) | ok: tx_found, address_match, tx_text, network, key_separation pass for the proof; the second claim passes too |
+| 01:32:06 | `0d10715b3a026c8d59648778bf340c9a0c85f75da551851480468bc24ff0474a` | signed message, address without prefix | | fail (`address_match`, `network`) | ok |
+| 01:32:06 | `687125910c63f23e1c09e6f51b832f00dfeb6b7e14bb5b19e35a570ad6c0b4ee` | signed message, address without prefix | | fail (`address_match`, `network`) | ok |
+| 01:32:06 | `c807c26ec834bf99fec83f6b0fc1ff40fc1340bf73469e3ddb7cbb121d713050` | signed message, address without prefix | | fail (`address_match`, `network`) | ok |
+| 01:32:06 | `7c8d72e444fcb1a5dc6f166aee3a9a06eb58c6224fbdb0754a17ea502b223383` | `msg:<base64>` | | fail (`bch_sig`) | ok |
+| 01:32:06 | `ca79c481ca37d3708533bf5c1d9ea9401f103e8d9c5998fc535d0ef01864010c` | `msg:<base64>` | | fail (`bch_sig`) | ok |
+| 01:32:06 | `271cad218146e5e39d75f9aac55f6e7629751ba02ef354084a59535bbdf3a786` | signed message, prefixed address | | ok | ok |
+| 01:32:06 | `4e0aeb7a4e4cfb8aef47719d592632d18dc9d9143f7a7579a23bf23bfa580aa9` | `msg:<base64>` on a `bchtest:` address | | fail (`bch_sig`, `network`) | fail: `network` (`wrong_network`, the address is on chipnet or testnet; this verifier expects mainnet) |
+
+The proof transaction `1f765b72…895f` is kept as test data in `tests/fixtures/tx-proof-mainnet.json` with the transaction it
+spends, as returned by the chain server named there.
+
 ## Wall
 
 The wall's own code (`loadWall` in `src/core/wall.ts`, with the query that keeps events whose signature fails) run from the

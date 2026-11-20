@@ -49,6 +49,17 @@ The BCH signed-message format of Electron Cash "Sign message" and of `bch_signMe
 3. Proof: 65 bytes, a header byte then the compact secp256k1 signature `r || s`. Header = recovery id + 27 for an uncompressed
    public key, recovery id + 31 for a compressed one.
 
+### On-chain proof
+
+A wallet that can sign a transaction but not a message may put `tx:<txid>` in place of the proof. The transaction spends from
+the claimed P2PKH address and has an output that is exactly `OP_RETURN <one push of the signed text>`. A client checks that the
+transaction it reads hashes to `txid`, that an input spends from the address and the transaction passes the BCH virtual
+machine with the outputs it spends, and that the output carries the text for this `pubkey` (steps `tx_found`,
+`address_match`, `tx_text`). A client that cannot read the chain must treat the claim as not verified.
+
+Clients may also write the address without its prefix (`bch:qq…`, read on the client's network) and a signature as
+`msg:<base64>`; a reader should accept both.
+
 ## Verification
 
 A client verifies a claim in this order and reports the first failing step:
@@ -62,7 +73,8 @@ A client verifies a claim in this order and reports the first failing step:
 6. `network`: the CashAddr prefix is the network the client expects.
 7. `key_separation`: the x-coordinate of the recovered key differs from `pubkey`. Using one key for both is rejected.
 
-To find the Nostr key for an address, query kind `10011` with `#i` set to `bch:<cashaddr>`, then verify each result against the
+To find the Nostr key for an address, query kind `10011` with `#i` set to `bch:<cashaddr>` and to the same address without
+prefix, then verify each result against the
 newest event of its author, since a relay may return an event that a newer one has replaced.
 
 ## Example

@@ -7,7 +7,9 @@
 import { config } from '../config.js';
 import { createRelayQuery, guardedQuery, type DiscoverOptions, type QueryFn } from './discover.js';
 import { eventShapeError, idMatches, signatureValid, type Event } from './nostr.js';
+import type { ProofForm, TxLookup } from './tx-proof.js';
 import { verifyBinding, type BindingResult } from './verify.js';
+import { proofTxids, readTxLookups, type ChainReading } from './verify-chain.js';
 
 export interface WallEntry {
   npub: string;
@@ -16,6 +18,8 @@ export interface WallEntry {
   address: string;
   createdAt: number;
   eventId: string;
+  /** How the first claim proves the address: a signed message or a transaction (`tx:<txid>`). */
+  proof: ProofForm;
 }
 
 export interface Wall {
@@ -32,6 +36,8 @@ export interface WallOptions extends DiscoverOptions {
   pageSize?: number;
   /** Pages asked of each relay at most. */
   maxPages?: number;
+  /** Chain servers for on-chain proofs (`tx:<txid>`); without them those bindings cannot pass and count as hidden. */
+  chain?: ChainReading;
 }
 
 /** Browser relay query that keeps events with bad signatures, so the wall can count them instead of losing them. */
@@ -54,7 +60,7 @@ function onlyReplaced(r: BindingResult): boolean {
 }
 
 /** Verifies relay results for the wall. Pure: no network, so tests feed it any mix of events. */
-export function buildWall(raw: unknown[], limit: number, network = config.network): Wall {
+export function buildWall(raw: unknown[], limit: number, network = config.network, txLookups: Record<string, TxLookup> = {}): Wall {
   const byId = new Map<string, Event>();
   let hidden = 0;
   for (const item of raw) {
@@ -75,14 +81,21 @@ export function buildWall(raw: unknown[], limit: number, network = config.networ
   const results: BindingResult[] = [];
   for (const e of byId.values()) {
     if (!namesBch(e)) continue;
-    const r = verifyBinding(e, { network, sameAuthorEvents });
+    const r = verifyBinding(e, { network, sameAuthorEvents, txLookups });
     if (r.ok) results.push(r);
     else if (!onlyReplaced(r)) hidden += 1;
   }
   const entries = results
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, limit)
-    .map((r) => ({ npub: r.npub, pubkey: r.pubkey, address: r.claims[0]?.address ?? '', createdAt: r.createdAt, eventId: r.eventId }));
+    .map((r) => ({
+      npub: r.npub,
+      pubkey: r.pubkey,
+      address: r.claims[0]?.address ?? '',
+      createdAt: r.createdAt,
+      eventId: r.eventId,
+      proof: r.claims[0]?.proof ?? 'message',
+    }));
   return { entries, hidden, scanned: byId.size };
 }
 
@@ -112,7 +125,13 @@ export async function loadWall(options: WallOptions = {}): Promise<Wall> {
   const cursors: Cursor[] = (options.relays ?? config.nostr.relays).map((relay) => ({ relay, done: false }));
   const raw: unknown[] = [];
   const seen = new Set<string>();
-  let wall = buildWall(raw, limit, options.network);
+  let txLookups: Record<string, TxLookup> = {};
+  // Transactions named by on-chain proofs are read once each, only for bindings that name one.
+  const build = async (): Promise<Wall> => {
+    if (options.chain) txLookups = await readTxLookups(proofTxids(raw.filter(namesBch)), options.chain, txLookups);
+    return buildWall(raw, limit, options.network, txLookups);
+  };
+  let wall = await build();
   for (let page = 0; page < maxPages && wall.entries.length < limit; page += 1) {
     const open = cursors.filter((c) => !c.done);
     if (open.length === 0) break;
@@ -138,7 +157,7 @@ export async function loadWall(options: WallOptions = {}): Promise<Wall> {
         c.until = oldest;
       }),
     );
-    wall = buildWall(raw, limit, options.network);
+    wall = await build();
   }
   return wall;
 }

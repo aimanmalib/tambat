@@ -152,7 +152,11 @@
       "script": "Script tag",
       "iframe": "Plain iframe",
       "preview": "Open the badge"
-    }
+    },
+    "proof": "Proof",
+    "proofMessage": "Signed message",
+    "proofTx": "On-chain proof",
+    "proofTxid": "Proof transaction"
   },
   "steps": {
     "event_shape": "Event format",
@@ -190,8 +194,15 @@
       "recovery_wrong_signer": "The recovery signature was not made by the key of {address} over \"replaces {npub}\".",
       "old_not_bound": "The newest binding of {npub} does not claim {address}.",
       "recovery_self": "A key cannot recover from itself.",
-      "recovery_cycle": "{npub} in turn claims to recover from this key, so neither recovery is accepted."
-    }
+      "recovery_cycle": "{npub} in turn claims to recover from this key, so neither recovery is accepted.",
+      "tx_not_found": "The chain servers do not have transaction {txid}.",
+      "tx_id_mismatch": "The transaction the chain returned does not match its id {txid}.",
+      "tx_no_input_from_address": "The transaction does not spend from {address} with a valid signature.",
+      "tx_text_mismatch": "No output of the transaction carries the verification text for {npub}.",
+      "chain_unreadable": "Not checked: the chain servers could not be read or did not agree, so this proof does not pass."
+    },
+    "tx_found": "Proof transaction found",
+    "tx_text": "Transaction carries the text"
   },
   "demo": {
     "title": "Demo app: sign in",
@@ -393,6 +404,7 @@
       "link": "Link",
       "revoke": "Revoke and move",
       "hero": "Live check of a Paytaca binding",
+      "otherClients": "Bindings by other NIP-39 clients, including an on-chain proof",
       "vectors": "Test vectors",
       "lookup": "Look up",
       "wall": "Wall with anchored badges",

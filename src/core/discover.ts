@@ -11,7 +11,8 @@ import { parseP2pkhAddress } from './cashaddr.js';
 import { watchedSocket, type RelayWatch } from './relay-watch.js';
 import { markRecovered, parseRecoveryTag, recoveryTagOf, verifyRecovery } from './recover.js';
 import { eventShapeError, idMatches, parsePubkey, signatureValid, type Event } from './nostr.js';
-import { isNewer, verifyBinding, type BindingResult, type VerifyOptions } from './verify.js';
+import { isNewer, type BindingResult, type VerifyOptions } from './verify.js';
+import { verifyBindingOnChain, type ChainReading } from './verify-chain.js';
 
 export type { Filter };
 
@@ -58,6 +59,8 @@ export interface DiscoverOptions extends Pick<VerifyOptions, 'network'> {
   query?: QueryFn;
   /** Records which relays answered every query made for this lookup. */
   watch?: RelayWatch;
+  /** Chain servers for claims with an on-chain proof (`tx:<txid>`). Without them such a claim is skipped, not passed. */
+  chain?: ChainReading;
 }
 
 /** Extra wait after a query's own timeout before a stuck relay call is given up. */
@@ -115,7 +118,7 @@ export async function lookupByPubkey(pubkey: string, options: DiscoverOptions = 
   if (!top) return null;
   const verifyOptions: VerifyOptions = { sameAuthorEvents: events };
   if (options.network) verifyOptions.network = options.network;
-  const result = verifyBinding(top, verifyOptions);
+  const result = await verifyBindingOnChain(top, { ...verifyOptions, ...(options.chain ? { chain: options.chain } : {}) });
   const tag = options.followRecovery === false ? null : recoveryTagOf(top);
   if (!tag) return result;
   const claim = parseRecoveryTag(tag);
@@ -131,7 +134,8 @@ export async function lookupByAddress(address: string, options: DiscoverOptions 
   const raw = await guardedQuery(
     options.query ?? relayQuery,
     options.relays ?? config.nostr.relays,
-    { kinds: [config.nostr.bindingKind], '#i': [claimIdentity(parsed.address)] },
+    // Some clients write the address without its prefix (`bch:qq…`); both spellings name the same address.
+    { kinds: [config.nostr.bindingKind], '#i': [claimIdentity(parsed.address), claimIdentity(parsed.address.split(':')[1] ?? '')] },
     options.timeoutMs ?? config.nostr.queryTimeoutMs,
     options.watch,
   );

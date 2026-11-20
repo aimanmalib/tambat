@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { config } from '../../src/config';
 import { shortAddress, shortNpub } from '../../src/core/badge';
 import { answeredCount, createRelayWatch, type RelayStatus } from '../../src/core/relay-watch';
+import { electrumServers } from '../../src/core/anchor-chain';
 import { loadWall, type Wall } from '../../src/core/wall';
 import { useText } from '../i18n';
 import { navigate } from '../router';
@@ -14,7 +15,7 @@ type State = { kind: 'busy' } | ({ kind: 'done'; reachable: boolean; relays: Rel
 /** Loads the wall and records which relays answered, so an outage never reads as "empty". */
 async function load(): Promise<State> {
   const watch = createRelayWatch(config.nostr.relays);
-  const wall = await loadWall({ watch }).catch((): Wall => ({ entries: [], hidden: 0, scanned: 0 }));
+  const wall = await loadWall({ watch, chain: { servers: electrumServers() } }).catch((): Wall => ({ entries: [], hidden: 0, scanned: 0 }));
   const empty = wall.entries.length === 0 && wall.hidden === 0;
   const reachable = !empty || answeredCount(watch.statuses()) > 0;
   return { kind: 'done', reachable, relays: watch.statuses(), ...wall };
@@ -55,6 +56,8 @@ export function WallPage() {
                 <dd><code title={e.npub}>{shortNpub(e.npub)}</code></dd>
                 <dt>{t('lookup.bchAddress')}</dt>
                 <dd><code title={e.address}>{shortAddress(e.address)}</code></dd>
+                <dt>{t('lookup.proof')}</dt>
+                <dd data-proof-form={e.proof}>{t(e.proof === 'tx' ? 'lookup.proofTx' : 'lookup.proofMessage')}</dd>
                 <dt>{t('lookup.published')}</dt>
                 <dd><time dateTime={new Date(e.createdAt * 1000).toISOString()}>{new Date(e.createdAt * 1000).toLocaleString(lang)}</time></dd>
               </dl>
