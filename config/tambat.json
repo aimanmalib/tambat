@@ -132,6 +132,7 @@
     "pageSize": 200,
     "maxPages": 5,
     "chainConcurrency": 2,
+    "refreshSeconds": 30,
     "sinceRootMargin": "0px 0px 100% 0px"
   },
   "anchor": {

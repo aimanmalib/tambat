@@ -46,7 +46,18 @@ export function SinceLabel({ height }: { height: number | null }) {
  * "Anchored since block N" for one wall entry, read from the chain only once the entry is on screen. Any read that is
  * not an agreed `bound` verdict (src/core/since.ts) leaves no badge and no error.
  */
-export function SinceBadge({ address, pubkey, eventId }: { address: string; pubkey: string; eventId: string }) {
+export function SinceBadge({
+  address,
+  pubkey,
+  eventId,
+  onRead,
+}: {
+  address: string;
+  pubkey: string;
+  eventId: string;
+  /** Told the outcome of a finished read: the block, or null when the chain does not bind the address to this key. */
+  onRead?: (eventId: string, height: number | null) => void;
+}) {
   const { ref, seen } = useSeen<HTMLSpanElement>();
   const [height, setHeight] = useState<number | null>(null);
   useEffect(() => {
@@ -56,13 +67,15 @@ export function SinceBadge({ address, pubkey, eventId }: { address: string; pubk
       queue(() => addressStatus(address, pubkey, eventId, electrumServers())).then(boundSince),
     )
       .then((h) => {
-        if (live) setHeight(h);
+        if (!live) return;
+        setHeight(h);
+        onRead?.(eventId, h);
       })
       .catch(() => undefined);
     return () => {
       live = false;
     };
-  }, [seen, address, pubkey, eventId]);
+  }, [seen, address, pubkey, eventId, onRead]);
   return (
     <span ref={ref} className="since" data-since-read={seen ? 'yes' : 'no'}>
       <SinceLabel height={height} />

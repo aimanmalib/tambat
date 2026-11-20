@@ -103,7 +103,7 @@ Beyond the required parts, each live and tested:
   differently; otherwise the result is unknown and the servers that differed or did not answer are named. Look up, the
   judges page and `tambat anchor-lookup` show how many servers agreed. Tested with fake servers
   (`tests/chain-quorum.test.ts`, `e2e/chain-status.spec.ts`, `e2e/judges.spec.ts`); the live reading is in [anchor measured](docs/MEASURED.md#anchor).
-- A wall of verified links read from the relays, paging back past identity events of other platforms: https://tambat.sasateguh.com/wall ([wall measured](docs/MEASURED.md#wall)).
+- A wall of verified links read from the relays, paging back past identity events of other platforms, that keeps itself current: an open relay subscription adds new bindings and every `wall.refreshSeconds` (30) the relays are checked again while the tab is visible; a strip above it counts verified, anchored, on-chain proofs, attestations, relays answering and the latest anchor block from the page's own reads, a dash where nothing was read (`tests/wall-live.test.ts`, `e2e/wall.spec.ts`): https://tambat.sasateguh.com/wall ([wall measured](docs/MEASURED.md#wall), [ADR 0022](docs/decisions/0022-live-wall.md)).
 - Which relays answered: Look up, the wall and the judges page list every relay in `config/tambat.json` (five public relays)
   as answered, refused or no answer, with the time of each answer, taken from the sockets of that look-up itself
   (`src/core/relay-watch.ts`; `tests/relay-watch.test.ts` with one relay refusing the handshake with 503 and one staying
@@ -349,7 +349,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-619caa7dec4deee28c24643ffaf1e28d323efa2f2df32a47999660d310c2485d  tambat-verify.html
+22756c36ca91903a2e8c85abd7aaa1fa91ec34600037de80ee3ffac241e1aea1  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;

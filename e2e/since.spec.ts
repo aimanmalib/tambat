@@ -118,14 +118,20 @@ test('on a phone the wall reads entries just below the fold before they are reac
   await page.setViewportSize({ width: 390, height: 664 });
   await page.goto('/wall');
   await expect(page.locator('.wall__card')).toHaveCount(COUNT);
-  const anchored = bindings[2] as Binding;
+  // The first entry below the fold before any scroll, within one screen of it: read already because of
+  // wall.sinceRootMargin. Found by position, so a change to what sits above the wall does not void the check. Even
+  // entries are bound and earn a badge; odd ones were revoked and must earn none.
+  const tops = await page.locator('.wall__card').evaluateAll((els) => els.map((el) => el.getBoundingClientRect().top));
+  const at = tops.findIndex((top, i) => i > 0 && top >= 664);
+  expect(at).toBeGreaterThan(0);
+  expect(tops[at]).toBeLessThan(664 * 2);
+  const anchored = bindings[at] as Binding;
   const further = bindings[8] as Binding;
   const last = bindings[COUNT - 1] as Binding;
-  // Not the first entry, and below the fold before any scroll: read already because of wall.sinceRootMargin.
-  const below = await card(page, anchored).evaluate((el) => el.getBoundingClientRect().top >= innerHeight);
-  expect(below).toBe(true);
+  expect(at).toBeLessThan(8);
   await expect(card(page, anchored).locator('.since')).toHaveAttribute('data-since-read', 'yes', { timeout: 10_000 });
-  await expect(card(page, anchored).locator('.badge--anchor')).toHaveText(badgeText(en, BLOCK + 2), { timeout: 20_000 });
+  const bound = at % 2 === 0;
+  if (bound) await expect(card(page, anchored).locator('.badge--anchor')).toHaveText(badgeText(en, BLOCK + at), { timeout: 20_000 });
   await expect(card(page, last).locator('.since')).toHaveAttribute('data-since-read', 'no');
   // Scroll the way a reader does, a screen at a time, until the further entry is on screen.
   for (let i = 0; i < 20; i += 1) {
@@ -136,7 +142,8 @@ test('on a phone the wall reads entries just below the fold before they are reac
   }
   await expect(card(page, further).locator('.since')).toHaveAttribute('data-since-read', 'yes');
   await expect(card(page, further).locator('.badge--anchor')).toHaveText(badgeText(en, BLOCK + 8), { timeout: 20_000 });
-  await expect(card(page, anchored).locator('.badge--anchor')).toHaveText(badgeText(en, BLOCK + 2));
+  if (bound) await expect(card(page, anchored).locator('.badge--anchor')).toHaveText(badgeText(en, BLOCK + at));
+  else await expect(card(page, anchored).locator('.badge--anchor')).toHaveCount(0);
   await expectNoOverflow(page);
 });
 

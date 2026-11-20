@@ -123,21 +123,63 @@ const createdAtOf = (item: unknown): number | null => {
   return typeof t === 'number' && Number.isInteger(t) ? t : null;
 };
 
+/** What the relays returned so far, kept between reads so a refresh adds to it instead of starting over. */
+export interface WallPool {
+  raw: unknown[];
+  seen: Set<string>;
+}
+
+export const createWallPool = (): WallPool => ({ raw: [], seen: new Set() });
+
+/** Adds relay results to the pool; returns how many were new and the oldest `created_at` among them all. */
+function addToPool(pool: WallPool, got: unknown[]): { fresh: number; oldest: number } {
+  let fresh = 0;
+  let oldest = Infinity;
+  for (const item of got) {
+    const at = createdAtOf(item);
+    if (at !== null) oldest = Math.min(oldest, at);
+    const id = (item as { id?: unknown } | null)?.id;
+    // Two copies of one id may differ (one forged), so the whole item is the key; buildWall keeps the genuine one.
+    const key = typeof id === 'string' ? `${id}:${JSON.stringify(item)}` : JSON.stringify(item);
+    if (pool.seen.has(key)) continue;
+    pool.seen.add(key);
+    pool.raw.push(item);
+    fresh += 1;
+  }
+  return { fresh, oldest };
+}
+
+/** Adds one event that arrived on an open subscription. True when it is new and names a BCH identity. */
+export function addLiveEvent(pool: WallPool, item: unknown): boolean {
+  return addToPool(pool, [item]).fresh > 0 && namesBch(item);
+}
+
+/**
+ * Builds the wall from the pool. Transactions named by on-chain proofs are read only when some binding names one;
+ * `onRelays` sees the wall before that read.
+ */
+export async function wallFromPool(pool: WallPool, options: WallOptions = {}): Promise<Wall> {
+  const limit = options.limit ?? config.wall.limit;
+  const wall = buildWall(pool.raw, limit, options.network);
+  const txids = options.chain ? proofTxids(pool.raw.filter(namesBch)) : [];
+  if (!options.chain || txids.length === 0) return wall;
+  options.onRelays?.(wall);
+  return buildWall(pool.raw, limit, options.network, await readTxLookups(txids, options.chain));
+}
+
 /**
  * Asks the relays for identity events newest first and verifies each one. Relays cannot filter on the value of an
  * `i` tag, so bindings of other platforms crowd out BCH ones; each relay is paged back with `until` on its own
  * cursor until `limit` verified BCH bindings are found, the relay runs out, or `maxPages` pages were read.
  */
-export async function loadWall(options: WallOptions = {}): Promise<Wall> {
+export async function loadWall(options: WallOptions = {}, pool: WallPool = createWallPool()): Promise<Wall> {
   const limit = options.limit ?? config.wall.limit;
   const pageSize = options.pageSize ?? config.wall.pageSize;
   const maxPages = options.maxPages ?? config.wall.maxPages;
   const query = options.query ?? uncheckedRelayQuery;
   const timeoutMs = options.timeoutMs ?? config.nostr.queryTimeoutMs;
   const cursors: Cursor[] = (options.relays ?? config.nostr.relays).map((relay) => ({ relay, done: false }));
-  const raw: unknown[] = [];
-  const seen = new Set<string>();
-  let wall = buildWall(raw, limit, options.network);
+  let wall = buildWall(pool.raw, limit, options.network);
   for (let page = 0; page < maxPages && wall.entries.length < limit; page += 1) {
     const open = cursors.filter((c) => !c.done);
     if (open.length === 0) break;
@@ -145,29 +187,27 @@ export async function loadWall(options: WallOptions = {}): Promise<Wall> {
       open.map(async (c) => {
         const filter = { kinds: [config.nostr.bindingKind], limit: pageSize, ...(c.until === undefined ? {} : { until: c.until }) };
         const got = await guardedQuery(query, [c.relay], filter, timeoutMs, options.watch);
-        let fresh = 0;
-        let oldest = Infinity;
-        for (const item of got) {
-          const at = createdAtOf(item);
-          if (at !== null) oldest = Math.min(oldest, at);
-          const id = (item as { id?: unknown } | null)?.id;
-          // Two copies of one id may differ (one forged), so the whole item is the key; buildWall keeps the genuine one.
-          const key = typeof id === 'string' ? `${id}:${JSON.stringify(item)}` : JSON.stringify(item);
-          if (seen.has(key)) continue;
-          seen.add(key);
-          raw.push(item);
-          fresh += 1;
-        }
+        const { fresh, oldest } = addToPool(pool, got);
         // `until` is inclusive, so the next page starts at the oldest second seen; a page with nothing new ends it.
         c.done = got.length < pageSize || fresh === 0 || oldest === Infinity;
         c.until = oldest;
       }),
     );
-    wall = buildWall(raw, limit, options.network);
+    wall = buildWall(pool.raw, limit, options.network);
   }
-  // Transactions named by on-chain proofs are read once, after paging, and only when some binding names one.
-  const txids = options.chain ? proofTxids(raw.filter(namesBch)) : [];
-  if (!options.chain || txids.length === 0) return wall;
-  options.onRelays?.(wall);
-  return buildWall(raw, limit, options.network, await readTxLookups(txids, options.chain));
+  return wallFromPool(pool, options);
+}
+
+/**
+ * Checks the wall again: asks every relay for its newest page only, adds what is new to the pool and verifies the
+ * whole pool once more, so a binding replaced or added since the last read shows up without paging back again.
+ */
+export async function refreshWall(pool: WallPool, options: WallOptions = {}): Promise<Wall> {
+  const query = options.query ?? uncheckedRelayQuery;
+  const timeoutMs = options.timeoutMs ?? config.nostr.queryTimeoutMs;
+  const filter = { kinds: [config.nostr.bindingKind], limit: options.pageSize ?? config.wall.pageSize };
+  const relays = options.relays ?? config.nostr.relays;
+  const pages = await Promise.all(relays.map((relay) => guardedQuery(query, [relay], filter, timeoutMs, options.watch)));
+  for (const got of pages) addToPool(pool, got);
+  return wallFromPool(pool, options);
 }

@@ -19,15 +19,25 @@ const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as 
  * Config sections only the web app reads. A change to them must not force a new library release, so the packed config
  * is compared without them; the test below checks the library code never reads them.
  */
-const APP_ONLY = ['hero'] as const;
-const libraryConfig = (c: Record<string, unknown>) => Object.fromEntries(Object.entries(c).filter(([k]) => !(APP_ONLY as readonly string[]).includes(k)));
+/** Config the web app reads and src/core never does: whole sections, or `section.key` for one key in a shared section. */
+const APP_ONLY = ['hero', 'wall.refreshSeconds'] as const;
+const libraryConfig = (c: Record<string, unknown>) =>
+  Object.fromEntries(
+    Object.entries(c)
+      .filter(([k]) => !(APP_ONLY as readonly string[]).includes(k))
+      .map(([k, v]) => {
+        const drop = APP_ONLY.filter((p) => p.startsWith(`${k}.`)).map((p) => p.slice(k.length + 1));
+        if (drop.length === 0 || !v || typeof v !== 'object') return [k, v];
+        return [k, Object.fromEntries(Object.entries(v as Record<string, unknown>).filter(([key]) => !drop.includes(key)))];
+      }),
+  );
 
 describe('app-only config sections', () => {
   it('are never read by src/core, so the packed library does not depend on them', () => {
     const core = join(root, 'src/core');
     const reads = readdirSync(core)
       .filter((f) => f.endsWith('.ts'))
-      .filter((f) => APP_ONLY.some((k) => new RegExp(`config\\.${k}\\b`).test(readFileSync(join(core, f), 'utf8'))));
+      .filter((f) => APP_ONLY.some((k) => new RegExp(`config\\.${k.replace('.', '\\.')}\\b`).test(readFileSync(join(core, f), 'utf8'))));
     expect(reads).toEqual([]);
   });
 });

@@ -72,6 +72,19 @@ describe('config/tambat.json', () => {
     }
   });
 
+  it('keeps the wall refresh between 5 and 120 whole seconds', () => {
+    for (const value of [4, 121, 30.5, '30', undefined]) {
+      const c = fresh();
+      (c.wall as Record<string, unknown>).refreshSeconds = value;
+      expect(() => parseConfig(c)).toThrow(/wall\.refreshSeconds/);
+    }
+    for (const value of [5, 120]) {
+      const c = fresh();
+      c.wall.refreshSeconds = value;
+      expect(parseConfig(c).wall.refreshSeconds).toBe(value);
+    }
+  });
+
   it('takes a wall badge margin only in the form IntersectionObserver accepts', () => {
     expect(config.wall.sinceRootMargin).toBe('0px 0px 100% 0px');
     for (const ok of ['0px', '10% 0px', '-5px 0px 50% 0px']) expect(isRootMargin(ok)).toBe(true);

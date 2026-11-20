@@ -116,3 +116,78 @@ test('blocked relays read as unreachable, not as an empty wall', async ({ page }
   await expect(page.getByRole('alert')).toHaveText(en.wall.unreachable);
   await expect(page.locator('.wall__card')).toHaveCount(0);
 });
+
+/** Publishes an event to the wall relay the way a client does, and waits for the relay to accept it. */
+function publish(event: Event): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket(wallRelayUrl);
+    ws.on('open', () => ws.send(JSON.stringify(['EVENT', event])));
+    ws.on('message', (data) => {
+      const msg = JSON.parse(String(data)) as unknown[];
+      if (msg[0] !== 'OK') return;
+      ws.close();
+      if (msg[2] === true) resolve();
+      else reject(new Error(String(msg[3])));
+    });
+    ws.on('error', reject);
+  });
+}
+
+const count = (page: Page, key: string) => page.locator(`.wall__count[data-count="${key}"] dd`);
+
+test('the wall keeps itself current: no Check again button, a count strip, and new bindings without a reload', async ({ page }) => {
+  await page.clock.install();
+  await useWallRelay(page);
+  await page.goto('/wall');
+  await expect(page.locator('.wall__card')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Check again' })).toHaveCount(0);
+  const strip = page.getByRole('region', { name: en.wall.strip.label });
+  await expect(strip).toBeVisible();
+  await expect(count(page, 'verified')).toHaveText('1');
+  await expect(count(page, 'on-chain')).toHaveText('0');
+  const total = String(siteConfig.nostr.relays.length);
+  await expect(count(page, 'relays')).toHaveText(en.wall.strip.relaysOf.replace('{answered}', total).replace('{total}', total));
+  await expect(count(page, 'attestations')).toHaveText('0');
+  // The chain servers are not reachable in this test, so nothing about anchors was read: a dash, not a zero.
+  await expect(count(page, 'latest-block')).toHaveText(en.wall.strip.none);
+  await expect(page.locator('.wall__counts')).toHaveAttribute('aria-live', 'polite');
+  const updated = page.locator('.wall__updated');
+  const first = await updated.getAttribute('data-updated');
+  expect(first).toMatch(/^\d\d:\d\d:\d\d$/);
+  await expect(updated).toHaveText(en.wall.strip.updated.replace('{time}', first ?? '').replace('{seconds}', String(siteConfig.wall.refreshSeconds)));
+
+  // One interval later the wall was checked again.
+  await page.clock.fastForward(siteConfig.wall.refreshSeconds * 1000 + 1000);
+  await expect(updated).not.toHaveAttribute('data-updated', first ?? '', { timeout: 15_000 });
+
+  // A binding published while the page is open joins it from the open subscription.
+  const later = freshBinding(Math.floor(Date.now() / 1000) + 60);
+  await publish(later.event);
+  await expect(page.locator(`[data-event="${later.event.id}"]`)).toBeVisible({ timeout: 15_000 });
+  await expect(count(page, 'verified')).toHaveText('2');
+  relay.events.delete(later.event.id);
+  await expectAccessible(page);
+  await expectNoOverflow(page);
+});
+
+test('a hidden tab is not checked, and is checked again once shown', async ({ page }) => {
+  await page.clock.install();
+  await useWallRelay(page);
+  await page.goto('/wall?lang=ms');
+  await expect(page.locator('.wall__card')).toHaveCount(1);
+  await expect(page.getByRole('region', { name: ms.wall.strip.label })).toBeVisible();
+  const updated = page.locator('.wall__updated');
+  const first = (await updated.getAttribute('data-updated')) ?? '';
+  const setHidden = (hidden: boolean) =>
+    page.evaluate((h) => {
+      Object.defineProperty(document, 'hidden', { configurable: true, get: () => h });
+      document.dispatchEvent(new Event('visibilitychange'));
+    }, hidden);
+  await setHidden(true);
+  await page.clock.fastForward(siteConfig.wall.refreshSeconds * 3000);
+  await page.waitForTimeout(1500);
+  await expect(updated).toHaveAttribute('data-updated', first);
+  await setHidden(false);
+  await expect(updated).not.toHaveAttribute('data-updated', first, { timeout: 15_000 });
+  await expect(updated).toContainText(ms.wall.strip.updated.split(' {time}')[0] ?? '');
+});

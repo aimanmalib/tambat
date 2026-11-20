@@ -95,6 +95,11 @@ export interface TambatConfig {
     /** Chain reads for "anchored since" badges running at once; only entries on screen are read. */
     chainConcurrency: number;
     /**
+     * Seconds between checks of the wall while the page is visible (5 to 120). Read by the web page only, so the packed
+     * library does not carry it.
+     */
+    refreshSeconds: number;
+    /**
      * How far beyond the screen an entry counts as on screen for its chain read (IntersectionObserver `rootMargin`), so
      * entries just below the fold already carry their badge when scrolled to. Pixels or percent of the screen, 1 to 4 values.
      */
@@ -350,6 +355,8 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.wall.pageSize, 'wall.pageSize');
   positiveInt(c.wall.maxPages, 'wall.maxPages');
   positiveInt(c.wall.chainConcurrency, 'wall.chainConcurrency');
+  const refresh = c.wall.refreshSeconds;
+  if (!Number.isInteger(refresh) || (refresh as number) < 5 || (refresh as number) > 120) fail('wall.refreshSeconds', 'must be a whole number of seconds from 5 to 120');
   if (!isRootMargin(c.wall.sinceRootMargin)) fail('wall.sinceRootMargin', 'must be 1 to 4 lengths in px or %, like "0px 0px 100% 0px"');
   if (typeof c.nostr?.recoveryTag !== 'string' || !/^[a-z_]{2,}$/.test(c.nostr.recoveryTag)) fail('nostr.recoveryTag', 'must be a lower-case tag name of two or more letters');
   if (typeof c.nostr.recoveryText !== 'string' || !c.nostr.recoveryText.includes('{npub}')) fail('nostr.recoveryText', 'must contain {npub}');

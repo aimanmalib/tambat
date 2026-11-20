@@ -179,6 +179,10 @@ test('the wall checks the newest bindings from the real relays and lists only ve
   if (shown === 0) await expect(page.getByText(en.wall.empty)).toBeVisible();
   await expect(cards.locator('.badge--ok')).toHaveCount(shown);
   expect(shown).toBeLessThanOrEqual(siteConfig.wall.limit);
+  // The strip counts what this page read: the verified count is the number of cards, and no Check again button.
+  await expect(page.locator('.wall__count[data-count="verified"] dd')).toHaveText(String(shown));
+  await expect(page.locator('.wall__updated')).toHaveAttribute('data-updated', /^\d\d:\d\d:\d\d$/);
+  await expect(page.getByRole('button', { name: 'Check again' })).toHaveCount(0);
   await expectNoOverflow(page);
 });
 
