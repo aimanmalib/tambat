@@ -89,11 +89,18 @@ for the pair (SPEC "Optional BCH anchor", check 3).
 | --- | --- | --- | --- | --- | --- | --- |
 | 00:01:46 | demo address | - | - | - | demo key | not funded |
 | 16:03 | qp2n90ka…m56u | a3cf6e76c990b851d2de0381d547eb9cde043454b4420bdde8270f7a69b74263 | 977901 | d7c03eee… | Paytaca (owner) | ok |
+| 2026-11-20 16:17:13 | demo address | - | - | - | demo key | not funded |
 
 On 2026-11-19 at 00:18:13 UTC, after the reader was changed to require agreement (ADR 0014, `anchor.quorum` 2),
 `tambat anchor-lookup` on the Paytaca binding's address printed "read from 3 of 3 chain servers, all alike:
 bch.imaginary.cash, bch.loping.net, fulcrum.greyh.at (quorum 2)", then block 977901, the same npub, event `d7c03eee…` and
 transaction `a3cf6e76…4263` as the row above (exit code 0).
+
+On 2026-11-20 the demo address was read again before building an anchor. At 16:16 UTC `scripts/anchor-demo.ts` (dry run)
+stopped with `no_coins`, and at 16:17:13 UTC `tambat anchor-lookup` on the demo address printed "read from 3 of 3 chain
+servers, all alike" and "no commitment found on BCH". Test funding for the demo address was requested and did not arrive,
+so no anchor transaction was built or broadcast from the demo key and no budget was spent (third row of the table). The
+demo binding is therefore not anchored; the owner's Paytaca binding above is the only anchored binding.
 
 ## Interoperability
 
