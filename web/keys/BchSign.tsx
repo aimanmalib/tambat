@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { config } from '../../src/config';
 import type { BchClaim } from '../../src/core/binding';
+import type { TxLookup } from '../../src/core/tx-proof';
 import { toNpub, verificationText } from '../../src/core/nostr';
 import { verifyClaim, type ClaimResult } from '../../src/core/verify';
 import { useText, type Translate } from '../i18n';
@@ -11,12 +12,13 @@ import { Notice } from '../ui/Notice';
 import { demoBchSigner, type BchSigner } from './bch';
 import { useKeys } from './KeysContext';
 import { WalletConnectOption } from './WalletConnectOption';
+import { WizardConnectOption } from './WizardConnectOption';
 import { walletConnectAvailable } from './walletconnect';
 
 interface Props {
   pubkey: string;
-  /** Called with a claim whose BCH checks all pass. */
-  onClaim: (claim: BchClaim) => void;
+  /** Called with a claim whose BCH checks all pass, and for an on-chain proof the transaction it was checked against. */
+  onClaim: (claim: BchClaim, txLookups?: Record<string, TxLookup>) => void;
 }
 
 function failedSteps(result: ClaimResult, t: Translate): string {
@@ -37,9 +39,9 @@ export function BchSign({ pubkey, onClaim }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const accept = (claim: BchClaim) => {
-    const result = verifyClaim(claim.address, claim.signature, npub, pubkey, config.network);
-    if (result.ok) onClaim({ address: result.address, signature: claim.signature.trim() });
+  const accept = (claim: BchClaim, txLookups?: Record<string, TxLookup>) => {
+    const result = verifyClaim(claim.address, claim.signature, npub, pubkey, config.network, txLookups);
+    if (result.ok) onClaim({ address: result.address, signature: claim.signature.trim() }, txLookups);
     else setError(failedSteps(result, t));
   };
 
@@ -79,6 +81,12 @@ export function BchSign({ pubkey, onClaim }: Props) {
             <h4 className="option__title">{t('bch.wc')}</h4>
             <WalletConnectOption onConnected={setBch} />
           </div>
+          {config.wizardConnect.enabled ? (
+            <div className="option" data-option="wizardconnect">
+              <h4 className="option__title">{t('wizard.title')}</h4>
+              <WizardConnectOption npub={npub} onClaim={accept} />
+            </div>
+          ) : null}
           <div className="option">
             <button type="button" className={walletConnectAvailable() ? 'btn' : 'btn btn--primary'} disabled={busy} onClick={pickDemo}>
               {t('bch.demo')}

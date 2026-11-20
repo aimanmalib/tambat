@@ -165,10 +165,17 @@ export function anchorSize(inputCount: number, anchorScriptBytes: number, change
  * SAME address out. Throws when the fee would pass `maxFeeSats` or the change would be dust.
  */
 export function buildAnchorTransaction(address: string, utxos: Utxo[], payload: AnchorPayload): UnsignedAnchor {
+  return buildOpReturnTransaction(address, utxos, encodeAnchorScript(payload));
+}
+
+/**
+ * The same transaction with any OP_RETURN locking bytecode as its first output: the anchor's, or the NIP-39 text of an
+ * on-chain binding proof (tx-proof.ts `proofOutput`).
+ */
+export function buildOpReturnTransaction(address: string, utxos: Utxo[], anchorScript: Uint8Array): UnsignedAnchor {
   const locking = cashAddressToLockingBytecode(address);
   if (typeof locking === 'string' || typeof parseP2pkhAddress(address) === 'string') throw new Error('address must be a P2PKH CashAddr');
   if (utxos.length === 0) throw new Error('the address has no unspent outputs to pay the fee');
-  const anchorScript = encodeAnchorScript(payload);
   const feeSats = Math.ceil(anchorSize(utxos.length, anchorScript.length, locking.bytecode.length) * config.anchor.feePerByte);
   if (feeSats > config.anchor.maxFeeSats) throw new Error(`fee ${feeSats} sat is above the limit of ${config.anchor.maxFeeSats} sat`);
   const total = utxos.reduce((sum, u) => sum + u.satoshis, 0);
@@ -198,9 +205,9 @@ export type AnchorRefusal = 'no_coins' | 'unconfirmed' | 'too_little' | 'fee_hig
 
 const confirmed = (u: Utxo): boolean => (u.height ?? 0) > 0;
 
-function tryBuild(address: string, coins: Utxo[], payload: AnchorPayload): UnsignedAnchor | 'too_little' | 'fee_high' {
+function tryBuild(address: string, coins: Utxo[], script: Uint8Array): UnsignedAnchor | 'too_little' | 'fee_high' {
   try {
-    return buildAnchorTransaction(address, coins, payload);
+    return buildOpReturnTransaction(address, coins, script);
   } catch (e) {
     if ((e as Error).message.includes('above the limit')) return 'fee_high';
     if (coins.length === 0 || (e as Error).message.includes('too little')) return 'too_little';
@@ -219,11 +226,21 @@ export function anchorFromCoins(
   payload: AnchorPayload,
   confirmedOnly: boolean = config.anchor.confirmedCoinsOnly,
 ): PreparedAnchor | AnchorRefusal {
+  return opReturnFromCoins(address, utxos, encodeAnchorScript(payload), confirmedOnly);
+}
+
+/** `anchorFromCoins` for any OP_RETURN locking bytecode. */
+export function opReturnFromCoins(
+  address: string,
+  utxos: Utxo[],
+  script: Uint8Array,
+  confirmedOnly: boolean = config.anchor.confirmedCoinsOnly,
+): PreparedAnchor | AnchorRefusal {
   if (utxos.length === 0) return 'no_coins';
   const coins = confirmedOnly ? utxos.filter(confirmed) : utxos;
-  const built = tryBuild(address, coins, payload);
+  const built = tryBuild(address, coins, script);
   if (typeof built !== 'string') return { ...built, unconfirmed: !coins.every(confirmed) };
-  if (coins.length < utxos.length && typeof tryBuild(address, utxos, payload) !== 'string') return 'unconfirmed';
+  if (coins.length < utxos.length && typeof tryBuild(address, utxos, script) !== 'string') return 'unconfirmed';
   return built;
 }
 

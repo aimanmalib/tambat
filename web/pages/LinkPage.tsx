@@ -4,6 +4,7 @@ import { claimsOf, createBindingEvent, createRotationEvent, replacingCreatedAt, 
 import { lookupByPubkey } from '../../src/core/discover';
 import type { Event } from '../../src/core/nostr';
 import { publishEvent, type RelayOutcome } from '../../src/core/publish';
+import type { TxLookup } from '../../src/core/tx-proof';
 import { verifyBinding, type BindingResult } from '../../src/core/verify';
 import { useText } from '../i18n';
 import { BchSign } from '../keys/BchSign';
@@ -20,7 +21,7 @@ export function LinkPage() {
   const { t } = useText();
   const { nostr } = useKeys();
   // State is tagged with the key it belongs to, so picking another key starts the flow again.
-  const [claimed, setClaimed] = useState<{ pubkey: string; claim: BchClaim } | null>(null);
+  const [claimed, setClaimed] = useState<{ pubkey: string; claim: BchClaim; txLookups: Record<string, TxLookup> } | null>(null);
   const [found, setFound] = useState<{ pubkey: string; event: Event | null } | null>(null);
   const [result, setResult] = useState<BindingResult | null>(null);
   const [outcomes, setOutcomes] = useState<RelayOutcome[] | null>(null);
@@ -42,10 +43,10 @@ export function LinkPage() {
     };
   }, [pubkey]);
 
-  const setClaim = (c: BchClaim) => {
+  const setClaim = (c: BchClaim, txLookups?: Record<string, TxLookup>) => {
     setResult(null);
     setOutcomes(null);
-    setClaimed({ pubkey, claim: c });
+    setClaimed({ pubkey, claim: c, txLookups: txLookups ?? {} });
   };
 
   const step = !nostr ? 1 : !claim ? 2 : 3;
@@ -67,7 +68,8 @@ export function LinkPage() {
           : createBindingEvent({ claim, previous, createdAt });
       const event = await nostr.sign(template);
       // The event found on relays before signing is the one this replaces; the new event must be newer.
-      const checked = verifyBinding(event, { sameAuthorEvents: previous ? [previous] : [] });
+      // An on-chain proof is checked against the transaction the wallet signed and this page sent (anchor-wizard.ts).
+      const checked = verifyBinding(event, { sameAuthorEvents: previous ? [previous] : [], txLookups: claimed?.txLookups ?? {} });
       setResult(checked);
       if (checked.ok) setOutcomes(await publishEvent(event, config.nostr.relays, config.nostr.publishTimeoutMs));
     } catch (e) {

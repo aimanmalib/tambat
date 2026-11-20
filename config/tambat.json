@@ -215,5 +215,12 @@
     "npub": "npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz",
     "eventId": "d7c03eee500222e86c5d2b1836a26983a5115b91a5ba23b59b80ed480b1b489b",
     "timeoutMs": 10000
+  },
+  "wizardConnect": {
+    "enabled": true,
+    "relay": "wss://nos.lol",
+    "scan": { "receive": 20, "change": 5 },
+    "sourceUrl": "https://gitlab.com/riftenlabs/lib/wizardconnect",
+    "licenseUrl": "https://www.gnu.org/licenses/lgpl-3.0.html"
   }
 }

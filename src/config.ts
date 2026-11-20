@@ -208,6 +208,18 @@ export interface TambatConfig {
    * `timeoutMs` bounds each step that waits on the network (relays, chain servers).
    */
   hero: { npub: string; eventId: string; timeoutMs: number };
+  /**
+   * The second wallet option on Link (docs/decisions/0023-wizardconnect-transaction-proof.md): the wallet signs a small
+   * transaction whose OP_RETURN is the NIP-39 text. `relay` carries the encrypted session messages; `scan` is how many
+   * receive and change addresses of the wallet are searched for a coin; the library's source and licence are linked.
+   */
+  wizardConnect: {
+    enabled: boolean;
+    relay: string;
+    scan: { receive: number; change: number };
+    sourceUrl: string;
+    licenseUrl: string;
+  };
 }
 
 const NETWORKS: readonly Network[] = ['bitcoincash', 'bchtest'];
@@ -380,7 +392,20 @@ export function parseConfig(input: unknown): TambatConfig {
   if (!NPUB.test(c.hero?.npub ?? '')) fail('hero.npub', 'must be an npub');
   if (!EVENT_ID.test(c.hero.eventId ?? '')) fail('hero.eventId', 'must be a 64-character hex event id');
   positiveInt(c.hero.timeoutMs, 'hero.timeoutMs');
+  parseWizardConnect(c.wizardConnect);
   return c;
+}
+
+function parseWizardConnect(w: TambatConfig['wizardConnect']): void {
+  if (typeof w?.enabled !== 'boolean') fail('wizardConnect.enabled', 'must be true or false');
+  if (typeof w.relay !== 'string' || !/^wss:\/\/[a-z0-9.-]+(:\d+)?\/?$/.test(w.relay)) fail('wizardConnect.relay', 'must be one wss:// relay URL');
+  for (const k of ['receive', 'change'] as const) {
+    const n = w.scan?.[k];
+    if (!Number.isInteger(n) || (n as number) < 1 || (n as number) > 100) fail(`wizardConnect.scan.${k}`, 'must be an integer from 1 to 100');
+  }
+  for (const k of ['sourceUrl', 'licenseUrl'] as const) {
+    if (typeof w[k] !== 'string' || !w[k].startsWith('https://')) fail(`wizardConnect.${k}`, 'must be an https:// URL');
+  }
 }
 
 const SD_FIELDS = ['bchAddress', 'network', 'bindingEvent', 'boundAt'];

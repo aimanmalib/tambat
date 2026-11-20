@@ -30,6 +30,8 @@
     "@fastify/static": "10.1.11",
     "@noble/curves": "2.0.1",
     "@walletconnect/sign-client": "2.21.8",
+    "@wizardconnect/core": "0.2.11",
+    "@wizardconnect/dapp": "0.2.8",
     "fastify": "5.12.8",
     "nostr-tools": "2.26.1",
     "qrcode-generator": "2.0.4",

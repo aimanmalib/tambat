@@ -20,7 +20,7 @@ const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as 
  * is compared without them; the test below checks the library code never reads them.
  */
 /** Config the web app reads and src/core never does: whole sections, or `section.key` for one key in a shared section. */
-const APP_ONLY = ['hero', 'wall.refreshSeconds', 'banner.firstCommit', 'banner.note'] as const;
+const APP_ONLY = ['hero', 'wizardConnect', 'wall.refreshSeconds', 'banner.firstCommit', 'banner.note'] as const;
 const libraryConfig = (c: Record<string, unknown>) =>
   Object.fromEntries(
     Object.entries(c)

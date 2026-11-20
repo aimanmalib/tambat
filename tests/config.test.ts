@@ -85,6 +85,24 @@ describe('config/tambat.json', () => {
     }
   });
 
+  it('checks the WizardConnect option: one wss relay, a bounded address scan, https links', () => {
+    const cases: [string, (w: Record<string, unknown>) => void][] = [
+      ['enabled', (w) => (w.enabled = 'yes')],
+      ['relay', (w) => (w.relay = 'https://nos.lol')],
+      ['relay', (w) => (w.relay = ['wss://nos.lol'])],
+      ['scan.receive', (w) => ((w.scan as Record<string, unknown>).receive = 0)],
+      ['scan.change', (w) => ((w.scan as Record<string, unknown>).change = 101)],
+      ['sourceUrl', (w) => (w.sourceUrl = 'http://example.org')],
+      ['licenseUrl', (w) => (w.licenseUrl = undefined)],
+    ];
+    for (const [path, spoil] of cases) {
+      const c = fresh();
+      spoil(c.wizardConnect);
+      expect(() => parseConfig(c)).toThrow(new RegExp(`wizardConnect\\.${path.replace('.', '\\.')}`));
+    }
+    expect(parseConfig(fresh()).wizardConnect.relay).toMatch(/^wss:\/\//);
+  });
+
   it('needs a full commit SHA for the new project note, and a true or false switch', () => {
     for (const value of ['988ff7d', '', 'g'.repeat(40), undefined]) {
       const c = fresh();
