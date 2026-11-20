@@ -205,8 +205,7 @@ CLI read the transaction from the chain servers, keep it only when they agree, r
 the outputs it spends and compare the OP_RETURN with the text for the author's npub (steps `tx_found`, `address_match`,
 `tx_text`; [SPEC](docs/SPEC.md) section 4, [ADR 0021](docs/decisions/0021-tx-proof.md)). Each result is labelled "Signed
 message" or "On-chain proof". On 2026-11-20 Tambat verified 12 of 13 newest bindings by other clients on the default relays
-(the 13th is on chipnet), and the demo binding was verified by 1 of 4 independent NIP-39 verifiers; the other three take only
-an on-chain proof ([measured](docs/MEASURED.md#interoperability), `tests/tx-proof-interop.test.ts`, `tests/interop-write.test.ts`).
+(the 13th is on chipnet), and the demo binding was verified by 1 of 4 independent NIP-39 verifiers; the other three take only an on-chain proof ([measured](docs/MEASURED.md#interoperability), `tests/tx-proof-interop.test.ts`, `tests/interop-write.test.ts`).
 
 ## Command-line verifier
 
@@ -420,10 +419,12 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 - **The badge** is served by this site and checks in the visitor's browser, so a host page trusts this site for the badge
   code (not for the result, which comes from relays). Sites that want no such dependency can run the CLI or the one-file
   verifier themselves.
-- **Optional BCH anchor**: one anchor exists, for the Paytaca binding, made by its owner; the demo key has none yet. The
-  wallet request (`bch_signTransaction`) is tested end to end against a fake wallet only. Revoke by transaction is tested
-  against a simulated chain only; no revocation has been sent on mainnet.
-- **WizardConnect** wallets sign a proof transaction ([ADR 0023](docs/decisions/0023-wizardconnect-transaction-proof.md)); not yet tested with a wallet.
+- **Optional BCH anchor**: one anchor exists, for the Paytaca binding, made by its owner. The demo address holds no coins, so the
+  demo key has no anchor and no on-chain proof. The wallet request (`bch_signTransaction`) is tested against a fake wallet only;
+  revoke by transaction is tested against a simulated chain only, and no revocation has been sent on mainnet.
+- **WizardConnect** wallets sign a proof transaction ([ADR 0023](docs/decisions/0023-wizardconnect-transaction-proof.md)); not yet tested with a wallet, as the test needs a funded address.
+- **Other NIP-39 verifiers**: three of the four measured take only an on-chain proof, so they do not read the demo binding yet,
+  and none reads the Paytaca binding, which is in the earlier prefixed form ([measured](docs/MEASURED.md#interoperability)).
 - **On-chain proofs** (`tx:<txid>`), from other clients or the WizardConnect option, need the chain: the one-file verifier
   and the server's sign-in do not read it, so there such a claim shows as not checked and does not pass. The released
   library `core-v0.2.0` predates them and checks signed-message proofs only; it also writes the prefixed form and does not read `bitcoincash:` tags.

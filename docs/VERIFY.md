@@ -71,8 +71,21 @@ Send this to any relay with a WebSocket client, with the author's hex pubkey (de
 
 Ask more than one relay. Keep the event with the largest `created_at`; that is the binding in force. If it has no
 `bch:` tag, the claim was revoked. To start from an address instead, send
-`["REQ", "check", {"kinds": [10011], "#i": ["bch:<cashaddr>"]}]`, then repeat the step above for each author found: only an
-author whose newest event still carries the address counts.
+`["REQ", "check", {"kinds": [10011], "#i": ["bch:q…", "bch:bitcoincash:q…", "bitcoincash:q…"]}]` with the address in each
+spelling a client may write (below), then repeat the step above for each author found: only an author whose newest event
+still carries the address counts.
+
+Tag spellings ([SPEC](SPEC.md) section 4, [read forms](NIP-39-bch.md#read-forms)):
+
+| tag | address | proof |
+| --- | --- | --- |
+| `["i", "bch:q…", "<base64>"]` | `bitcoincash:` added in front | signed message (step 4); what Tambat writes on mainnet |
+| `["i", "bch:bitcoincash:q…", "<base64>"]` | as written | signed message (step 4); written by Tambat before |
+| `["i", "bitcoincash:q…", "<64 hex>"]` | as written | transaction ([An on-chain proof](#an-on-chain-proof)) |
+| `["i", "bch:q…", "tx:<txid>"]` | `bitcoincash:` added in front | transaction |
+| `["i", "bch:q…", "<base64> \| tx:<txid>"]` | `bitcoincash:` added in front | both, and both must pass |
+
+Several tags for the same address are one claim, and every one of them must pass.
 
 ### 2. Check the event id
 
@@ -93,9 +106,9 @@ Schnorr over the id with the `pubkey`.
 
 ### 4. Check the BCH signature and the address
 
-Take the `bch:` tag: `["i", "bch:<cashaddr>", "<signature>"]`. In Electron Cash, open **Tools > Sign/verify message** and enter:
+Take the tag with a signature: `["i", "bch:<cashaddr>", "<signature>"]`. In Electron Cash, open **Tools > Sign/verify message** and enter:
 
-- Address: the CashAddr from the tag.
+- Address: the CashAddr from the tag, with `bitcoincash:` in front when the tag has no prefix.
 - Message: `Verifying that I control the following Nostr public key: <npub>`, with the npub of the event author (not one
   given to you by someone else).
 - Signature: the third element of the tag.
