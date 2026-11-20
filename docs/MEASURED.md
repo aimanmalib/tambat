@@ -97,6 +97,55 @@ transaction `a3cf6e76…4263` as the row above (exit code 0).
 
 ## Interoperability
 
+### 2026-11-20: Tambat bindings read by four independent verifiers
+
+Four NIP-39 verifiers built by other teams (verifier A to D here) were opened in Chromium at their public pages at
+15:02 to 15:03 UTC: the npub was typed into each page's lookup field, the lookup button pressed, and the result read
+after at most 45 s. Nothing else was pressed on those pages. Before the run the demo binding was published again with
+the demo key in the write form of [ADR 0024](decisions/0024-claim-write-form.md) (`["i", "bch:q…", "<base64
+signature>"]`, event `b29fccb69a9f49026837feba035a6c24cc7204e2cb18247a93e1f5330e7486a0`, 14:57 UTC) to nos.lol,
+relay.primal.net, relay.snort.social and nostr.mom; relay.damus.io refused the connection.
+
+Verified by 1 of 4 independent NIP-39 verifiers. Tambat verifies 12 of 13 of theirs.
+
+| binding | verifier A | verifier B | verifier C | verifier D |
+| --- | --- | --- | --- | --- |
+| demo key `npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt`, `bch:q…` with a signature | ✓ verified | ✗ no on-chain claim | ✗ third field read as a txid, no such transaction | ✗ no `bitcoincash:` claim |
+| Paytaca `npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz`, `bch:bitcoincash:q…` with a signature (17 Nov) | ✗ not the canonical form `bch:q…` | ✗ no on-chain claim | ✗ third field read as a txid, no such transaction | ✗ no `bitcoincash:` claim |
+
+What each verifier accepts, as read from its page and documents: A, `bch:q…` with a signature or `tx:<txid>`; B, an
+on-chain proof only (`tx:<txid>`); C, `bch:<address>` with a bare txid; D, `bitcoincash:q…` with a bare txid whose
+transaction carries a protocol tag of its own. B, C and D need a transaction, which the demo address cannot pay for
+while it holds no coins (README, Known limits). Tambat reads all four forms (ADR 0024).
+
+Tried and dropped: a second tag `["i", "bitcoincash:q…", "<signature>"]` for the same address on the demo binding
+(event `87a9c5abb0dc6aa08e5a3bcf099bde3a87a2618b93128407e5b72731a7eed6e9`, 14:54 UTC). Verifier D still found no BCH
+address and A still verified, so the count did not change; the next event left the extra tag out.
+
+The home page card checks the candidates in `hero.candidates` in order and shows the first whose newest binding passes
+and is written `bch:q…`. While the Paytaca binding is in the older form, that is the demo binding.
+
+Their bindings: the newest kind 10011 event of every author on the default relays (15:00 UTC, newest 2000 per relay)
+with a `bch:` or `bitcoincash:` identity, leaving out this project's keys, checked with `tambat lookup <hex key>`.
+
+| event id | claims | result |
+| --- | --- | --- |
+| `184c2356d93c844da236e7b9d4916aabd89e85a2b88c76d2043d2ad494a4a3ba` | `bch:` bare address, `tx:<txid>`; `bch:` bare address, signature; `bch:` bare address, `tx:<txid>` | ok |
+| `f82b89248e61b4c48d42b0606e68f98fd81a7a2785ade9042b4c9f74d7fe33be` | `bitcoincash:` bare address, bare txid | ok |
+| `0d10715b3a026c8d59648778bf340c9a0c85f75da551851480468bc24ff0474a` | `bch:` bare address, signature | ok |
+| `687125910c63f23e1c09e6f51b832f00dfeb6b7e14bb5b19e35a570ad6c0b4ee` | `bch:` bare address, signature | ok |
+| `8b7e74daf64f2f023dfc1176f6d55d7876613867631fc1eda201be574b9c9d2b` | `bch:` bare address, `tx:<txid>` | ok |
+| `c807c26ec834bf99fec83f6b0fc1ff40fc1340bf73469e3ddb7cbb121d713050` | `bch:` bare address, signature | ok |
+| `271cad218146e5e39d75f9aac55f6e7629751ba02ef354084a59535bbdf3a786` | `bch:` prefixed address, signature | ok |
+| `7c8d72e444fcb1a5dc6f166aee3a9a06eb58c6224fbdb0754a17ea502b223383` | `bch:` prefixed address, `msg:<base64>` | ok |
+| `ca79c481ca37d3708533bf5c1d9ea9401f103e8d9c5998fc535d0ef01864010c` | `bch:` prefixed address, `msg:<base64>` | ok |
+| `4e0aeb7a4e4cfb8aef47719d592632d18dc9d9143f7a7579a23bf23bfa580aa9` | `bch:` prefixed address, `msg:<base64>` | fail: network |
+| `bd8218736bfd5c40cbefdec39daa44f16eb25760afb429c2f6fe9cd04b81fd15` | `bitcoincash:` bare address, bare txid | ok |
+| `18fb6dfac74bc816f74e389e34b5c464bc44b32982851a498a7949336ad4fa4e` | `bitcoincash:` bare address, bare txid | ok |
+| `f9b933116ca163f99e375555f5dfa70e25219451047afb092e78f8a365e2130d` | `bitcoincash:` bare address, bare txid | ok |
+
+### 2026-11-20 01:32 UTC: bindings by other clients
+
 Bindings written by another NIP-39 client, read from the default relays on 2026-11-20 and checked with the CLI from this
 repository (`tambat lookup <hex key>`: newest event of the key from the relays, then every step; on-chain proofs read from
 the three chain servers in `anchor.electrum`, quorum 2). The scan asked each relay for the newest 2000 kind 10011 events and

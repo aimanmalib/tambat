@@ -123,10 +123,10 @@ Beyond the required parts, each live and tested:
 
 ## Demo in 60 seconds
 
-1. Open https://tambat.sasateguh.com. The first card is a real binding signed with a Paytaca wallet over WalletConnect
-   (`config/tambat.json` `hero`). The browser fetches it from the relays and checks it in order: the Nostr signature, the BCH
-   signature, that the signer owns the address, then the address's commitment on BCH. Each mark appears only when its own
-   check returns; a step that fails is named instead (`src/core/hero-check.ts`, `tests/hero-check.test.ts`, `e2e/hero.spec.ts`).
+1. Open https://tambat.sasateguh.com. The first card is a real binding: the first of `hero.candidates` (`config/tambat.json`)
+   whose newest binding passes and is written `bch:q…` (the owner's Paytaca binding, else this project's demo key; the card says
+   which signed it). The browser checks the Nostr signature, the BCH signature, that the signer owns the address, then the BCH
+   commitment; each mark appears only when its check returns, a failed step is named (`src/core/hero-check.ts`, `e2e/hero.spec.ts`).
    Tapping the card opens the full check in Look up. **Link**, below it: connect a Nostr key (a NIP-07 extension, a NIP-46 remote signer, or "Use a
    demo key"), then a BCH key (Paytaca over WalletConnect, a WizardConnect wallet, a signature pasted from any wallet with
    "Sign message", or a demo key). On a phone, the pairing link can be copied into a phone wallet ([steps](docs/PAYTACA.md#on-an-iphone)).
@@ -205,9 +205,9 @@ transaction spends from the address and carries the same text in an OP_RETURN ou
 CLI read the transaction from the chain servers, keep it only when they agree, run it through the BCH virtual machine with
 the outputs it spends and compare the OP_RETURN with the text for the author's npub (steps `tx_found`, `address_match`,
 `tx_text`; [SPEC](docs/SPEC.md) section 4, [ADR 0021](docs/decisions/0021-tx-proof.md)). Each result is labelled "Signed
-message" or "On-chain proof". On 2026-11-20 seven mainnet bindings by other clients verified this way, one of them a
-`tx:` proof; before this change one of the seven did ([measured](docs/MEASURED.md#interoperability),
-`tests/tx-proof-interop.test.ts` with that transaction as test data; `tests/interop-write.test.ts` for the write form and dialects).
+message" or "On-chain proof". On 2026-11-20 Tambat verified 12 of 13 newest bindings by other clients on the default relays
+(the 13th is on chipnet), and the demo binding was verified by 1 of 4 independent NIP-39 verifiers; the other three take only
+an on-chain proof ([measured](docs/MEASURED.md#interoperability), `tests/tx-proof-interop.test.ts`, `tests/interop-write.test.ts`).
 
 ## Command-line verifier
 
@@ -350,7 +350,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-a1e59b4f96d4628ae18df91a6ce7c56c4ca5db4429e86ba5a7ad4527bda6bb1c  tambat-verify.html
+8f6ea598566aeea46d5248ca41a1b0d571cdae0b5c30b0dde1eaa505b090322d  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
