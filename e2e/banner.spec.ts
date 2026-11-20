@@ -4,7 +4,9 @@
  */
 import { join } from 'node:path';
 import config from '../config/tambat.json' with { type: 'json' };
-import { en, expect, expectAccessible, expectNoOverflow, test } from './fixtures.js';
+import { en, expect, expectAccessible, expectNoOverflow, ms, test } from './fixtures.js';
+
+const commitUrl = `${config.banner.repoUrl}/commit/${config.banner.firstCommit}`;
 
 test('the banner links the deck, the repository and the address', async ({ page, consoleErrors }, info) => {
   await page.goto('/');
@@ -12,7 +14,10 @@ test('the banner links the deck, the repository and the address', async ({ page,
   await expect(banner.locator('[data-banner="deck"]')).toHaveAttribute('href', config.banner.deckUrl);
   await expect(banner.locator('[data-banner="repo"]')).toHaveAttribute('href', config.banner.repoUrl);
   const address = banner.locator('[data-banner="address"]');
-  for (const part of [banner.getByRole('link', { name: en.banner.presentation }), banner.getByRole('link', { name: en.banner.source }), address]) {
+  const note = banner.locator('[data-banner="note"]');
+  await expect(note).toHaveText(en.banner.note);
+  await expect(note).toHaveAttribute('href', commitUrl);
+  for (const part of [note, banner.getByRole('link', { name: en.banner.presentation }), banner.getByRole('link', { name: en.banner.source }), address]) {
     await expect(part).toBeVisible();
   }
   // The full address is there for screen readers and on hover; the copy button copies it whole.
@@ -25,8 +30,10 @@ test('the banner links the deck, the repository and the address', async ({ page,
     await page.setViewportSize({ width, height: 800 });
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await expectNoOverflow(page);
-    const box = await address.boundingBox();
-    expect(box && box.x + box.width).toBeLessThanOrEqual(width);
+    for (const part of [address, note]) {
+      const box = await part.boundingBox();
+      expect(box && box.x + box.width).toBeLessThanOrEqual(width);
+    }
   }
   const dir = process.env.SHOTS_DIR ?? '';
   if (dir) {
@@ -44,6 +51,17 @@ test('the judges page keeps one line of links and leaves the address to the home
   await expect(page.locator('.banner [data-banner="deck"]')).toBeVisible();
   await expect(page.locator('.banner [data-banner="address"]')).toHaveCount(0);
   await expect(page.locator('.banner').getByRole('link', { name: en.banner.judges })).toHaveCount(0);
+  await expect(page.locator('.banner [data-banner="note"]')).toHaveAttribute('href', commitUrl);
+  await expect(page.locator('.banner [data-banner="note"]')).toBeVisible();
+});
+
+test('the new project note is in Malay too and fits 320 px', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto('/?lang=ms');
+  const note = page.locator('.banner [data-banner="note"]');
+  await expect(note).toHaveText(ms.banner.note);
+  await expect(note).toHaveAttribute('href', commitUrl);
+  await expectNoOverflow(page);
 });
 
 test('the deck is served as a PDF', async ({ request }) => {

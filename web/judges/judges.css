@@ -32,7 +32,7 @@
 
 @media (max-width: 59.99rem) {
   .top--wide .nav { display: none; }
-  .top--wide { padding-block: 0.25rem; }
+  .top.top--wide { padding-block: 0.25rem; }
   .jactions { gap: 0.25rem; }
   .jnarrow-hide { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }

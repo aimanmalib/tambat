@@ -198,7 +198,7 @@ test('the judges page verifies the demo identity from the real relays on one scr
   await expectAccessible(page);
 });
 
-test('the banner on the home and judges pages links the deck, and the deck is a PDF', async ({ page, request }) => {
+test('the banner on the home and judges pages links the deck and the first commit, and the deck is a PDF', async ({ page, request }) => {
   const deckUrl = siteConfig.banner.deckUrl;
   for (const path of ['/', '/judges']) {
     await page.goto(path);
@@ -206,6 +206,9 @@ test('the banner on the home and judges pages links the deck, and the deck is a 
     await expect(deck).toBeVisible();
     await expect(deck).toHaveAttribute('href', deckUrl);
     await expect(deck).toHaveText(en.banner.presentation);
+    const note = page.locator('.banner [data-banner="note"]');
+    await expect(note).toHaveText(en.banner.note);
+    await expect(note).toHaveAttribute('href', `${siteConfig.banner.repoUrl}/commit/${siteConfig.banner.firstCommit}`);
   }
   const res = await request.get(deckUrl);
   expect(res.status()).toBe(200);

@@ -23,11 +23,13 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; line-height
 .skip:focus { top: 0.5rem; }
 
 .banner {
-  display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: center;
-  padding: 0.375rem var(--gap); font-size: 0.875rem;
+  display: flex; flex-wrap: wrap; gap: 0.125rem 1rem; align-items: center;
+  padding: 0.25rem var(--gap); font-size: 0.875rem;
   background: var(--ink); color: var(--paper);
 }
 .banner a { color: var(--paper); }
+/* The new project note keeps to one line on a phone, so the home hero card and the one-screen judges page still fit. */
+.banner__note { font-size: 0.75rem; line-height: 1.25; }
 .banner__address { display: inline-flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; align-items: center; min-width: 0; }
 .banner__address code { color: var(--paper); overflow-wrap: anywhere; }
 .banner__copy {

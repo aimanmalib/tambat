@@ -85,6 +85,23 @@ describe('config/tambat.json', () => {
     }
   });
 
+  it('needs a full commit SHA for the new project note, and a true or false switch', () => {
+    for (const value of ['988ff7d', '', 'g'.repeat(40), undefined]) {
+      const c = fresh();
+      (c.banner as Record<string, unknown>).firstCommit = value;
+      expect(() => parseConfig(c)).toThrow(/banner\.firstCommit/);
+    }
+    for (const value of ['true', 1, undefined]) {
+      const c = fresh();
+      (c.banner as Record<string, unknown>).note = value;
+      expect(() => parseConfig(c)).toThrow(/banner\.note/);
+    }
+    const off = fresh();
+    off.banner.note = false;
+    off.banner.firstCommit = '';
+    expect(parseConfig(off).banner.note).toBe(false);
+  });
+
   it('takes a wall badge margin only in the form IntersectionObserver accepts', () => {
     expect(config.wall.sinceRootMargin).toBe('0px 0px 100% 0px');
     for (const ok of ['0px', '10% 0px', '-5px 0px 50% 0px']) expect(isRootMargin(ok)).toBe(true);

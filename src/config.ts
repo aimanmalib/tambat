@@ -75,6 +75,10 @@ export interface TambatConfig {
     deckUrl: string;
     repoUrl: string;
     contactAddress: string;
+    /** Full SHA of the repository's root commit; with note on, the banner links <repoUrl>/commit/<firstCommit>. */
+    firstCommit: string;
+    /** Show the "new project" note with the first commit link (app only; the library never reads it). */
+    note: boolean;
   };
   embed: {
     /** The badge page inside the built web app (staticDir), served at /embed/<npub or address>. */
@@ -347,6 +351,8 @@ export function parseConfig(input: unknown): TambatConfig {
   for (const k of ['deckUrl', 'repoUrl', 'contactAddress'] as const) {
     if (typeof c.banner?.[k] !== 'string') fail(`banner.${k}`, 'must be a string (empty hides it)');
   }
+  if (typeof c.banner.note !== 'boolean') fail('banner.note', 'must be true or false');
+  if (c.banner.note && !/^[0-9a-f]{40}$/.test(c.banner.firstCommit ?? '')) fail('banner.firstCommit', 'must be a full 40 character commit SHA when banner.note is on');
   if (typeof c.embed?.page !== 'string' || !c.embed.page.endsWith('.html')) fail('embed.page', 'must be the path of an .html file');
   positiveInt(c.embed.width, 'embed.width');
   positiveInt(c.embed.height, 'embed.height');

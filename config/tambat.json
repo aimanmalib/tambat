@@ -67,7 +67,9 @@
   "banner": {
     "deckUrl": "https://tambat.sasateguh.com/deck.pdf",
     "repoUrl": "https://github.com/aimanmalib/tambat",
-    "contactAddress": "bitcoincash:zplrydnf2z4pj4z9rv7uhmwsuxyrm8hj7uken87e7q"
+    "contactAddress": "bitcoincash:zplrydnf2z4pj4z9rv7uhmwsuxyrm8hj7uken87e7q",
+    "firstCommit": "988ff7db24092061477503a63fe28fcbb866b92c",
+    "note": true
   },
   "embed": {
     "page": "web/embed.html",

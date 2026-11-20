@@ -3,7 +3,8 @@
 Bind a Bitcoin Cash address to a Nostr public key, publish the binding to Nostr relays, and let anyone verify it without
 trusting a server.
 
-Built for BCH BLAZE 2026, bounty "Decentralized Identity".
+Built for BCH BLAZE 2026, bounty "Decentralized Identity". New project, first commit after the 14 November start:
+https://github.com/aimanmalib/tambat/commit/988ff7db24092061477503a63fe28fcbb866b92c
 
 Live demo: https://tambat.sasateguh.com
 
@@ -349,7 +350,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-22756c36ca91903a2e8c85abd7aaa1fa91ec34600037de80ee3ffac241e1aea1  tambat-verify.html
+190da700eee65f7c4e3dddb846a72c3b18b6ba8a56adfa2e29cefa8a17a59451  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
