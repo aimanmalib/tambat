@@ -63,6 +63,7 @@ export const REQUIREMENTS: { key: string; links: JudgeLink[] }[] = [
   {
     key: 'docs',
     links: [
+      { key: 'video', href: '/video', params: { seconds: config.video.seconds } },
       { key: 'readme', href: repo('README.md') },
       { key: 'measured', href: repo('docs/MEASURED.md') },
       { key: 'pkg', href: repoDir('docs/pkg') },

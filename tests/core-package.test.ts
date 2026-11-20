@@ -20,30 +20,32 @@ const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as 
  * is compared without them; the test below checks the library code never reads them.
  */
 /** Config the web app reads and src/core never does: whole sections, or `section.key` for one key in a shared section. */
-const APP_ONLY = ['hero', 'wizardConnect', 'wall.refreshSeconds', 'banner.firstCommit', 'banner.note', 'judges.interop'] as const;
+const APP_ONLY = ['hero', 'video', 'wizardConnect', 'wall.refreshSeconds', 'banner.firstCommit', 'banner.note', 'judges.interop', 'server.contentSecurityPolicy.media-src'] as const;
 /**
  * Library settings added after the released tarball. The released library writes the prefixed claim form and reads no
  * platform alias (README "Known limits"); the next release carries them.
  */
 const AFTER_RELEASE = ['nostr.claimForm', 'nostr.platformAliases'] as const;
 const NOT_PACKED: readonly string[] = [...APP_ONLY, ...AFTER_RELEASE];
-const libraryConfig = (c: Record<string, unknown>) =>
+/** `c` without the NOT_PACKED paths, at any depth (`server.contentSecurityPolicy.media-src` drops one CSP directive). */
+const without = (c: Record<string, unknown>, paths: readonly string[]): Record<string, unknown> =>
   Object.fromEntries(
     Object.entries(c)
-      .filter(([k]) => !NOT_PACKED.includes(k))
+      .filter(([k]) => !paths.includes(k))
       .map(([k, v]) => {
-        const drop = NOT_PACKED.filter((p) => p.startsWith(`${k}.`)).map((p) => p.slice(k.length + 1));
-        if (drop.length === 0 || !v || typeof v !== 'object') return [k, v];
-        return [k, Object.fromEntries(Object.entries(v as Record<string, unknown>).filter(([key]) => !drop.includes(key)))];
+        const drop = paths.filter((p) => p.startsWith(`${k}.`)).map((p) => p.slice(k.length + 1));
+        if (drop.length === 0 || !v || typeof v !== 'object' || Array.isArray(v)) return [k, v];
+        return [k, without(v as Record<string, unknown>, drop)];
       }),
   );
+const libraryConfig = (c: Record<string, unknown>) => without(c, NOT_PACKED);
 
 describe('app-only config sections', () => {
   it('are never read by src/core, so the packed library does not depend on them', () => {
     const core = join(root, 'src/core');
     const reads = readdirSync(core)
       .filter((f) => f.endsWith('.ts'))
-      .filter((f) => APP_ONLY.some((k) => new RegExp(`config\\.${k.replace('.', '\\.')}\\b`).test(readFileSync(join(core, f), 'utf8'))));
+      .filter((f) => APP_ONLY.some((k) => new RegExp(`config\\.${k.replaceAll('.', '\\.')}\\b`).test(readFileSync(join(core, f), 'utf8'))));
     expect(reads).toEqual([]);
   });
 });

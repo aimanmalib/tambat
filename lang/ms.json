@@ -50,7 +50,8 @@
     "copy": "Salin",
     "copied": "Disalin",
     "judges": "Untuk juri",
-    "note": "Projek baharu, komit pertama selepas permulaan 14 November"
+    "note": "Projek baharu, komit pertama selepas permulaan 14 November",
+    "video": "Video"
   },
   "lang": {
     "label": "Bahasa",
@@ -438,7 +439,8 @@
       "release": "Keluaran dengan cincangan",
       "phone": "Pautan pasangan untuk dompet telefon",
       "reputation": "Ringkasan reputasi",
-      "repBundle": "Fail reputasi"
+      "repBundle": "Fail reputasi",
+      "video": "Video, {seconds} s"
     },
     "critTitle": "Kriteria penilaian",
     "crit": {
@@ -664,5 +666,11 @@
       "disclosure_unknown": "cincangan {path} tiada dalam kelayakan: nilainya diubah atau ia dari kelayakan lain.",
       "bch_signature": "tandatangan BCH dalam {path} bukan untuk npub pemegang."
     }
+  },
+  "video": {
+    "title": "Video demo",
+    "sub": "{seconds} saat, dirakam pada laman hidup ini. Tiada apa-apa diterbitkan untuknya.",
+    "note": "Video ini tiada bunyi. Kapsyen ialah sebahagian daripada gambar.",
+    "download": "Muat turun video (MP4)"
   }
 }

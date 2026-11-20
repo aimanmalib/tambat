@@ -87,6 +87,12 @@ export interface TambatConfig {
     /** Show the "new project" note with the first commit link (app only; the library never reads it). */
     note: boolean;
   };
+  /** The demo video hosted with the site: paths under the site root and its length, shown next to the links to it. */
+  video: {
+    url: string;
+    posterUrl: string;
+    seconds: number;
+  };
   embed: {
     /** The badge page inside the built web app (staticDir), served at /embed/<npub or address>. */
     page: string;
@@ -401,6 +407,9 @@ export function parseConfig(input: unknown): TambatConfig {
   }
   if (typeof c.banner.note !== 'boolean') fail('banner.note', 'must be true or false');
   if (c.banner.note && !/^[0-9a-f]{40}$/.test(c.banner.firstCommit ?? '')) fail('banner.firstCommit', 'must be a full 40 character commit SHA when banner.note is on');
+  if (typeof c.video?.url !== 'string' || !/^\/[\w/.-]+\.mp4$/.test(c.video.url)) fail('video.url', 'must be a site path ending in .mp4');
+  if (typeof c.video.posterUrl !== 'string' || !/^\/[\w/.-]+\.(jpg|png)$/.test(c.video.posterUrl)) fail('video.posterUrl', 'must be a site path ending in .jpg or .png');
+  positiveInt(c.video.seconds, 'video.seconds');
   if (typeof c.embed?.page !== 'string' || !c.embed.page.endsWith('.html')) fail('embed.page', 'must be the path of an .html file');
   positiveInt(c.embed.width, 'embed.width');
   positiveInt(c.embed.height, 'embed.height');

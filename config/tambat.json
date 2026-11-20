@@ -73,6 +73,11 @@
     "firstCommit": "988ff7db24092061477503a63fe28fcbb866b92c",
     "note": true
   },
+  "video": {
+    "url": "/media/tambat-demo.mp4",
+    "posterUrl": "/media/tambat-demo.jpg",
+    "seconds": 56
+  },
   "embed": {
     "page": "web/embed.html",
     "width": 320,
@@ -102,6 +107,9 @@
         "'wasm-unsafe-eval'"
       ],
       "style-src": [
+        "'self'"
+      ],
+      "media-src": [
         "'self'"
       ],
       "img-src": [

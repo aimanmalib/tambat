@@ -4,9 +4,7 @@ Bind a Bitcoin Cash address to a Nostr public key, publish the binding to Nostr 
 trusting a server.
 
 Built for BCH BLAZE 2026, bounty "Decentralized Identity". New project, first commit after the 14 November start:
-https://github.com/aimanmalib/tambat/commit/988ff7db24092061477503a63fe28fcbb866b92c
-
-Live demo: https://tambat.sasateguh.com
+https://github.com/aimanmalib/tambat/commit/988ff7db24092061477503a63fe28fcbb866b92c. Live demo: https://tambat.sasateguh.com
 
 - [Protocol specification](docs/SPEC.md): the protocol, the verification algorithm, sign-in and test vectors.
 - [Verify it yourself](docs/VERIFY.md): check a binding with the command line or by hand.
@@ -14,8 +12,9 @@ Live demo: https://tambat.sasateguh.com
 - [Wallet guide for Paytaca](docs/PAYTACA.md): how a wallet that holds a BIP39 phrase publishes a binding.
 - [Measurements](docs/MEASURED.md): what was measured on real relays and the live site, failures included.
 - [docs/decisions/](docs/decisions/): why each choice was made.
-- [Event deck](https://tambat.sasateguh.com/deck.pdf): eight slides, printed from `tools/deck/` (`npx tsx tools/deck/build.ts`). The
-  banner at the top of every page links it, this repository and the team's BCH address (`config/tambat.json` `banner`).
+- [Demo video](https://tambat.sasateguh.com/video) ([`public/media/tambat-demo.mp4`](public/media/tambat-demo.mp4), 56 s, no sound,
+  captions in the picture) and [event deck](https://tambat.sasateguh.com/deck.pdf) (`npx tsx tools/deck/build.ts`): the banner
+  of every page links both, this repository and the team's BCH address (`config/tambat.json` `banner`, `video`).
 
 ## What it is
 
@@ -350,7 +349,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-48a325e43d60c0ef39a5b89f7cca9d3a7da9320e75ad185e3a32f70c218e8ff7  tambat-verify.html
+6e573c72e001e8821cd63011e59bdacd236cc76693fe928d0c7f57adf0d51c5c  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;

@@ -50,7 +50,8 @@
     "copy": "Copy",
     "copied": "Copied",
     "judges": "For judges",
-    "note": "New project, first commit after the 14 November start"
+    "note": "New project, first commit after the 14 November start",
+    "video": "Video"
   },
   "lang": {
     "label": "Language",
@@ -438,7 +439,8 @@
       "release": "Release with checksums",
       "phone": "Pairing link for a phone wallet",
       "reputation": "Reputation summary",
-      "repBundle": "Reputation file"
+      "repBundle": "Reputation file",
+      "video": "Video, {seconds} s"
     },
     "critTitle": "Judging criteria",
     "crit": {
@@ -664,5 +666,11 @@
       "disclosure_unknown": "the digest of {path} is not in the credential: its value was changed or it comes from another credential.",
       "bch_signature": "the BCH signature in {path} is not for the holder's npub."
     }
+  },
+  "video": {
+    "title": "Demo video",
+    "sub": "{seconds} seconds, recorded on this live site. Nothing was published for it.",
+    "note": "The video has no sound. The captions are part of the picture.",
+    "download": "Download the video (MP4)"
   }
 }

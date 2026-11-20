@@ -1,9 +1,20 @@
 import react from '@vitejs/plugin-react';
+import { cpSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+
+/** Media served as they are (the demo video and its poster, public/media) are copied next to the built app. */
+const MEDIA = resolve(import.meta.dirname, 'public/media');
+const copyMedia = (): Plugin => ({
+  name: 'tambat-copy-media',
+  apply: 'build',
+  writeBundle(options) {
+    if (existsSync(MEDIA)) cpSync(MEDIA, resolve(options.dir ?? 'dist/web', 'media'), { recursive: true });
+  },
+});
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), copyMedia()],
   // Files served as they are, such as the event deck (web/public/deck.pdf, made by tools/deck/build.ts).
   publicDir: 'web/public',
   build: {

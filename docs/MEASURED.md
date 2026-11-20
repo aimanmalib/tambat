@@ -187,6 +187,19 @@ and a fake chain (`tests/anchor-wizard.test.ts`: the signed proof passes `verify
 one with an extra output, and a reply that is not a transaction are refused before anything is sent), and the pairing code
 and link in Chromium and WebKit on an iPhone 13 (`e2e/wizard.spec.ts`).
 
+## Video
+
+The demo video at https://tambat.sasateguh.com/video (`public/media/tambat-demo.mp4`), recorded on 2026-11-20 between 16:43
+and 17:26 UTC from the live site in Chromium at 1920 by 1080, with nothing published for it. Scenes: the home page card
+checking the demo binding (relays, Nostr signature, BCH signature and address passed, anchor "none yet"); the Link form;
+Look up of a binding written by another client (`npub1kt6h6jg8fnpd57dpdyqf35va8yqytx8zvd99446mw8m8v3g9s2jq26gcl6`, event
+`0d10715b…`, Verified); the wall with its count strip (15 verified, 6 on-chain proofs, 5 of 5 relays answering); the
+reputation summary of the Paytaca key downloaded from Look up and pasted into the one-file verifier, which printed
+"Reputation summary verified on this device: 0 attestation(s) counted of 0 credential(s)". Checks of the file before
+it was committed: 55.77 s, 1920 by 1080, H.264 at 30 frames per second, no audio stream, index before the media data,
+captions burned in from one caption list (7 cues, contrast 15.6 to 15.9 against their box), no QR code in any frame
+sampled twice a second (112 frames). `tests/video.test.ts` reads the length, the tracks and the box order from the file.
+
 ## Wall
 
 The wall's own code (`loadWall` in `src/core/wall.ts`, with the query that keeps events whose signature fails) run from the

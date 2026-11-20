@@ -10,8 +10,8 @@ export function shortAddress(address: string): string {
 }
 
 /**
- * Event banner at the top of every page: the presentation, the source code and the team's BCH address, each shown only when
- * config.banner has a value for it, and the note that this is a new project with a link to its first commit (config.banner.note). The judges page is one screen, so there the banner keeps to one line: no link to itself,
+ * Event banner at the top of every page: the demo video, the presentation, the source code and the team's BCH address, each shown only when
+ * config.banner has a value for it, and the note that this is a new project with a link to its first commit (config.banner.note). The judges page is one screen, so there the banner keeps to one line: no link to itself or to the video (the page links it with its length),
  * and the address is left to the home page.
  */
 export function Banner({ onJudges = false }: { onJudges?: boolean }) {
@@ -32,6 +32,7 @@ export function Banner({ onJudges = false }: { onJudges?: boolean }) {
     <div className="banner">
       <strong>{t('banner.event')}</strong>
       {onJudges ? null : <a href="/judges">{t('banner.judges')}</a>}
+      {onJudges ? null : <a href="/video" data-banner="video">{t('banner.video')}</a>}
       {b.deckUrl ? <a href={b.deckUrl} data-banner="deck">{t('banner.presentation')}</a> : null}
       {b.repoUrl ? <a href={b.repoUrl} data-banner="repo">{t('banner.source')}</a> : null}
       {commit ? <a href={commit} data-banner="note" className="banner__note">{t('banner.note')}</a> : null}

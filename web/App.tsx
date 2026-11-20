@@ -6,6 +6,7 @@ import { LinkPage } from './pages/LinkPage';
 import { LookupPage } from './pages/LookupPage';
 import { PayPage } from './pages/PayPage';
 import { WallPage } from './pages/WallPage';
+import { VideoPage } from './video/VideoPage';
 import { navigate, useRoute, type Route } from './router';
 import { Banner } from './ui/Banner';
 import { HeroCard } from './ui/HeroCard';
@@ -40,7 +41,7 @@ function Home() {
   );
 }
 
-const PAGES: Record<Route, () => React.JSX.Element> = { '/': Home, '/lookup': LookupPage, '/wall': WallPage, '/demo': DemoPage, '/pay': PayPage, '/judges': JudgesPage };
+const PAGES: Record<Route, () => React.JSX.Element> = { '/': Home, '/lookup': LookupPage, '/wall': WallPage, '/demo': DemoPage, '/pay': PayPage, '/judges': JudgesPage, '/video': VideoPage };
 
 export function App() {
   const { t, lang, setLang } = useText();
