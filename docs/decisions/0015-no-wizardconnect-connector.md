@@ -1,6 +1,6 @@
 # 0015: No WizardConnect connector for now
 
-Status: accepted
+Status: superseded by [0023](0023-wizardconnect-transaction-proof.md)
 
 ## Context
 

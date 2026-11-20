@@ -124,6 +124,13 @@ P2PKH address and the whole transaction passes the BCH virtual machine (libauth)
 The proof transaction `1f765b72…895f` is kept as test data in `tests/fixtures/tx-proof-mainnet.json` with the transaction it
 spends, as returned by the chain server named there.
 
+2026-11-20: Tambat can now write this proof form too, through the WizardConnect option on Link
+([ADR 0023](decisions/0023-wizardconnect-transaction-proof.md)). Not yet tested with a wallet: no proof transaction has been
+made through it. What is measured is the code against a fake wallet that signs with keys from the public BIP39 test phrase
+and a fake chain (`tests/anchor-wizard.test.ts`: the signed proof passes `verifyClaim`; a transaction signed by another key,
+one with an extra output, and a reply that is not a transaction are refused before anything is sent), and the pairing code
+and link in Chromium and WebKit on an iPhone 13 (`e2e/wizard.spec.ts`).
+
 ## Wall
 
 The wall's own code (`loadWall` in `src/core/wall.ts`, with the query that keeps events whose signature fails) run from the

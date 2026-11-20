@@ -128,8 +128,8 @@ Beyond the required parts, each live and tested:
    signature, that the signer owns the address, then the address's commitment on BCH. Each mark appears only when its own
    check returns; a step that fails is named instead (`src/core/hero-check.ts`, `tests/hero-check.test.ts`, `e2e/hero.spec.ts`).
    Tapping the card opens the full check in Look up. **Link**, below it: connect a Nostr key (a NIP-07 extension, a NIP-46 remote signer, or "Use a
-   demo key"), then a BCH key (Paytaca over WalletConnect, a signature pasted from any wallet with "Sign message", or a demo key).
-   On a phone, the pairing link can be copied and pasted into a phone wallet ([steps](docs/PAYTACA.md#on-an-iphone)).
+   demo key"), then a BCH key (Paytaca over WalletConnect, a WizardConnect wallet, a signature pasted from any wallet with
+   "Sign message", or a demo key). On a phone, the pairing link can be copied into a phone wallet ([steps](docs/PAYTACA.md#on-an-iphone)).
 2. Sign. The page runs every verification step on the event before you publish, then publishes to the five public relays and shows
    which ones accepted it and how fast.
 3. **Look up**: paste the npub, the address or a NIP-05 name such as `demo@tambat.sasateguh.com`. The browser asks the relays and verifies the result itself: the step list, the
@@ -350,7 +350,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-190da700eee65f7c4e3dddb846a72c3b18b6ba8a56adfa2e29cefa8a17a59451  tambat-verify.html
+cf9e12a05a5578022cee90c84accc66d5f1618f9e14875859261713d6a3c9959  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -424,11 +424,10 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 - **Optional BCH anchor**: one anchor exists, for the Paytaca binding, made by its owner; the demo key has none yet. The
   wallet request (`bch_signTransaction`) is tested end to end against a fake wallet only. Revoke by transaction is tested
   against a simulated chain only; no revocation has been sent on mainnet.
-- **WizardConnect** is not supported: its protocol signs transactions but not messages, so it cannot sign a binding
-  ([ADR 0015](docs/decisions/0015-no-wizardconnect-connector.md)). Wallets without WalletConnect can paste a signed message.
-- **On-chain proofs** (`tx:<txid>`) written by other clients are read and checked, but Tambat does not write them. They need
-  the chain: the one-file verifier and the server's sign-in do not read it, so there such a claim shows as not checked and
-  does not pass. The released library `core-v0.2.0` predates them and checks signed-message proofs only.
+- **WizardConnect** wallets sign a proof transaction ([ADR 0023](docs/decisions/0023-wizardconnect-transaction-proof.md)); not yet tested with a wallet.
+- **On-chain proofs** (`tx:<txid>`), from other clients or the WizardConnect option, need the chain: the one-file verifier
+  and the server's sign-in do not read it, so there such a claim shows as not checked and does not pass. The released
+  library `core-v0.2.0` predates them and checks signed-message proofs only.
 - **Credentials** carry the signed attestation and binding events as their proof, not a Data Integrity proof, so a
   generic VC verifier cannot check them; `tambat vc verify` and the one-file verifier can. The official W3C test suite was
   not run ([ADR 0017](docs/decisions/0017-attestation-verifiable-credential.md)).
@@ -453,9 +452,9 @@ English by default with a Malay toggle; all text is in `lang/en.json` and `lang/
   that pass every step are listed, with a link to Look up; the rest are never shown, only counted as "hidden: failed
   verification". The query keeps events with a bad signature so they are counted rather than silently dropped. Tested by
   `tests/wall.test.ts` and `e2e/wall.spec.ts` (a fake relay holding one genuine event and one with a forged signature).
+- Demo keys live in memory for the open tab only.
 - **Look up** and **Pay** also take a NIP-05 name (`name@domain`): the browser asks the domain for the key, then verifies
   that key's binding on the relays and says which npub the name led to.
-- Demo keys live in memory for the open tab only.
 - **Verify** (`/verify/`) is the [one-file verifier](#one-file-verifier), linked from Look up with a download link.
 
 ## Development
@@ -486,9 +485,10 @@ The read-only live checks also run by hand: `E2E_BASE_URL=https://your.host npx 
 
 - `nostr-tools`: Unlicense.
 - `@bitauth/libauth`, `@noble/curves`, `@electrum-cash/network`, `@electrum-cash/web-socket`, `qrcode-generator`, `fastify`,
-  `@fastify/cookie`, `@fastify/static`, `react`, `react-dom`, `ws`, `tsx`: MIT.
+  `@fastify/cookie`, `@fastify/static`, `react`, `react-dom`, `ws`, `tsx`, `lossless-json`, `eventemitter3`, `isomorphic-ws`, `@bch-wc2/interfaces`: MIT.
 - `@walletconnect/sign-client` 2.21.8 with `@walletconnect/core`, `types`, `utils` 2.21.8: Apache-2.0. Later versions use a
   non-OSI licence, so this version is pinned. See [docs/decisions/0001-protocol.md](docs/decisions/0001-protocol.md).
+- `@wizardconnect/core` 0.2.11, `@wizardconnect/dapp` 0.2.8: LGPL-3.0-or-later, unmodified, loaded only by the WizardConnect option.
 
 ## AI disclosure
 
