@@ -152,6 +152,15 @@ entries within one screen below the fold (`wall.sinceRootMargin`, ADR 0016). "ms
 or to giving up; the host was under heavy load (load average above 200) during the second run. Scrolling each card into
 view gave the badge before the change too; each chain server got one WebSocket per read, all closed after.
 
+On 2026-11-20 the wall started keeping itself current (ADR 0022; tag fb427e7-202611200510): an open relay subscription,
+a check of each relay's newest page every `wall.refreshSeconds` (30) while the tab is visible, and a count strip in place
+of the Check again button. Live /wall before the deploy, WebKit iPhone 13 and Chromium at 320 px: 10 cards, the button
+present, no strip. After: no button, no horizontal overflow (page 390 of 390 and 320 of 320, strip 324 of 324 and 254 of
+254). Chromium desktop at about 05:38 UTC, 3 s after the list showed: verified 10, anchored 0 of 2 read, on-chain proofs 1,
+attestations 1, relays answering 5 of 5, latest anchor block a dash; 15 s later: anchored 1 of 10 read, latest anchor
+block 977901, the Paytaca entry carrying "Anchored since block 977901". In the WebKit run 3 s after the list, attestations
+and the latest block were still a dash (not read yet) and 4 of 5 relays had answered.
+
 ## Sign-in
 
 BCH-only sign-in on the live demo app, 2026-11-17, after deploying `b21e09d`. A script on the host asked
