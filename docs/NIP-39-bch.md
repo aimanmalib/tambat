@@ -19,9 +19,9 @@ A claim is an `i` tag in the author's kind `10011` event:
 ["i", "bch:<cashaddr>", "<proof>"]
 ```
 
-- `<cashaddr>` is the full lowercase CashAddr **with** its network prefix, for example
-  `bitcoincash:qqyx49mu0kkn9ftfj6hje6g2wfer34yfnq5tahq3q6`. The prefix names the network: `bitcoincash` for mainnet,
-  `bchtest` for test networks.
+- `<cashaddr>` is the lowercase CashAddr. On mainnet a writer omits the `bitcoincash:` prefix (`bch:qqyx49…`, see "Write
+  form"); on a test network it keeps the prefix (`bch:bchtest:qq…`), because a reader cannot tell the network from the
+  address alone.
 - The address must be P2PKH: CashAddr type `0` with a 20-byte hash. P2SH, token-aware types and type `0` addresses with a longer
   hash must be rejected, because a signed message proves control of one public key only.
 - `<proof>` is a BCH signed message (below), base64 with padding.
@@ -52,13 +52,37 @@ The BCH signed-message format of Electron Cash "Sign message" and of `bch_signMe
 ### On-chain proof
 
 A wallet that can sign a transaction but not a message may put `tx:<txid>` in place of the proof. The transaction spends from
-the claimed P2PKH address and has an output that is exactly `OP_RETURN <one push of the signed text>`. A client checks that the
-transaction it reads hashes to `txid`, that an input spends from the address and the transaction passes the BCH virtual
-machine with the outputs it spends, and that the output carries the text for this `pubkey` (steps `tx_found`,
-`address_match`, `tx_text`). A client that cannot read the chain must treat the claim as not verified.
+the claimed P2PKH address and has an `OP_RETURN` output, made of data pushes only, in which one push is exactly the signed
+text. Other pushes are allowed, so a client may put its own protocol tag first. A client checks that the transaction it reads
+hashes to `txid`, that an input spends from the address and the transaction passes the BCH virtual machine with the outputs
+it spends, and that the output carries the text for this `pubkey` (steps `tx_found`, `address_match`, `tx_text`). A client
+that cannot read the chain must treat the claim as not verified.
 
-Clients may also write the address without its prefix (`bch:qq…`, read on the client's network) and a signature as
-`msg:<base64>`; a reader should accept both.
+## Write form
+
+A new claim is written with platform `bch` and the mainnet CashAddr without its prefix, the form other NIP-39 verifiers read:
+
+```json
+["i", "bch:qqyx49mu0kkn9ftfj6hje6g2wfer34yfnq5tahq3q6", "<proof>"]
+```
+
+Reference: `claimIdentity` in `src/core/binding.ts`, setting `nostr.claimForm` (`bare`) in
+`config/tambat.json`.
+
+## Read forms
+
+A reader accepts every form below. Tags that name the same address in different forms are one claim, and every one of them
+must pass; tags for two different addresses stay two claims.
+
+| Identity (second value) | Proof (third value) | Read as |
+|---|---|---|
+| `bch:q…` | base64 signed message | the write form |
+| `bch:bitcoincash:q…` | base64 signed message | the earlier form; bindings written before stay valid |
+| `bitcoincash:q…` | any proof below | the same claim (`nostr.platformAliases`) |
+| any of the above | `msg:<base64>` | a signed message; the marker is dropped |
+| any of the above | `tx:<txid>` | an on-chain proof |
+| any of the above | exactly 64 lower-case hex characters | an on-chain proof (a bare txid; a signature is 88 characters) |
+| any of the above | `<base64> \| tx:<txid>` | both proofs; each is checked and both must pass |
 
 ## Verification
 
@@ -73,13 +97,13 @@ A client verifies a claim in this order and reports the first failing step:
 6. `network`: the CashAddr prefix is the network the client expects.
 7. `key_separation`: the x-coordinate of the recovered key differs from `pubkey`. Using one key for both is rejected.
 
-To find the Nostr key for an address, query kind `10011` with `#i` set to `bch:<cashaddr>` and to the same address without
-prefix, then verify each result against the
+To find the Nostr key for an address, query kind `10011` with `#i` set to every spelling of the address (`bch:` and
+`bitcoincash:`, each with and without the prefix; `claimIdentities` in `src/core/binding.ts`), then verify each result against the
 newest event of its author, since a relay may return an event that a newer one has replaced.
 
 ## Example
 
-Keys from the public BIP39 phrase `abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon
+The vector below uses the earlier prefixed form, which every reader still accepts. Keys from the public BIP39 phrase `abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon
 about` (never use them for funds). BCH key at `m/44'/145'/0'/0/0`, Nostr key at `m/44'/1237'/0'/0/0` (NIP-06).
 
 ```json

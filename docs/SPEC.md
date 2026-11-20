@@ -57,8 +57,10 @@ A NIP-39 identity event:
 }
 ```
 
-- The claim is an `i` tag whose second element starts with `bch:` followed by the full CashAddr with its prefix. The third
-  element is the BCH signature from section 3 over the text from section 2.
+- The claim is an `i` tag whose second element starts with `bch:` followed by the CashAddr. A writer omits the prefix of a
+  mainnet address (`bch:qq…`, the form other NIP-39 verifiers read; `nostr.claimForm` `bare`) and keeps it on a test network
+  (`bch:bchtest:qq…`), since the network cannot be told from the address alone. The third element is the BCH signature from
+  section 3 over the text from section 2.
 - Only P2PKH addresses can be bound: a signed message proves control of one public key. P2SH and token-aware address types
   must be rejected, and so must a type `0` CashAddr whose hash is not 20 bytes (the CashAddr format allows longer hashes).
 - Kind `10011` is replaceable: relays keep the newest event of each author. A writer must keep the author's other `i` tags (for
@@ -78,11 +80,20 @@ Any client that follows NIP-39 can write a binding a Tambat verifier reads. Besi
 
 - **An address without prefix** (`bch:qq…`). It is read on the verifier's network. The CashAddr checksum covers the prefix, so
   an address of another network fails instead of being read on the wrong one.
+- **The earlier prefixed form** (`bch:bitcoincash:qq…`), which Tambat wrote before; those bindings stay valid.
+- **`bitcoincash:` as the platform** (`["i", "bitcoincash:qq…", …]`, setting `nostr.platformAliases`), read as the same
+  claim. Aliases are read, never written.
+- **A bare txid**: a third element of exactly 64 lower-case hex characters is read as `tx:<txid>` (a base64 signature is 88
+  characters, so the two cannot be confused).
+- **Two proofs**, `<base64> | tx:<txid>`: each is checked and both must pass.
+- **Several tags for one address** in different forms, so each verifier finds the form it reads: they are one claim and every
+  tag must pass. Tags for two different addresses stay two claims.
 - **`msg:<base64>`**: a signed message with a `msg:` marker in front. The marker is dropped before the signature is read.
 - **`tx:<txid>`**: an on-chain proof instead of a signed message, for wallets that can sign a transaction but not a message.
-  The address owner sends a transaction that spends from the claimed P2PKH address and has an output whose locking bytecode
-  is exactly `OP_RETURN <one push of the verification text for the author's npub>` (section 2; `proofOutput` in
-  `src/core/tx-proof.ts`). For a 63-character npub the text is 120 bytes, so the output starts `6a4c78`.
+  The address owner sends a transaction that spends from the claimed P2PKH address and has an `OP_RETURN` output of data
+  pushes only, one of which is exactly the verification text for the author's npub (section 2; `carriesText` in
+  `src/core/tx-proof.ts`). Other pushes are allowed, so a client may put a protocol tag before the text. The output Tambat
+  writes is `OP_RETURN <text>` (`proofOutput`); for a 63-character npub the text is 120 bytes, so it starts `6a4c78`.
 
 A `tx:<txid>` claim runs these steps in place of `bch_sig`:
 
@@ -90,7 +101,7 @@ A `tx:<txid>` claim runs these steps in place of `bch_sig`:
 |---|---|
 | `tx_found` | The configured chain servers agree on the transaction (the same quorum rule as the anchor, below), and it hashes to `txid`. Fails `tx_not_found` when the servers agree they do not have it, `tx_id_mismatch` when it hashes to something else. Skipped (`chain_unreadable`) when the chain was not read or the servers did not agree. |
 | `address_match` | At least one input spends a P2PKH output of the claimed address with that address's public key, and the whole transaction, with the outputs it spends, passes the BCH virtual machine. Fails `tx_no_input_from_address`. |
-| `tx_text` | One output is exactly the `OP_RETURN` above for the event author's npub. Fails `tx_text_mismatch`. |
+| `tx_text` | One `OP_RETURN` output of data pushes carries the verification text for the event author's npub as one whole push. Fails `tx_text_mismatch`. |
 | `network` | As for a signed message. |
 | `key_separation` | As for a signed message, with the public key from the spending input. |
 
