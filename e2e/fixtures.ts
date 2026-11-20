@@ -22,9 +22,10 @@ export const phraseKeys = keysFromPhrase(vectors.phrase, 'bitcoincash');
 /** A valid address of a different key (the Nostr secret used as a BCH key), for the wrong-signer case. */
 export const otherAddress = addressFromPublicKey(secp256k1.derivePublicKeyCompressed(phraseKeys.nostrSecretKey) as Uint8Array, 'bitcoincash');
 
-async function routeRelays(page: Page) {
+/** Sends every relay connection to `url` (the shared e2e relay by default). Route chain servers after this one. */
+export async function routeRelays(page: Page, url: string = E2E.relayUrl) {
   await page.routeWebSocket(/^wss:\/\//, (ws) => {
-    const upstream = new WebSocket(E2E.relayUrl);
+    const upstream = new WebSocket(url);
     const queue: string[] = [];
     upstream.on('open', () => queue.splice(0).forEach((m) => upstream.send(m)));
     upstream.on('message', (data) => ws.send(String(data)));
