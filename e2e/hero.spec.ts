@@ -16,6 +16,8 @@ import { E2E } from './ports.js';
 const HERO_RELAY_PORT = E2E.relayPort + 80;
 const EMPTY_RELAY_PORT = E2E.relayPort + 81;
 const STEPS = ['relay', 'nostr_sig', 'bch_sig', 'address_match', 'anchor'];
+/** Each network step may take up to hero.timeoutMs; a loaded test machine must not fail the default five seconds first. */
+const WAIT = { timeout: config.hero.timeoutMs + 10_000 };
 
 let relay: ReturnType<typeof startFakeRelay>;
 let empty: ReturnType<typeof startFakeRelay>;
@@ -42,8 +44,8 @@ test('the hero checks the real Paytaca binding step by step above the fold, with
   await routeChain(page, anchoredChain);
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.hero.line);
-  await expect(hero(page)).toHaveAttribute('data-state', 'verified');
-  await expect(hero(page).locator('[data-step="anchor"]')).toHaveAttribute('data-status', 'pass');
+  await expect(hero(page)).toHaveAttribute('data-state', 'verified', WAIT);
+  await expect(hero(page).locator('[data-step="anchor"]')).toHaveAttribute('data-status', 'pass', WAIT);
   expect(await statuses(page)).toEqual(STEPS.map((s) => `${s}=pass`));
   await expect(hero(page).locator('[data-step="anchor"]')).toContainText(en.hero.block.replace('{block}', String(paytacaAnchor.height)));
   await expect(hero(page)).toContainText(en.hero.by);
@@ -65,7 +67,7 @@ test('each mark waits for its own check: the anchor stays open while the chain s
   // Chain servers that accept the connection and never answer.
   await page.routeWebSocket(chainServers, () => undefined);
   await page.goto('/');
-  await expect(hero(page).locator('[data-step="address_match"]')).toHaveAttribute('data-status', 'pass');
+  await expect(hero(page).locator('[data-step="address_match"]')).toHaveAttribute('data-status', 'pass', WAIT);
   expect(await statuses(page)).toEqual([...STEPS.slice(0, 4).map((s) => `${s}=pass`), 'anchor=wait']);
   await expect(hero(page)).toHaveAttribute('data-state', 'busy');
   await expect(hero(page).locator('.hstep--pass')).toHaveCount(4);
@@ -75,7 +77,7 @@ test('with no relay holding the event the hero says it could not check and names
   await routeToRelay(page, EMPTY_RELAY_PORT);
   await routeChain(page);
   await page.goto('/');
-  await expect(hero(page)).toHaveAttribute('data-state', 'failed', { timeout: config.hero.timeoutMs + 10_000 });
+  await expect(hero(page)).toHaveAttribute('data-state', 'failed', WAIT);
   expect(await statuses(page)).toEqual(['relay=fail', ...STEPS.slice(1).map((s) => `${s}=wait`)]);
   await expect(page.getByRole('status').filter({ hasText: en.hero.steps.relay })).toHaveText(
     en.hero.failed.replace('{step}', en.hero.steps.relay),
@@ -87,7 +89,7 @@ test('tapping the card opens Look up for the npub, and the own-keys link reaches
   await routeToRelay(page, HERO_RELAY_PORT);
   await routeChain(page, anchoredChain);
   await page.goto('/');
-  await expect(hero(page)).toHaveAttribute('data-state', 'verified');
+  await expect(hero(page)).toHaveAttribute('data-state', 'verified', WAIT);
   await page.locator('.herocard').click();
   await expect(page).toHaveURL(new RegExp(`/lookup\\?q=${config.hero.npub}$`));
   await expect(page.locator('.result').first()).toBeVisible();
@@ -102,7 +104,7 @@ test('in Malay at 320 px the hero fits without overflow', async ({ page }) => {
   await routeChain(page, anchoredChain);
   await page.goto('/?lang=ms');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(ms.hero.line);
-  await expect(hero(page)).toHaveAttribute('data-state', 'verified');
+  await expect(hero(page)).toHaveAttribute('data-state', 'verified', WAIT);
   await expect(hero(page)).toContainText(ms.hero.by);
   await expectNoOverflow(page);
   const card = await page.locator('.herocard').evaluate((el) => [el.scrollWidth, el.clientWidth]);

@@ -1,5 +1,9 @@
 /* Home page hero: one real binding checked live. On a phone the card fills the first screen and the Link form starts below it. */
-.herohome { display: flex; flex-direction: column; gap: 0.75rem; }
+.herohome {
+  /* Height of the banner and header above the hero on a phone; the hero fills the rest of the first screen. */
+  --hero-above: 16rem;
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
 .herohome .hero__title { font-size: clamp(1.5rem, 5.5vw, 2.75rem); }
 .herocard {
   display: grid; gap: 0.375rem; min-width: 0; padding: 0.875rem 1rem;

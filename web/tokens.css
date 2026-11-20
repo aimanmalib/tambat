@@ -20,6 +20,4 @@
   --measure: 42rem;
   --touch: 44px;
   --focus: 3px solid var(--lamp);
-  /* Height of the banner and header above the home hero on a phone; the hero fills the rest of the first screen. */
-  --hero-above: 16rem;
 }
