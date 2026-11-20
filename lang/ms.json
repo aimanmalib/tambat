@@ -420,9 +420,9 @@
     "link": {
       "link": "Pautkan",
       "revoke": "Batal dan pindah",
-      "hero": "Semakan langsung ikatan sebenar (Paytaca dahulu, jika tidak kunci demo)",
+      "hero": "Semakan langsung ikatan sebenar",
       "wizard": "Dompet WizardConnect: bukti melalui transaksi (belum diuji dengan dompet)",
-      "interop": "Disahkan oleh {verifiedBy} daripada {verifiers} pengesah NIP-39 bebas; mengesahkan {verifiesTheirs} daripada {theirs} ikatan mereka",
+      "interop": "NIP-39: {verifiedBy}/{verifiers} pengesah membaca kami, kami membaca {verifiesTheirs}/{theirs}",
       "vectors": "Vektor ujian",
       "lookup": "Cari",
       "wall": "Dinding hidup dengan kiraan",

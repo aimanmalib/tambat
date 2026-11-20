@@ -420,9 +420,9 @@
     "link": {
       "link": "Link",
       "revoke": "Revoke and move",
-      "hero": "Live check of a real binding (Paytaca first, else the demo key)",
+      "hero": "Live check of a real binding",
       "wizard": "WizardConnect wallets: proof by transaction (not yet tested with a wallet)",
-      "interop": "Verified by {verifiedBy} of {verifiers} independent NIP-39 verifiers; verifies {verifiesTheirs} of {theirs} of their bindings",
+      "interop": "NIP-39: {verifiedBy} of {verifiers} verifiers read ours, we read {verifiesTheirs} of {theirs}",
       "vectors": "Test vectors",
       "lookup": "Look up",
       "wall": "Live wall with counts",

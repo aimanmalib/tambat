@@ -95,6 +95,12 @@ test('one screen with a green live check, the recorded proof and every requireme
   await expectNoOverflow(page);
   await expectAccessible(page);
   await shot(page, info, consoleErrors, 'en');
+  if (desktop(info)) {
+    // The live check after a deploy opens the page at the default desktop size: it must fit there too.
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await expectOneScreen(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+  }
 
   await page.getByRole('combobox').selectOption('ms');
   await expect(page.getByRole('heading', { level: 1, name: ms.judges.title })).toBeVisible();
