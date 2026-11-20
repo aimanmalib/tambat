@@ -21,12 +21,18 @@ const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as 
  */
 /** Config the web app reads and src/core never does: whole sections, or `section.key` for one key in a shared section. */
 const APP_ONLY = ['hero', 'wizardConnect', 'wall.refreshSeconds', 'banner.firstCommit', 'banner.note'] as const;
+/**
+ * Library settings added after the released tarball. The released library writes the prefixed claim form and reads no
+ * platform alias (README "Known limits"); the next release carries them.
+ */
+const AFTER_RELEASE = ['nostr.claimForm', 'nostr.platformAliases'] as const;
+const NOT_PACKED: readonly string[] = [...APP_ONLY, ...AFTER_RELEASE];
 const libraryConfig = (c: Record<string, unknown>) =>
   Object.fromEntries(
     Object.entries(c)
-      .filter(([k]) => !(APP_ONLY as readonly string[]).includes(k))
+      .filter(([k]) => !NOT_PACKED.includes(k))
       .map(([k, v]) => {
-        const drop = APP_ONLY.filter((p) => p.startsWith(`${k}.`)).map((p) => p.slice(k.length + 1));
+        const drop = NOT_PACKED.filter((p) => p.startsWith(`${k}.`)).map((p) => p.slice(k.length + 1));
         if (drop.length === 0 || !v || typeof v !== 'object') return [k, v];
         return [k, Object.fromEntries(Object.entries(v as Record<string, unknown>).filter(([key]) => !drop.includes(key)))];
       }),

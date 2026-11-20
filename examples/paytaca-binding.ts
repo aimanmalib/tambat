@@ -31,8 +31,9 @@ export function makeBinding(phrase: string, createdAt = Math.floor(Date.now() / 
   const npub = npubEncode(getPublicKey(nostrKey));
   // 1. The BCH key signs the NIP-39 verification text for the npub.
   const signature = signMessage(bchKey, `Verifying that I control the following Nostr public key: ${npub}`);
-  // 2. The Nostr key signs a kind 10011 event carrying the claim. A real wallet keeps the user's other "i" tags.
-  const tags = [['i', `bch:${address}`, signature]];
+  // 2. The Nostr key signs a kind 10011 event carrying the claim, the address written without its "bitcoincash:"
+  //    prefix (the form other NIP-39 verifiers read). A real wallet keeps the user's other "i" tags.
+  const tags = [['i', `bch:${address.slice('bitcoincash:'.length)}`, signature]];
   return finalizeEvent({ kind: 10011, created_at: createdAt, content: '', tags }, nostrKey);
 }
 

@@ -1,0 +1,88 @@
+{
+ "source": {
+  "event": "kind 10011 event read from public Nostr relays on 2026-11-20 (id f82b8924\u2026)",
+  "txid": "09ec433b14b5227762bb01410eda847dcd039703eec47634dcd5cadc0eedb4d3",
+  "chainServer": "configured chain servers (anchor.electrum), two agreeing",
+  "note": "Published by another NIP-39 client in the bitcoincash: dialect with a bare txid as proof; public chain and relay data, kept as test input.",
+  "format": "Transactions are hex split into 20-character pieces; join them to get the raw transaction."
+ },
+ "license": "Public network data (a signed Nostr event and a BCH transaction), quoted unchanged as a test vector; no code is copied.",
+ "address": "bitcoincash:qrsjayu9d5hwvup0ahvg7htt5e3v2ktsmc847z5zzx",
+ "txid": "09ec433b14b5227762bb01410eda847dcd039703eec47634dcd5cadc0eedb4d3",
+ "raw": [
+  "0200000001420d816d88",
+  "d3bb7645e7e8dbc26338",
+  "c81ab9943d7906451a6d",
+  "9cf89470bb81b6010000",
+  "006441a7b41f3cb00025",
+  "4f6c2d28a5a52d352f53",
+  "45e4a77ba2803b523645",
+  "8157daffe5466f6e6241",
+  "1ef384bb0489aeece3bf",
+  "f97f3996450944b01532",
+  "6efe073305fe45612103",
+  "c55d45d3c20d359e9908",
+  "98b0ddba167bd9c4da09",
+  "4b5eab6d77cfcea6c6ea",
+  "3c740000000002000000",
+  "0000000000806a044353",
+  "47004c78566572696679",
+  "696e6720746861742049",
+  "20636f6e74726f6c2074",
+  "686520666f6c6c6f7769",
+  "6e67204e6f7374722070",
+  "75626c6963206b65793a",
+  "206e7075623133773772",
+  "7a306b3936376b343578",
+  "3474647934637a70736e",
+  "326c6a6638796b736b34",
+  "307479733773716d336d",
+  "35646b72773470717134",
+  "61666468e06015000000",
+  "00001976a914e12e9385",
+  "6d2ee6702fedd88f5d6b",
+  "a662c55970de88ac0000",
+  "0000"
+ ],
+ "sources": {
+  "b681bb7094f89c6d1a4506793d94b91ac83863c2dbe8e74576bbd3886d810d42": [
+   "020000000182fceb8c27",
+   "f0cc8689b2aab95f5dfb",
+   "299945fe20e6f84607fc",
+   "b3d97d8ce2ddf0010000",
+   "006441033d2473758759",
+   "72ec6ddee8763ba516c3",
+   "534e7b6a1b54d6e44c52",
+   "403272a3ba5f2c9582d4",
+   "a8ed778961f02a23066c",
+   "6a0000e025980d85f385",
+   "ed105854e5a734612103",
+   "d8494e822ec107ad3366",
+   "be09724565e0b64ebb2f",
+   "3b66f5184cd802d965db",
+   "ea150000000002102700",
+   "00000000001976a91495",
+   "ab7d78343ab9b5ebd2db",
+   "a685edd115e5af4b0488",
+   "ac2a6215000000000019",
+   "76a914e12e93856d2ee6",
+   "702fedd88f5d6ba662c5",
+   "5970de88ac00000000"
+  ]
+ },
+ "event": {
+  "id": "f82b89248e61b4c48d42b0606e68f98fd81a7a2785ade9042b4c9f74d7fe33be",
+  "pubkey": "8bbc313ec5d7ad5a1aab692b81061357e49392d0b55eb243d006e3ba36c37542",
+  "created_at": 1795125863,
+  "kind": 10011,
+  "tags": [
+   [
+    "i",
+    "bitcoincash:qrsjayu9d5hwvup0ahvg7htt5e3v2ktsmc847z5zzx",
+    "09ec433b14b5227762bb01410eda847dcd039703eec47634dcd5cadc0eedb4d3"
+   ]
+  ],
+  "content": "",
+  "sig": "0e166e14d592a1fbb5a48bfc1a69f3e96af6c5328de96109f524b914e4e3fbd9c83a4717b21951fa9297802a436ca1772359de586f219824296f4b82771bdeca"
+ }
+}

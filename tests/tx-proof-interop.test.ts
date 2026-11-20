@@ -4,10 +4,8 @@
  * against transactions signed here with the public test phrase. Every chain is a fake; nothing is sent anywhere.
  */
 import { readFileSync } from 'node:fs';
-import { binToHex, encodeTransaction, hexToBin, utf8ToBin, encodeDataPush } from '@bitauth/libauth';
+import { binToHex, utf8ToBin, encodeDataPush } from '@bitauth/libauth';
 import { describe, expect, it } from 'vitest';
-import { buildAnchorTransaction, txidOf } from '../src/core/anchor.js';
-import { cashAddressToLockingBytecode } from '@bitauth/libauth';
 import type { ChainServer } from '../src/core/chain-quorum.js';
 import { parseP2pkhAddress, type P2pkhAddress } from '../src/core/cashaddr.js';
 import { createBindingEvent } from '../src/core/binding.js';
@@ -19,8 +17,8 @@ import { verifyBinding } from '../src/core/verify.js';
 import { buildWall, loadWall, type Wall } from '../src/core/wall.js';
 import { lookupByAddress } from '../src/core/discover.js';
 import { signMessage } from '../src/core/bchmsg.js';
-import { signP2pkh } from './anchor-wallet.js';
 import { fakeRelay, keys, other, vectors } from './helpers.js';
+import { hashOf, holding, proofTx, server } from './tx-proof-kit.js';
 
 const fx = JSON.parse(readFileSync(new URL('./fixtures/tx-proof-mainnet.json', import.meta.url), 'utf8')) as {
   npub: string;
@@ -33,43 +31,6 @@ const fx = JSON.parse(readFileSync(new URL('./fixtures/tx-proof-mainnet.json', i
 /** The fixture keeps hex in short pieces so no line looks like a key to a secret scanner. */
 const real: TxEvidence = { raw: fx.raw.join(''), sources: Object.fromEntries(Object.entries(fx.sources).map(([id, hex]) => [id, hex.join('')])) };
 const addr = (a: string): P2pkhAddress => parseP2pkhAddress(a) as P2pkhAddress;
-
-/** A transaction from `from` that carries `output` (default: the proof for `npub`), signed with the test phrase. */
-function proofTx(npub: string, output: Uint8Array = proofOutput(npub), from = keys) {
-  const locking = cashAddressToLockingBytecode(from.address);
-  if (typeof locking === 'string') throw new Error(locking);
-  const funding = encodeTransaction({
-    version: 2,
-    inputs: [{ outpointTransactionHash: hexToBin('11'.repeat(32)), outpointIndex: 0, sequenceNumber: 0xffffffff, unlockingBytecode: new Uint8Array() }],
-    outputs: [{ lockingBytecode: locking.bytecode, valueSatoshis: 5000n }],
-    locktime: 0,
-  });
-  const fundingId = txidOf(funding);
-  const unsigned = buildAnchorTransaction(from.address, [{ txid: fundingId, vout: 0, satoshis: 5000 }], { pubkey: '00'.repeat(32), eventId: '00'.repeat(32) });
-  unsigned.transaction.outputs[0] = { lockingBytecode: output, valueSatoshis: 0n };
-  const signed = signP2pkh(unsigned.transaction, unsigned.sourceOutputs, from.bchPrivateKey);
-  return { txid: txidOf(signed), evidence: { raw: binToHex(signed), sources: { [fundingId]: binToHex(funding) } } };
-}
-
-const NOT_FOUND = 'daemon error: No such mempool or blockchain transaction.';
-function server(name: string, txs: Record<string, string>): ChainServer {
-  return {
-    name,
-    open: async () => ({
-      history: async () => [],
-      header: async () => '',
-      unspent: async () => [],
-      transaction: async (id: string) => {
-        const hex = txs[id];
-        if (!hex) throw new Error(NOT_FOUND);
-        return hex;
-      },
-      close: async () => undefined,
-    }),
-  };
-}
-const holding = (e: TxEvidence): Record<string, string> => ({ ...e.sources, [hashOf(e)]: e.raw });
-const hashOf = (e: TxEvidence): string => txidOf(hexToBin(e.raw));
 
 describe('proof forms in the i tag', () => {
   it('reads tx:<txid>, msg:<signature> and a plain signature', () => {

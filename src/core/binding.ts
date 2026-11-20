@@ -37,26 +37,49 @@ export const TX_PROOF_STEPS = ['tx_found', 'tx_text'] as const;
 export type StepName = (typeof VERIFY_STEPS)[number] | (typeof RECOVERY_STEPS)[number] | (typeof TX_PROOF_STEPS)[number];
 
 export interface BchClaim {
-  /** Full CashAddr with prefix. */
+  /** CashAddr as written in the tag: with its prefix, or without it (read on the verifier's network). */
   address: string;
   /** Base64 signed message over the NIP-39 verification text for the author's npub. */
   signature: string;
 }
 
-/** `bch:<cashaddr>` identity string for the `i` tag. */
-export function claimIdentity(address: string, platform = config.nostr.platform): string {
+/** Network prefix of a mainnet CashAddr; only mainnet claims drop it (`bchtest:` cannot be told from the address alone). */
+const MAINNET = 'bitcoincash';
+
+/** The address with its CashAddr prefix, lower case: `q…` is read on `network` (the checksum covers the prefix). */
+export const fullClaimAddress = (address: string, network: string = config.network): string =>
+  (address.includes(':') ? address : `${network}:${address}`).trim().toLowerCase();
+
+/**
+ * The identity string for the `i` tag. With `claimForm` `bare` a mainnet address is written without its prefix
+ * (`bch:q…`), the canonical form other NIP-39 verifiers read; any other address, or `prefixed`, keeps the prefix.
+ */
+export function claimIdentity(address: string, form: 'bare' | 'prefixed' = config.nostr.claimForm, platform = config.nostr.platform): string {
+  const [prefix, payload] = address.split(':');
+  if (form === 'bare' && prefix?.toLowerCase() === MAINNET && payload) return `${platform}:${payload}`;
   return `${platform}:${address}`;
 }
 
-/** Splits an `i` tag into a BCH claim, or returns null when the tag is not a claim on the platform. */
-export function claimFromTag(tag: readonly string[], platform = config.nostr.platform): BchClaim | null {
-  if (tag[0] !== 'i' || typeof tag[1] !== 'string') return null;
-  const head = `${platform}:`;
-  if (!tag[1].startsWith(head)) return null;
-  return { address: tag[1].slice(head.length), signature: tag[2] ?? '' };
+/** Every spelling of one address in an `i` tag that a verifier reads, for a relay `#i` query. */
+export function claimIdentities(address: string): string[] {
+  const full = fullClaimAddress(address);
+  const payload = full.split(':')[1] ?? '';
+  const names = [config.nostr.platform, ...config.nostr.platformAliases];
+  return [...new Set(names.flatMap((name) => [`${name}:${full}`, `${name}:${payload}`]))];
 }
 
-/** All BCH claims carried by an event, in tag order. */
+/**
+ * Splits an `i` tag into a BCH claim, or returns null when the tag is not a claim. The platform is `bch` or one of
+ * `platformAliases` (`bitcoincash:q…`); the address is what follows it, with or without the CashAddr prefix.
+ */
+export function claimFromTag(tag: readonly string[], platform = config.nostr.platform): BchClaim | null {
+  if (tag[0] !== 'i' || typeof tag[1] !== 'string') return null;
+  const name = [platform, ...config.nostr.platformAliases].find((n) => tag[1]!.startsWith(`${n}:`));
+  if (name === undefined) return null;
+  return { address: tag[1].slice(name.length + 1), signature: tag[2] ?? '' };
+}
+
+/** All BCH claims carried by an event, in tag order. Several tags may name the same address in different forms. */
 export function claimsOf(event: Pick<Event, 'tags'>, platform = config.nostr.platform): BchClaim[] {
   return event.tags.map((t) => claimFromTag(t, platform)).filter((c): c is BchClaim => c !== null);
 }
@@ -95,8 +118,8 @@ export function createBindingEvent(input: CreateBindingInput): EventTemplate {
 
 /** True when the event carries a BCH claim for this address (case-insensitive CashAddr). */
 export function hasClaim(event: Pick<Event, 'tags'>, address: string): boolean {
-  const wanted = address.toLowerCase();
-  return claimsOf(event).some((c) => c.address.toLowerCase() === wanted);
+  const wanted = fullClaimAddress(address);
+  return claimsOf(event).some((c) => fullClaimAddress(c.address) === wanted);
 }
 
 /**

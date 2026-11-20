@@ -9,6 +9,13 @@ export interface TambatConfig {
     bindingKind: number;
     authKind: number;
     platform: string;
+    /**
+     * How a new claim names its address. `bare` writes `bch:q…` (the CashAddr without its prefix) on mainnet, the form other
+     * NIP-39 verifiers read; `prefixed` writes `bch:bitcoincash:q…`. A test network keeps its prefix either way.
+     */
+    claimForm: 'bare' | 'prefixed';
+    /** Other platform names read as a BCH claim (`["i", "bitcoincash:q…", …]`). Never written. */
+    platformAliases: string[];
     /** Tag name of a recovery claim in a binding event (docs/SPEC.md "Recovery"). */
     recoveryTag: string;
     /** Text the bound BCH key signs to hand its binding to a new Nostr key; `{npub}` is the old key. */
@@ -315,6 +322,11 @@ export function parseConfig(input: unknown): TambatConfig {
   positiveInt(c.nostr?.authKind, 'nostr.authKind');
   if (typeof c.nostr.platform !== 'string' || !/^[a-z0-9._/-]+$/.test(c.nostr.platform)) {
     fail('nostr.platform', 'must use a-z, 0-9 and ._-/ only (NIP-39)');
+  }
+  if (c.nostr.claimForm !== 'bare' && c.nostr.claimForm !== 'prefixed') fail('nostr.claimForm', 'must be "bare" or "prefixed"');
+  const aliases: unknown = c.nostr.platformAliases;
+  if (!Array.isArray(aliases) || aliases.some((a) => typeof a !== 'string' || !/^[a-z0-9._/-]+$/.test(a) || a === c.nostr.platform)) {
+    fail('nostr.platformAliases', 'must be a list of NIP-39 platform names other than nostr.platform');
   }
   nonEmptyStrings(c.nostr.relays, 'nostr.relays', (s) => /^wss:\/\/[^\s/]+/.test(s));
   positiveInt(c.nostr.queryTimeoutMs, 'nostr.queryTimeoutMs');

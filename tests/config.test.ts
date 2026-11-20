@@ -148,6 +148,17 @@ describe('config/tambat.json', () => {
     expect(() => parseConfig(c)).toThrow(/platform/);
   });
 
+  it('rejects an unknown claim form and a bad or duplicate platform alias', () => {
+    const c = fresh();
+    (c.nostr as { claimForm: string }).claimForm = 'short';
+    expect(() => parseConfig(c)).toThrow(/claimForm/);
+    for (const aliases of [['bitcoin cash'], ['bch'], 'bitcoincash', [1]]) {
+      const d = fresh();
+      (d.nostr as { platformAliases: unknown }).platformAliases = aliases;
+      expect(() => parseConfig(d)).toThrow(/platformAliases/);
+    }
+  });
+
   it('rejects an origin with a path', () => {
     const c = fresh();
     c.auth.allowedOrigins = ['https://example.com/login'];

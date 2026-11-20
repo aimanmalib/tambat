@@ -10,6 +10,7 @@
 import {
   binToHex,
   createVirtualMachineBCH,
+  decodeAuthenticationInstructions,
   decodeTransaction,
   encodeDataPush,
   hashTransaction,
@@ -33,13 +34,23 @@ export type Proof = { form: 'message'; signature: string } | { form: 'tx'; txid:
 
 const TXID = /^[0-9a-f]{64}$/;
 
-/** Reads the third value of an `i` tag. A `tx:` value with a malformed txid is still the tx form; the check fails it. */
+/**
+ * Reads one proof. A `tx:` value with a malformed txid is still the tx form; the check fails it. A bare value of exactly
+ * 64 lower-case hex characters is a txid too: a base64 signed message is 88 characters, so the two cannot be confused.
+ */
 export function parseProof(value: string): Proof {
   const v = value.trim();
+  if (TXID.test(v)) return { form: 'tx', txid: v };
   if (v.toLowerCase().startsWith(TX_PROOF_PREFIX)) return { form: 'tx', txid: v.slice(TX_PROOF_PREFIX.length).toLowerCase() };
   if (v.startsWith(MESSAGE_PROOF_PREFIX)) return { form: 'message', signature: v.slice(MESSAGE_PROOF_PREFIX.length) };
   return { form: 'message', signature: v };
 }
+
+/** Separator of a value that carries two proofs, `<signature> | tx:<txid>`. Each is checked; both must pass. */
+export const PROOF_SEPARATOR = '|';
+
+/** Reads the third value of an `i` tag: one proof, or several joined by `|`. */
+export const parseProofs = (value: string): Proof[] => value.split(PROOF_SEPARATOR).map(parseProof);
 
 /** A transaction as the chain servers returned it, with every transaction whose outputs it spends. Hex throughout. */
 export interface TxEvidence {
@@ -82,9 +93,20 @@ function unlockingPublicKey(unlocking: Uint8Array): Uint8Array | null {
 }
 
 /**
+ * True when the output is `OP_RETURN` followed only by data pushes and one push is exactly `text`. Other pushes are
+ * allowed, so a client may put its protocol tag first (`OP_RETURN <tag> <text>`); the text itself must be one whole push.
+ */
+export function carriesText(lockingBytecode: Uint8Array, text: Uint8Array): boolean {
+  if (lockingBytecode[0] !== 0x6a) return false;
+  const pushes = decodeAuthenticationInstructions(lockingBytecode.slice(1));
+  if (pushes.some((i) => 'malformed' in i || !('data' in i))) return false;
+  return pushes.some((i) => 'data' in i && sameBytes(i.data, text));
+}
+
+/**
  * Checks a transaction proof for `address` and `npub`: the transaction hashes to `txid`, at least one input spends a
  * P2PKH output of the address and the whole transaction passes the BCH virtual machine with the outputs it spends,
- * and one output is exactly `OP_RETURN <verification text for npub>`.
+ * and one `OP_RETURN` output pushes the verification text for npub as one whole push (`carriesText`).
  */
 export function checkTxProof(txid: string, address: P2pkhAddress, npub: string, evidence: TxEvidence): TxCheck {
   if (!TXID.test(txid)) return { ok: false, step: 'tx_found', code: 'tx_not_found', reason: `${txid} is not a transaction id` };
@@ -113,8 +135,8 @@ export function checkTxProof(txid: string, address: P2pkhAddress, npub: string, 
     const why = !publicKey ? `no input spends from ${address.address}` : `the transaction does not pass the BCH virtual machine: ${String(vmResult)}`;
     return { ok: false, step: 'address_match', code: 'tx_no_input_from_address', reason: why };
   }
-  const wanted = proofOutput(npub);
-  if (!tx.outputs.some((o) => sameBytes(o.lockingBytecode, wanted))) {
+  const text = utf8ToBin(verificationText(npub));
+  if (!tx.outputs.some((o) => carriesText(o.lockingBytecode, text))) {
     return { ok: false, step: 'tx_text', code: 'tx_text_mismatch', reason: `no output is OP_RETURN with the verification text for ${npub}` };
   }
   return { ok: true, publicKey };

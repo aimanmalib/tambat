@@ -1,7 +1,7 @@
 import { finalizeEvent } from 'nostr-tools/pure';
 import { describe, expect, it } from 'vitest';
 import { signMessage } from '../src/core/bchmsg.js';
-import { claimsOf, createBindingEvent, createRevocationEvent, VERIFY_STEPS } from '../src/core/binding.js';
+import { claimsOf, fullClaimAddress, createBindingEvent, createRevocationEvent, VERIFY_STEPS } from '../src/core/binding.js';
 import { addressFromPublicKey } from '../src/core/cashaddr.js';
 import { toNpub, verificationText } from '../src/core/nostr.js';
 import { bindingFromKeys, keysFromPhrase } from '../src/core/paytaca.js';
@@ -110,8 +110,9 @@ describe('createBindingEvent', () => {
     const e = createBindingEvent({ claim: { address: keys.address, signature }, previous, createdAt: T });
     expect(e.kind).toBe(10011);
     expect(e.content).toBe('hi');
-    expect(e.tags).toEqual([['i', 'github:alice', 'gist'], ['alt', 'x'], ['i', `bch:${keys.address}`, signature]]);
-    expect(claimsOf(e)).toEqual([{ address: keys.address, signature }]);
+    // Mainnet claims are written without the CashAddr prefix (config nostr.claimForm "bare").
+    expect(e.tags).toEqual([['i', 'github:alice', 'gist'], ['alt', 'x'], ['i', `bch:${keys.address.split(':')[1]}`, signature]]);
+    expect(claimsOf(e).map((c) => fullClaimAddress(c.address))).toEqual([keys.address]);
   });
 
   it('refuses an address without prefix, a P2SH address or an empty signature', () => {

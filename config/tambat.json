@@ -4,6 +4,8 @@
     "bindingKind": 10011,
     "authKind": 27235,
     "platform": "bch",
+    "claimForm": "bare",
+    "platformAliases": ["bitcoincash"],
     "recoveryTag": "replaces",
     "recoveryText": "replaces {npub}",
     "relays": [

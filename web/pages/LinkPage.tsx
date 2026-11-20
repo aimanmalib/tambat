@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { config } from '../../src/config';
-import { claimsOf, createBindingEvent, createRotationEvent, replacingCreatedAt, type BchClaim } from '../../src/core/binding';
+import { claimFromTag, claimsOf, createBindingEvent, fullClaimAddress, createRotationEvent, replacingCreatedAt, type BchClaim } from '../../src/core/binding';
 import { lookupByPubkey } from '../../src/core/discover';
 import type { Event } from '../../src/core/nostr';
 import { publishEvent, type RelayOutcome } from '../../src/core/publish';
@@ -51,9 +51,10 @@ export function LinkPage() {
 
   const step = !nostr ? 1 : !claim ? 2 : 3;
   // An address this key is already linked to: publishing a different one moves the link (rotation).
-  const current = previous ? claimsOf(previous)[0]?.address : undefined;
-  const moving = current !== undefined && claim !== null && current.toLowerCase() !== claim.address.toLowerCase();
-  const keptOthers = (previous?.tags ?? []).some((tag) => tag[0] === 'i' && !tag[1]?.startsWith(`${config.nostr.platform}:`));
+  const written = previous ? claimsOf(previous)[0]?.address : undefined;
+  const current = written === undefined ? undefined : fullClaimAddress(written);
+  const moving = current !== undefined && claim !== null && current !== fullClaimAddress(claim.address);
+  const keptOthers = (previous?.tags ?? []).some((tag) => tag[0] === 'i' && claimFromTag(tag) === null);
 
   const publish = async () => {
     if (!nostr || !claim) return;

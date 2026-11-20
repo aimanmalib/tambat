@@ -10,7 +10,7 @@
 import { base64ToBin, binToBase64, sha256, utf8ToBin } from '@bitauth/libauth';
 import { finalizeEvent } from 'nostr-tools/pure';
 import { config } from '../config.js';
-import { claimsOf } from './binding.js';
+import { claimsOf, fullClaimAddress } from './binding.js';
 import { didOf } from './did.js';
 import { canonicalize } from './jcs.js';
 import { eventShapeError, idMatches, isPubkeyHex, signatureValid, toNpub, type Event } from './nostr.js';
@@ -101,7 +101,7 @@ export const makeDisclosure = (salt: string, name: string, value: unknown): stri
 export function fieldsOf(binding: BindingResult): Record<string, unknown> {
   if (!binding.ok || !binding.event) throw new Error('the binding does not verify');
   const claim = binding.claims.find((c) => c.ok);
-  const signed = claim && claimsOf(binding.event).find((c) => c.address === claim.address);
+  const signed = claim && claimsOf(binding.event).find((c) => fullClaimAddress(c.address, claim.address.split(':')[0]) === claim.address.toLowerCase());
   if (!claim || !signed) throw new Error('the binding has no verified address');
   const all: Record<string, unknown> = {
     bchAddress: { address: claim.address, signature: signed.signature } satisfies BchAddressValue,

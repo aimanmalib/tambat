@@ -3,8 +3,7 @@
  * which named step catches the edit. Nothing here publishes or signs; the original event is never changed.
  */
 import { decodeCashAddress, encodeCashAddress } from '@bitauth/libauth';
-import { config } from '../config.js';
-import { claimFromTag } from './binding.js';
+import { claimFromTag, fullClaimAddress } from './binding.js';
 import type { Event } from './nostr.js';
 import { verifyBinding, type BindingResult, type StepName } from './verify.js';
 
@@ -38,7 +37,11 @@ export function tamperEvent(event: Event, field: TamperField): Event {
   if (field === 'tag') {
     const tag = copy.tags.find((t) => claimFromTag(t) !== null);
     const claim = tag ? claimFromTag(tag) : null;
-    if (tag && claim) tag[1] = `${config.nostr.platform}:${otherAddress(claim.address)}`;
+    if (tag && claim) {
+      // Same platform name and the same spelling (with or without the CashAddr prefix), only the address differs.
+      const other = otherAddress(fullClaimAddress(claim.address));
+      tag[1] = `${tag[1]!.slice(0, -claim.address.length)}${claim.address.includes(':') ? other : other.split(':')[1]}`;
+    }
   }
   return copy;
 }

@@ -6,7 +6,7 @@ import { finalizeEvent } from 'nostr-tools/pure';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 import { main } from '../bin/tambat.js';
 import { signMessage } from '../src/core/bchmsg.js';
-import { claimsOf, createBindingEvent, createRevocationEvent, createRotationEvent, replacingCreatedAt } from '../src/core/binding.js';
+import { claimsOf, fullClaimAddress, createBindingEvent, createRevocationEvent, createRotationEvent, replacingCreatedAt } from '../src/core/binding.js';
 import { lookupByAddress, lookupByPubkey, type QueryFn } from '../src/core/discover.js';
 import { verificationText, type Event } from '../src/core/nostr.js';
 import { bchKeyAt } from '../src/core/paytaca.js';
@@ -71,7 +71,7 @@ describe('revocation', () => {
 
 describe('rotation', () => {
   it('moves the binding in one event: old address gone, new address verified', async () => {
-    expect(claimsOf(rotated).map((c) => c.address)).toEqual([second.address]);
+    expect(claimsOf(rotated).map((c) => fullClaimAddress(c.address))).toEqual([second.address]);
     expect(rotated.tags).toContainEqual(['i', 'github:example', 'abc123']);
     const query = twoRelays(withGithub, rotated);
     expect(await lookupByAddress(keys.address, { query })).toEqual([]);
@@ -128,7 +128,7 @@ describe('tambat revoke and rotate', () => {
     expect(code).toBe(0);
     const e = published[0] as Event;
     expect(verifyBinding(e, { sameAuthorEvents: [withGithub, e] }).ok).toBe(true);
-    expect(claimsOf(e).map((c) => c.address)).toEqual([second.address]);
+    expect(claimsOf(e).map((c) => fullClaimAddress(c.address))).toEqual([second.address]);
   });
 
   it('refuses an address the binding does not claim or the wallet does not hold, and publishes nothing', async () => {

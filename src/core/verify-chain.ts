@@ -7,7 +7,7 @@ import { config } from '../config.js';
 import type { ChainServer } from './chain-quorum.js';
 import { claimsOf } from './binding.js';
 import { eventShapeError, type Event } from './nostr.js';
-import { parseProof, readTxEvidence, type TxLookup } from './tx-proof.js';
+import { parseProofs, readTxEvidence, type TxLookup } from './tx-proof.js';
 import { verifyBinding, type BindingResult, type VerifyOptions } from './verify.js';
 
 /** The txids named by on-chain proofs in these events, once each. Items that are not events are ignored. */
@@ -16,8 +16,7 @@ export function proofTxids(items: unknown[]): string[] {
   for (const item of items) {
     if (eventShapeError(item)) continue;
     for (const c of claimsOf(item as Event)) {
-      const proof = parseProof(c.signature);
-      if (proof.form === 'tx') ids.add(proof.txid);
+      for (const proof of parseProofs(c.signature)) if (proof.form === 'tx') ids.add(proof.txid);
     }
   }
   return [...ids];

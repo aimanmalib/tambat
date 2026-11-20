@@ -6,7 +6,7 @@ import type { Filter } from 'nostr-tools/filter';
 import { AbstractSimplePool } from 'nostr-tools/abstract-pool';
 import { verifyEvent } from 'nostr-tools/pure';
 import { config } from '../config.js';
-import { claimIdentity } from './binding.js';
+import { claimIdentities } from './binding.js';
 import { parseP2pkhAddress } from './cashaddr.js';
 import { watchedSocket, type RelayWatch } from './relay-watch.js';
 import { markRecovered, parseRecoveryTag, recoveryTagOf, verifyRecovery } from './recover.js';
@@ -134,8 +134,8 @@ export async function lookupByAddress(address: string, options: DiscoverOptions 
   const raw = await guardedQuery(
     options.query ?? relayQuery,
     options.relays ?? config.nostr.relays,
-    // Some clients write the address without its prefix (`bch:qq…`); both spellings name the same address.
-    { kinds: [config.nostr.bindingKind], '#i': [claimIdentity(parsed.address), claimIdentity(parsed.address.split(':')[1] ?? '')] },
+    // Clients write the address with or without its prefix, and some under `bitcoincash:`; every spelling names it.
+    { kinds: [config.nostr.bindingKind], '#i': claimIdentities(parsed.address) },
     options.timeoutMs ?? config.nostr.queryTimeoutMs,
     options.watch,
   );

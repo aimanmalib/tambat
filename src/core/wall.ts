@@ -5,6 +5,7 @@
  * the same key is not current and is left out without counting as a failure.
  */
 import { config } from '../config.js';
+import { claimFromTag } from './binding.js';
 import { createRelayQuery, guardedQuery, type DiscoverOptions, type QueryFn } from './discover.js';
 import { eventShapeError, idMatches, signatureValid, type Event } from './nostr.js';
 import type { ProofForm, TxLookup } from './tx-proof.js';
@@ -47,12 +48,10 @@ export interface WallOptions extends DiscoverOptions {
 /** Browser relay query that keeps events with bad signatures, so the wall can count them instead of losing them. */
 export const uncheckedRelayQuery: QueryFn = createRelayQuery(undefined, { keepUnverified: true });
 
-const bchPrefix = (): string => `${config.nostr.platform}:`;
-
 /** True when the item is shaped like a binding event and names at least one BCH identity. */
 function namesBch(item: unknown): boolean {
   const tags = (item as { tags?: unknown } | null)?.tags;
-  return Array.isArray(tags) && tags.some((t) => Array.isArray(t) && t[0] === 'i' && typeof t[1] === 'string' && t[1].startsWith(bchPrefix()));
+  return Array.isArray(tags) && tags.some((t) => Array.isArray(t) && claimFromTag(t as string[]) !== null);
 }
 
 const genuine = (e: Event): boolean => idMatches(e) && signatureValid(e);

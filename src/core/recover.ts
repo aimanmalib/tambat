@@ -7,7 +7,7 @@
  */
 import { config } from '../config.js';
 import { recoverSigner } from './bchmsg.js';
-import { claimIdentity, claimFromTag, createBindingEvent, type BchClaim } from './binding.js';
+import { claimIdentity, claimFromTag, fullClaimAddress, createBindingEvent, type BchClaim } from './binding.js';
 import { keyControlsPayload, parseP2pkhAddress } from './cashaddr.js';
 import { parsePubkey, type Event, type EventTemplate } from './nostr.js';
 import { fail, pass, skip, type BindingResult, type Step } from './verify.js';
@@ -45,7 +45,7 @@ export function parseRecoveryTag(tag: readonly string[]): RecoveryClaim | string
   if ('error' in key) return `old key: ${key.error}`;
   const claim = claimFromTag(['i', identity]);
   if (!claim) return `the address must be written as ${config.nostr.platform}:<cashaddr>`;
-  const parsed = parseP2pkhAddress(claim.address);
+  const parsed = parseP2pkhAddress(fullClaimAddress(claim.address));
   if (typeof parsed === 'string') return parsed;
   if (signature.trim() === '') return 'the recovery signature is empty';
   return { npub, pubkey: key.hex, address: parsed.address, signature };
@@ -63,7 +63,7 @@ export interface CreateRecoveryInput {
 /** Builds the new key's binding event carrying the recovery tag. The new key has no earlier event to keep tags from. */
 export function createRecoveryEvent(input: CreateRecoveryInput): EventTemplate {
   const base = createBindingEvent(input.createdAt === undefined ? { claim: input.claim } : { claim: input.claim, createdAt: input.createdAt });
-  const tag = [config.nostr.recoveryTag, input.oldNpub, claimIdentity(input.claim.address), input.recoverySignature.trim()];
+  const tag = [config.nostr.recoveryTag, input.oldNpub, claimIdentity(input.claim.address, 'prefixed'), input.recoverySignature.trim()];
   const parsed = parseRecoveryTag(tag);
   if (typeof parsed === 'string') throw new Error(parsed);
   return { ...base, tags: [...base.tags, tag] };

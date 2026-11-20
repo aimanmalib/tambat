@@ -10,7 +10,7 @@ import { claimsOf, type StepName } from './binding.js';
 import { keyControlsPayload, parseP2pkhAddress } from './cashaddr.js';
 import type { RecoveryResult } from './recover.js';
 import { eventShapeError, idMatches, plainEvent, signatureValid, toNpub, verificationText, type Event } from './nostr.js';
-import { checkTxProof, parseProof, type ProofForm, type TxLookup } from './tx-proof.js';
+import { checkTxProof, parseProofs, type ProofForm, type TxLookup } from './tx-proof.js';
 
 export type { StepName };
 
@@ -177,15 +177,52 @@ function verifyTxClaim(address: string, txid: string, npub: string, nostrPubkey:
 
 /**
  * Checks one BCH claim (address and proof) against the Nostr key that carries it. The proof is a base64 signed message
- * (optionally written `msg:<signature>`) or an on-chain proof `tx:<txid>`, which needs `txLookup` from the chain.
+ * (optionally written `msg:<signature>`), an on-chain proof `tx:<txid>` or a bare txid, which needs `txLookups` from the
+ * chain, or several of these joined by `|`; then every one is checked and all must pass.
  */
 export function verifyClaim(address: string, signature: string, npub: string, nostrPubkey: string, network: Network, txLookups?: Record<string, TxLookup>): ClaimResult {
   const full = fullAddress(address.trim(), network);
-  const proof = parseProof(signature);
-  if (proof.form === 'tx') return verifyTxClaim(full, proof.txid, npub, nostrPubkey, network, txLookups?.[proof.txid]);
+  return mergeClaims(
+    parseProofs(signature).map((proof) =>
+      proof.form === 'tx'
+        ? verifyTxClaim(full, proof.txid, npub, nostrPubkey, network, txLookups?.[proof.txid])
+        : verifyMessageClaim(full, proof.signature, npub, nostrPubkey, network),
+    ),
+  );
+}
+
+const RANK = { pass: 0, skip: 1, fail: 2 } as const;
+
+/**
+ * One result for several readings of the same address (proofs joined by `|`, or several `i` tags in different forms).
+ * It passes only when every reading passes; a step checked more than once reports its worst outcome.
+ */
+export function mergeClaims(results: ClaimResult[]): ClaimResult {
+  const [first] = results;
+  if (!first) throw new Error('no claim to merge');
+  if (results.length === 1) return first;
+  const steps = new Map<StepName, Step>();
+  for (const step of results.flatMap((r) => r.steps)) {
+    const seen = steps.get(step.name);
+    if (!seen || RANK[step.status] > RANK[seen.status]) steps.set(step.name, step);
+  }
+  const merged: ClaimResult = {
+    address: first.address,
+    ok: results.every((r) => r.ok),
+    proof: results.some((r) => r.proof === 'message') ? 'message' : 'tx',
+    steps: [...steps.values()],
+  };
+  const txid = results.find((r) => r.txid)?.txid;
+  const key = results.find((r) => r.bchPublicKey)?.bchPublicKey;
+  if (txid) merged.txid = txid;
+  if (key) merged.bchPublicKey = key;
+  return merged;
+}
+
+function verifyMessageClaim(full: string, signature: string, npub: string, nostrPubkey: string, network: Network): ClaimResult {
   const steps: Step[] = [];
   const parsed = parseP2pkhAddress(full);
-  const recovered = recoverSigner(verificationText(npub), proof.signature);
+  const recovered = recoverSigner(verificationText(npub), signature);
   let bchPublicKey: string | undefined;
   if (typeof recovered === 'string') {
     steps.push(fail('bch_sig', 'signature_unreadable', recovered));
@@ -231,7 +268,13 @@ export function verifyBinding(input: unknown, options: VerifyOptions = {}): Bind
   steps.push(idMatches(event) ? pass('event_id') : fail('event_id', 'id_mismatch', 'id does not match the event fields (edited after signing)'));
   steps.push(signatureValid(event) ? pass('nostr_sig') : fail('nostr_sig', 'nostr_sig_invalid', 'Schnorr signature does not verify for this pubkey'));
   steps.push(newestStep(event, options.sameAuthorEvents));
-  const claims = claimsOf(event).map((c) => verifyClaim(c.address, c.signature, npub, event.pubkey, network, options.txLookups));
+  // Tags naming the same address (in different forms, for other verifiers) are one claim, and every tag must pass.
+  const byAddress = new Map<string, ClaimResult[]>();
+  for (const c of claimsOf(event)) {
+    const result = verifyClaim(c.address, c.signature, npub, event.pubkey, network, options.txLookups);
+    byAddress.set(result.address.toLowerCase(), [...(byAddress.get(result.address.toLowerCase()) ?? []), result]);
+  }
+  const claims = [...byAddress.values()].map(mergeClaims);
   const ok = allPass(steps) && claims.length > 0 && claims.every((c) => c.ok);
   return { ok, eventId: event.id, pubkey: event.pubkey, npub, createdAt: event.created_at, steps, claims, event: plainEvent(event) };
 }
