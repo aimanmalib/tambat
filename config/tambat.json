@@ -74,8 +74,8 @@
     "note": true
   },
   "video": {
-    "url": "/media/tambat-demo.mp4",
-    "posterUrl": "/media/tambat-demo.jpg",
+    "url": "/media/tambat-demo.mp4?v=e5e57231",
+    "posterUrl": "/media/tambat-demo.jpg?v=1c196247",
     "seconds": 56
   },
   "embed": {

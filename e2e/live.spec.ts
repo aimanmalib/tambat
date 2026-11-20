@@ -215,3 +215,19 @@ test('the banner on the home and judges pages links the deck and the first commi
   expect(res.headers()['content-type']).toContain('application/pdf');
   expect((await res.body()).subarray(0, 5).toString()).toBe('%PDF-');
 });
+
+test('the video page plays the hosted MP4, which answers byte ranges through the CDN', async ({ page, request }) => {
+  await page.goto('/video');
+  const video = page.locator('video[data-video]');
+  await expect(video.locator('source')).toHaveAttribute('src', siteConfig.video.url);
+  await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.readyState), { timeout: 30_000 }).toBeGreaterThanOrEqual(1);
+  expect(Math.abs((await video.evaluate((v: HTMLVideoElement) => v.duration)) - siteConfig.video.seconds)).toBeLessThan(1);
+  await expectNoOverflow(page);
+  // Safari plays video only from range responses; a CDN copy that was compressed answers with the whole file.
+  await expect
+    .poll(async () => {
+      const res = await request.get(siteConfig.video.url, { headers: { Range: 'bytes=0-99' } });
+      return [res.status(), res.headers()['content-range'] ?? '', res.headers()['content-encoding'] ?? ''];
+    }, { timeout: 30_000, intervals: [2_000, 5_000, 10_000] })
+    .toEqual([206, expect.stringMatching(/^bytes 0-99\//), '']);
+});

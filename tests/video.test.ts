@@ -3,12 +3,13 @@
  * pages say, carries a picture track and no sound, and starts with its index (fast start) so a browser can play it
  * before the whole file arrives. Read from the MP4 boxes, with no tool outside this repository.
  */
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { config, cspHeader, parseConfig } from '../src/config.js';
 
 const fresh = () => JSON.parse(readFileSync(new URL('../config/tambat.json', import.meta.url), 'utf8'));
-const file = (sitePath: string) => new URL(`../public${sitePath}`, import.meta.url);
+const file = (sitePath: string) => new URL(`../public${sitePath.split('?')[0]}`, import.meta.url);
 
 type Box = { type: string; start: number; end: number };
 
@@ -55,6 +56,14 @@ describe('demo video', () => {
     expect(existsSync(file(config.video.posterUrl))).toBe(true);
   });
 
+  it('versions each URL with the hash of the file, so a CDN cache cannot serve an older copy', () => {
+    for (const url of [config.video.url, config.video.posterUrl]) {
+      const sha = createHash('sha256').update(readFileSync(file(url))).digest('hex');
+      expect(url).toMatch(/\?v=[0-9a-f]{8}$/);
+      expect(url.split('?v=')[1]).toBe(sha.slice(0, 8));
+    }
+  });
+
   it('is the length the pages say, one picture track, no sound, index first', () => {
     const f = mp4Facts(readFileSync(file(config.video.url)));
     expect(Math.abs(f.seconds - config.video.seconds)).toBeLessThan(1);
@@ -90,6 +99,7 @@ describe('demo video', () => {
   it.each([
     ['url', 'https://elsewhere.example/v.mp4'],
     ['url', '/media/tambat-demo.webm'],
+    ['url', '/media/tambat-demo.mp4?v=x'],
     ['posterUrl', '/media/poster.gif'],
     ['seconds', 0],
     ['seconds', '56'],
