@@ -2,6 +2,7 @@
 import en from '../../lang/en.json';
 import ms from '../../lang/ms.json';
 import { config } from '../../src/config';
+import { electrumServers } from '../../src/core/anchor-chain';
 import { badgeStatus, EMBED_PATH, shortAddress, shortNpub, type BadgeState } from '../../src/core/badge';
 import { createProbe } from '../../src/core/probe';
 import { translator, type Dictionary } from '../../src/i18n';
@@ -45,4 +46,5 @@ function show(state: BadgeState | { state: 'checking' }): void {
 }
 
 show({ state: 'checking' });
-void badgeStatus(id, { probe: createProbe() }).then(show, () => show({ state: 'unreachable' }));
+// Bindings proved by a transaction (`tx:<txid>`) are read from the chain servers, as on Look up.
+void badgeStatus(id, { probe: createProbe(), chain: { servers: electrumServers() } }).then(show, () => show({ state: 'unreachable' }));

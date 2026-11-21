@@ -128,12 +128,12 @@ test('the one-file verifier is served whole and verifies a binding from the real
   await page.goto('/verify/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.verifier.title);
   await expectAccessible(page);
-  const first = lookups[0];
-  if (first) {
-    await page.getByLabel(en.verifier.inputLabel, { exact: true }).fill(first);
-    await page.getByRole('button', { name: en.verifier.submit, exact: true }).click();
-    await expect(page.locator('.result[data-ok="true"]').first()).toBeVisible({ timeout: 20_000 });
-  }
+  // The one-file verifier reads no chain (ADR 0021), so it is checked on the owner's Paytaca binding, a signed message.
+  // The demo binding is proved by a transaction since 2026-11-21 and reads here as not checked.
+  const first = siteConfig.judges.paytaca.npub;
+  await page.getByLabel(en.verifier.inputLabel, { exact: true }).fill(first);
+  await page.getByRole('button', { name: en.verifier.submit, exact: true }).click();
+  await expect(page.locator('.result[data-ok="true"]').first()).toBeVisible({ timeout: 20_000 });
   expect(off).toEqual([]);
 });
 

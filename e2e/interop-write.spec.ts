@@ -80,3 +80,12 @@ test('in Malay at 320 px the dialect result fits without overflow', async ({ pag
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await expectNoOverflow(page);
 });
+
+test('the badge verifies a binding proved by a transaction, reading the chain like Look up', async ({ page }) => {
+  await useRelay(page);
+  await page.goto(`/embed/${npub}?lang=en`);
+  await expect(page.locator('.embed[data-state="verified"] .embed__state')).toHaveText(en.embed.verified, { timeout: 20_000 });
+  await expect(page.locator('.embed__detail')).toContainText(npub.slice(0, 10));
+  await page.setViewportSize({ width: 320, height: 200 });
+  await expectNoOverflow(page);
+});

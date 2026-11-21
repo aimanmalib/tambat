@@ -4,11 +4,12 @@ import WebSocket, { WebSocketServer } from 'ws';
 import { finalizeEvent } from 'nostr-tools/pure';
 import { badgeStatus, shortAddress, shortNpub, type ProbeFn } from '../src/core/badge.js';
 import { signMessage } from '../src/core/bchmsg.js';
-import { claimIdentity, createRevocationEvent } from '../src/core/binding.js';
+import { claimIdentity, createBindingEvent, createRevocationEvent } from '../src/core/binding.js';
 import { verificationText } from '../src/core/nostr.js';
 import { bchKeyAt } from '../src/core/paytaca.js';
 import { createProbe } from '../src/core/probe.js';
 import { clone, fakeRelay, keys, other, vectors } from './helpers.js';
+import { holding, proofTx, server as chainServer } from './tx-proof-kit.js';
 
 const binding = clone(vectors.bindingEvent);
 const address = vectors.bch.address.bitcoincash;
@@ -31,6 +32,16 @@ describe('badgeStatus', () => {
     const two = finalizeEvent({ ...binding, created_at: binding.created_at + 5, tags: [...binding.tags, tag] }, keys.nostrSecretKey);
     expect(await status(second.address, [two])).toEqual({ state: 'verified', npub: keys.npub, address: second.address });
     expect(await status(address, [two])).toEqual({ state: 'verified', npub: keys.npub, address });
+  });
+
+  it('is verified for a binding proved by a transaction once the chain servers agree on it', async () => {
+    const t = proofTx(keys.npub);
+    const onChain = finalizeEvent(createBindingEvent({ claim: { address: keys.address, signature: `tx:${t.txid}` }, createdAt: binding.created_at }), keys.nostrSecretKey);
+    const base = { relays: RELAYS, timeoutMs: 200, query: fakeRelay([onChain]), probe: answered(2) };
+    const servers = ['a', 'b'].map((n) => chainServer(n, holding(t.evidence)));
+    expect(await badgeStatus(keys.npub, { ...base, chain: { servers, quorum: 2 } })).toEqual({ state: 'verified', npub: keys.npub, address: keys.address });
+    // Without chain servers the proof cannot be read, so the badge does not claim it.
+    expect(await badgeStatus(keys.npub, base)).toEqual({ state: 'not_linked' });
   });
 
   it('is not linked when relays answer but hold no binding', async () => {
