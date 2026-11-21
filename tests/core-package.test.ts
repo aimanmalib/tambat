@@ -20,7 +20,7 @@ const rootPkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as 
  * is compared without them; the test below checks the library code never reads them.
  */
 /** Config the web app reads and src/core never does: whole sections, or `section.key` for one key in a shared section. */
-const APP_ONLY = ['hero', 'video', 'wizardConnect', 'wall.refreshSeconds', 'banner.firstCommit', 'banner.note', 'judges.interop', 'server.contentSecurityPolicy.media-src'] as const;
+const APP_ONLY = ['hero', 'video', 'wizardConnect', 'wall.refreshSeconds', 'banner.firstCommit', 'banner.note', 'banner.contactAddress', 'judges.interop', 'server.contentSecurityPolicy.media-src'] as const;
 /**
  * Library settings added after the released tarball. The released library writes the prefixed claim form and reads no
  * platform alias (README "Known limits"); the next release carries them.
@@ -38,6 +38,7 @@ const without = (c: Record<string, unknown>, paths: readonly string[]): Record<s
         return [k, without(v as Record<string, unknown>, drop)];
       }),
   );
+/** Both sides drop the app-only keys: the tarball may carry an older value of one (banner.contactAddress), or lack one added later. */
 const libraryConfig = (c: Record<string, unknown>) => without(c, NOT_PACKED);
 
 describe('app-only config sections', () => {
@@ -138,7 +139,7 @@ describe('tracked library tarball', () => {
     expect(pkg.name).toBe('@tambat/core');
     expect(pkg.version).toBe(rootPkg.version);
     for (const [name, version] of Object.entries(pkg.dependencies)) expect(rootPkg.dependencies[name]).toBe(version);
-    expect(JSON.parse(fromTar('package/dist/config/tambat.json'))).toEqual(libraryConfig(JSON.parse(readFileSync(join(root, 'config/tambat.json'), 'utf8'))));
+    expect(libraryConfig(JSON.parse(fromTar('package/dist/config/tambat.json')))).toEqual(libraryConfig(JSON.parse(readFileSync(join(root, 'config/tambat.json'), 'utf8'))));
     expect(fromTar('package/README.md')).toContain('not on the npm registry');
   });
 
