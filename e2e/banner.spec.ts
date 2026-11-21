@@ -23,6 +23,9 @@ test('the banner links the deck, the repository and the address', async ({ page,
   // The full address is there for screen readers and on hover; the copy button copies it whole.
   await expect(address.locator('code')).toHaveAttribute('title', config.banner.contactAddress);
   await expect(address.locator('.sr-only')).toHaveText(config.banner.contactAddress);
+  // What people see and compare on a phone: the start and the end of the same address, without the prefix.
+  const body = config.banner.contactAddress.slice(config.banner.contactAddress.indexOf(':') + 1);
+  await expect(address.locator('code span[aria-hidden="true"]')).toHaveText(`${body.slice(0, 6)}…${body.slice(-6)}`);
   await expect(address.getByRole('button', { name: `${en.banner.copy}: ${en.banner.address}` })).toBeVisible();
   await expectAccessible(page);
 
