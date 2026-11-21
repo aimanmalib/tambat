@@ -9,6 +9,9 @@ import {
   hashTransaction,
   hexToBin,
   binToHex,
+  secp256k1,
+  sha256,
+  utf8ToBin,
   type TransactionCommon,
 } from '@bitauth/libauth';
 import { describe, expect, it } from 'vitest';
@@ -16,11 +19,12 @@ import { config } from '../src/config.js';
 import type { ChainSource, OpenChain } from '../src/core/anchor-chain.js';
 import { scripthashOf } from '../src/core/anchor-chain.js';
 import { signP2pkh } from '../src/core/anchor-sign.js';
+import { addressFromPublicKey } from '../src/core/cashaddr.js';
 import { bchKeysOf, keysFromPhrase } from '../src/core/paytaca.js';
 import { proofOutput } from '../src/core/tx-proof.js';
 import { verifyClaim } from '../src/core/verify.js';
 import { TextError } from '../src/errors.js';
-import { planProof, signProof, walletAddresses, type ProofWallet } from '../web/keys/anchor-wizard.js';
+import { planProof, signProof, type ProofWallet } from '../web/keys/anchor-wizard.js';
 import vectors from '../examples/vectors.json' with { type: 'json' };
 
 const phrase = vectors.phrase;
@@ -48,8 +52,10 @@ function funding(address: string, sats: number, seed: number) {
 
 interface Coin { address: string; sats: number; height: number; seed: number }
 
-function fakeChain(coins: Coin[], send?: (hex: string) => Promise<string>) {
+/** `used` addresses have history (spent coins) but no coins left. */
+function fakeChain(coins: Coin[], send?: (hex: string) => Promise<string>, used: string[] = []) {
   const sent: string[] = [];
+  const history = new Set(used.map(scripthashOf));
   const txs: Record<string, string> = {};
   const unspent: Record<string, { txid: string; vout: number; satoshis: number; height: number }[]> = {};
   for (const c of coins) {
@@ -58,7 +64,7 @@ function fakeChain(coins: Coin[], send?: (hex: string) => Promise<string>) {
     (unspent[scripthashOf(c.address)] ??= []).push({ txid: f.txid, vout: 0, satoshis: c.sats, height: c.height });
   }
   const source: ChainSource = {
-    history: async () => [],
+    history: async (s) => (history.has(s) ? [{ tx_hash: 'ff'.repeat(32), height: 1 }] : []),
     header: async () => '',
     unspent: async (s) => unspent[s] ?? [],
     transaction: async (id) => {
@@ -101,13 +107,6 @@ const textKey = async (p: Promise<unknown>) => {
 };
 
 describe('WizardConnect proof: finding a coin', () => {
-  it('lists the receive addresses the wallet shares, up to the scan count', () => {
-    const { wallet } = fakeWallet();
-    const list = walletAddresses(wallet, { receive: 3, change: 2 });
-    expect(list.map((a) => [a.path, a.index])).toEqual([['receive', 0], ['receive', 1], ['receive', 2]]);
-    expect(list[1]?.address).toBe(key(1).address);
-  });
-
   it('builds the proof from the first address that can pay: OP_RETURN with the NIP-39 text, change to the same address', async () => {
     const { wallet } = fakeWallet();
     const chain = fakeChain([{ address: key(3).address, sats: 5000, height: 900000, seed: 1 }]);
@@ -123,8 +122,6 @@ describe('WizardConnect proof: finding a coin', () => {
   it('names why no address can pay, and does not ask the wallet', async () => {
     const empty = fakeWallet();
     expect(await textKey(planProof(empty.wallet, nostr.npub, fakeChain([]).open))).toBe('wizard.noCoins');
-    const fresh = fakeChain([{ address: key(0).address, sats: 5000, height: 0, seed: 2 }]);
-    expect(await textKey(planProof(empty.wallet, nostr.npub, fresh.open))).toBe('wizard.unconfirmed');
     const dust = fakeChain([{ address: key(0).address, sats: 600, height: 900000, seed: 3 }]);
     expect(await textKey(planProof(empty.wallet, nostr.npub, dust.open))).toBe('wizard.tooLittle');
     const none: ProofWallet = { publicKey: () => undefined, sign: async () => '' };
@@ -134,6 +131,79 @@ describe('WizardConnect proof: finding a coin', () => {
     };
     expect(await textKey(planProof(empty.wallet, nostr.npub, down))).toBe('wizard.unreachable');
     expect(empty.calls).toHaveLength(0);
+  });
+
+  it('says how many addresses were checked, never shows an address, and names the gap limit', async () => {
+    const { wallet } = deepWallet();
+    const error = await planProof(wallet, nostr.npub, fakeChain([]).open).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(TextError);
+    const { key: k, vars } = error as TextError;
+    const { gapLimit } = config.wizardConnect.scan;
+    expect([k, vars]).toEqual(['wizard.noCoins', { count: 2 * gapLimit, gap: gapLimit, max: config.wizardConnect.scan.maxAddresses }]);
+  });
+});
+
+/**
+ * A wallet with keys on every index of both paths (made from a hash, not from a phrase, so deep indexes are fast).
+ * The wallet hands out a new address for every payment, so its coins can sit far from index 0.
+ */
+function deepWallet() {
+  const priv = (path: string, index: number) => sha256.hash(utf8ToBin(`deep wallet ${path} ${index}`));
+  const at = (path: string, index: number) => addressFromPublicKey(secp256k1.derivePublicKeyCompressed(priv(path, index)) as Uint8Array, 'bitcoincash');
+  const wallet: ProofWallet = {
+    publicKey: (path, index) => secp256k1.derivePublicKeyCompressed(priv(path, index)) as Uint8Array,
+    sign: async (request, inputPaths) => {
+      const [, path, index] = inputPaths[0]!;
+      return binToHex(signP2pkh(request.transaction, request.sourceOutputs, priv(path, index)));
+    },
+  };
+  return { wallet, at };
+}
+
+describe('WizardConnect proof: wallets that move to new addresses', () => {
+  it('finds a coin at receive index 23 and at change index 7', async () => {
+    const { wallet, at } = deepWallet();
+    // Receive 0..22 and change 0..6 were used and spent, as a wallet that gives a new address per payment leaves them.
+    const spent = [...Array.from({ length: 23 }, (_, i) => at('receive', i)), ...Array.from({ length: 7 }, (_, i) => at('change', i))];
+    const deepReceive = fakeChain([{ address: at('receive', 23), sats: 5000, height: 900000, seed: 11 }], undefined, spent);
+    const plan = await planProof(wallet, nostr.npub, deepReceive.open);
+    expect([plan.path, plan.index]).toEqual(['receive', 23]);
+    const deepChange = fakeChain([{ address: at('change', 7), sats: 5000, height: 900000, seed: 12 }], undefined, spent);
+    const change = await planProof(wallet, nostr.npub, deepChange.open);
+    expect([change.path, change.index]).toEqual(['change', 7]);
+  });
+
+  it('takes coins that are not in a block yet, and the signed proof verifies before it is mined', async () => {
+    const { wallet, at } = deepWallet();
+    const chain = fakeChain([{ address: at('receive', 2), sats: 5000, height: 0, seed: 13 }]);
+    const plan = await planProof(wallet, nostr.npub, chain.open);
+    expect(plan.unconfirmed).toBe(true);
+    const { claim, txLookups } = await signProof(wallet, plan, nostr.npub, 'prompt', chain.open);
+    expect(verifyClaim(claim.address, claim.signature, nostr.npub, nostr.nostrPubkey, 'bitcoincash', txLookups).ok).toBe(true);
+  });
+
+  it('with acceptUnconfirmed off, waits for a block instead', async () => {
+    const { wallet, at } = deepWallet();
+    const chain = fakeChain([{ address: at('receive', 2), sats: 5000, height: 0, seed: 14 }]);
+    const saved = config.wizardConnect.acceptUnconfirmed;
+    config.wizardConnect.acceptUnconfirmed = false;
+    try {
+      expect(await textKey(planProof(wallet, nostr.npub, chain.open))).toBe('wizard.unconfirmed');
+    } finally {
+      config.wizardConnect.acceptUnconfirmed = saved;
+    }
+  });
+
+  it('pays from the funded address with the most BCH that can pay, and from that one address only', async () => {
+    const { wallet, at } = deepWallet();
+    const chain = fakeChain([
+      { address: at('receive', 1), sats: 3000, height: 900000, seed: 15 },
+      { address: at('change', 4), sats: 9000, height: 900000, seed: 16 },
+      { address: at('receive', 5), sats: 300, height: 900000, seed: 17 },
+    ]);
+    const plan = await planProof(wallet, nostr.npub, chain.open);
+    expect([plan.path, plan.index, plan.changeSats + plan.feeSats]).toEqual(['change', 4, 9000]);
+    expect(plan.sourceOutputs).toHaveLength(1);
   });
 });
 

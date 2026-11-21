@@ -85,13 +85,22 @@ describe('config/tambat.json', () => {
     }
   });
 
-  it('checks the WizardConnect option: one wss relay, a bounded address scan, https links', () => {
+  it('checks the WizardConnect option: one wss relay, a gap-limit address scan, https links', () => {
+    const scan = (w: Record<string, unknown>) => w.scan as Record<string, unknown>;
     const cases: [string, (w: Record<string, unknown>) => void][] = [
       ['enabled', (w) => (w.enabled = 'yes')],
       ['relay', (w) => (w.relay = 'https://nos.lol')],
       ['relay', (w) => (w.relay = ['wss://nos.lol'])],
-      ['scan.receive', (w) => ((w.scan as Record<string, unknown>).receive = 0)],
-      ['scan.change', (w) => ((w.scan as Record<string, unknown>).change = 101)],
+      ['scan.receive', (w) => (scan(w).receive = 20)],
+      ['scan.change', (w) => (scan(w).change = 5)],
+      ['scan.gapLimit', (w) => (scan(w).gapLimit = 0)],
+      ['scan.gapLimit', (w) => (scan(w).gapLimit = 101)],
+      ['scan.gapLimit', (w) => (scan(w).gapLimit = '20')],
+      ['scan.maxAddresses', (w) => (scan(w).maxAddresses = 19)],
+      ['scan.maxAddresses', (w) => (scan(w).maxAddresses = 1001)],
+      ['scan.maxAddresses', (w) => (scan(w).maxAddresses = 200.5)],
+      ['acceptUnconfirmed', (w) => (w.acceptUnconfirmed = 'true')],
+      ['acceptUnconfirmed', (w) => delete w.acceptUnconfirmed],
       ['sourceUrl', (w) => (w.sourceUrl = 'http://example.org')],
       ['licenseUrl', (w) => (w.licenseUrl = undefined)],
     ];
@@ -101,6 +110,7 @@ describe('config/tambat.json', () => {
       expect(() => parseConfig(c)).toThrow(new RegExp(`wizardConnect\\.${path.replace('.', '\\.')}`));
     }
     expect(parseConfig(fresh()).wizardConnect.relay).toMatch(/^wss:\/\//);
+    expect(Object.keys(parseConfig(fresh()).wizardConnect.scan).sort()).toEqual(['gapLimit', 'maxAddresses']);
   });
 
   it('needs a full commit SHA for the new project note, and a true or false switch', () => {

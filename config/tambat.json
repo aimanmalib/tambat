@@ -232,7 +232,8 @@
   "wizardConnect": {
     "enabled": true,
     "relay": "wss://nos.lol",
-    "scan": { "receive": 20, "change": 5 },
+    "scan": { "gapLimit": 20, "maxAddresses": 200 },
+    "acceptUnconfirmed": true,
     "sourceUrl": "https://gitlab.com/riftenlabs/lib/wizardconnect",
     "licenseUrl": "https://www.gnu.org/licenses/lgpl-3.0.html"
   }

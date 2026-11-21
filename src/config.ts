@@ -233,13 +233,16 @@ export interface TambatConfig {
   hero: { candidates: { npub: string; signer: string }[]; timeoutMs: number };
   /**
    * The second wallet option on Link (docs/decisions/0023-wizardconnect-transaction-proof.md): the wallet signs a small
-   * transaction whose OP_RETURN is the NIP-39 text. `relay` carries the encrypted session messages; `scan` is how many
-   * receive and change addresses of the wallet are searched for a coin; the library's source and licence are linked.
+   * transaction whose OP_RETURN is the NIP-39 text. `relay` carries the encrypted session messages. `scan` walks each key
+   * path of the wallet until `gapLimit` unused addresses in a row (BIP44 practice), looking at no more than
+   * `maxAddresses` on one path (web/keys/wallet-scan.ts). `acceptUnconfirmed` lets the proof spend coins not yet in a
+   * block (the demo key's own anchor keeps anchor.confirmedCoinsOnly). The library's source and licence are linked.
    */
   wizardConnect: {
     enabled: boolean;
     relay: string;
-    scan: { receive: number; change: number };
+    scan: { gapLimit: number; maxAddresses: number };
+    acceptUnconfirmed: boolean;
     sourceUrl: string;
     licenseUrl: string;
   };
@@ -445,10 +448,17 @@ export function parseConfig(input: unknown): TambatConfig {
 function parseWizardConnect(w: TambatConfig['wizardConnect']): void {
   if (typeof w?.enabled !== 'boolean') fail('wizardConnect.enabled', 'must be true or false');
   if (typeof w.relay !== 'string' || !/^wss:\/\/[a-z0-9.-]+(:\d+)?\/?$/.test(w.relay)) fail('wizardConnect.relay', 'must be one wss:// relay URL');
-  for (const k of ['receive', 'change'] as const) {
-    const n = w.scan?.[k];
-    if (!Number.isInteger(n) || (n as number) < 1 || (n as number) > 100) fail(`wizardConnect.scan.${k}`, 'must be an integer from 1 to 100');
+  const scan = w.scan as Record<string, unknown> | undefined;
+  for (const k of ['receive', 'change']) {
+    if (scan && k in scan) fail(`wizardConnect.scan.${k}`, 'is the old fixed count; use gapLimit and maxAddresses');
   }
+  const gap = scan?.gapLimit;
+  if (!Number.isInteger(gap) || (gap as number) < 1 || (gap as number) > 100) fail('wizardConnect.scan.gapLimit', 'must be an integer from 1 to 100');
+  const max = scan?.maxAddresses;
+  if (!Number.isInteger(max) || (max as number) < (gap as number) || (max as number) > 1000) {
+    fail('wizardConnect.scan.maxAddresses', 'must be an integer from gapLimit to 1000');
+  }
+  if (typeof w.acceptUnconfirmed !== 'boolean') fail('wizardConnect.acceptUnconfirmed', 'must be true or false');
   for (const k of ['sourceUrl', 'licenseUrl'] as const) {
     if (typeof w[k] !== 'string' || !w[k].startsWith('https://')) fail(`wizardConnect.${k}`, 'must be an https:// URL');
   }

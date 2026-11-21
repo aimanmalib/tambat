@@ -7,14 +7,15 @@
  */
 import { binToHex, decodeTransaction, hexToBin, stringify, type Input, type Output, type TransactionCommon } from '@bitauth/libauth';
 import { config } from '../../src/config.js';
-import { opReturnFromCoins, txidOf, type AnchorRefusal, type PreparedAnchor, type Utxo } from '../../src/core/anchor.js';
+import { opReturnFromCoins, txidOf, type AnchorRefusal, type PreparedAnchor } from '../../src/core/anchor.js';
 import { electrumChain, scripthashOf, type ChainSource, type OpenChain } from '../../src/core/anchor-chain.js';
 import type { BchClaim } from '../../src/core/binding.js';
 import { addressFromPublicKey, parseP2pkhAddress } from '../../src/core/cashaddr.js';
 import { checkTxProof, proofOutput, TX_PROOF_PREFIX, type TxEvidence, type TxLookup } from '../../src/core/tx-proof.js';
 import { TextError } from '../../src/errors.js';
+import { activityOf, scanWallet, type ScanOptions, type WalletPath } from './wallet-scan.js';
 
-export type WalletPath = 'receive' | 'change';
+export type { WalletPath };
 
 /**
  * The sign request in the form the WizardConnect relay can send. The relay calls JSON.stringify, which throws on the
@@ -51,16 +52,24 @@ const REFUSAL: Record<AnchorRefusal, string> = {
   no_coins: 'wizard.noCoins',
 };
 
-/** The wallet's addresses to search, receive first, up to the counts in config wizardConnect.scan. */
-export function walletAddresses(wallet: ProofWallet, scan = config.wizardConnect.scan): { path: WalletPath; index: number; address: string }[] {
-  const out: { path: WalletPath; index: number; address: string }[] = [];
-  for (const path of ['receive', 'change'] as const) {
-    for (let index = 0; index < scan[path]; index++) {
+/** The scan of the wallet's addresses: keys from the wallet, history and coins from the chain, one round per batch. */
+function scanOptions(wallet: ProofWallet, chain: ChainSource, scan = config.wizardConnect.scan): ScanOptions {
+  return {
+    derive: (path, index) => {
       const key = wallet.publicKey(path, index);
-      if (key) out.push({ path, index, address: addressFromPublicKey(key, config.network) });
-    }
-  }
-  return out;
+      return key ? { path, index, address: addressFromPublicKey(key, config.network) } : undefined;
+    },
+    lookup: (addresses) =>
+      Promise.all(
+        addresses.map(async (address) => {
+          const hash = scripthashOf(address);
+          const [history, coins] = await Promise.all([chain.history(hash), chain.unspent(hash)]);
+          return activityOf(history, coins);
+        }),
+      ),
+    gapLimit: scan.gapLimit,
+    maxAddresses: scan.maxAddresses,
+  };
 }
 
 async function openOrThrow(open: OpenChain): Promise<ChainSource> {
@@ -72,21 +81,24 @@ async function openOrThrow(open: OpenChain): Promise<ChainSource> {
 }
 
 /**
- * Finds the first address of the wallet whose coins pay for the proof, and builds the transaction: those coins in, the
- * NIP-39 text for `npub` as OP_RETURN, the change back to the same address. Throws a TextError when none can.
+ * Walks the wallet's addresses up to the gap limit (wallet-scan.ts), takes the funded address with the most BCH that
+ * pays for the proof, and builds the transaction: that address's coins in, the NIP-39 text for `npub` as OP_RETURN,
+ * the change back to the same address. Coins not yet in a block are spent when config wizardConnect.acceptUnconfirmed
+ * is on (the plan says so with `unconfirmed`). The proof always comes from one address, the one that is bound.
+ * Throws a TextError when no address can pay.
  */
 export async function planProof(wallet: ProofWallet, npub: string, open: OpenChain = electrumChain()): Promise<ProofPlan> {
-  const addresses = walletAddresses(wallet);
-  if (addresses.length === 0) throw new TextError('wizard.noAddresses');
+  if (!wallet.publicKey('receive', 0) && !wallet.publicKey('change', 0)) throw new TextError('wizard.noAddresses');
   const chain = await openOrThrow(open);
   try {
-    const coins = await Promise.all(addresses.map((a) => chain.unspent(scripthashOf(a.address)))).catch(() => {
+    const scan = await scanWallet(scanOptions(wallet, chain)).catch(() => {
       throw new TextError('wizard.unreachable');
     });
     const script = proofOutput(npub);
     let refusal: AnchorRefusal = 'no_coins';
-    for (const [i, a] of addresses.entries()) {
-      const built = opReturnFromCoins(a.address, coins[i] as Utxo[], script);
+    for (const f of scan.funded) {
+      const a = { path: f.path, index: f.index, address: f.address };
+      const built = opReturnFromCoins(a.address, f.coins, script, !config.wizardConnect.acceptUnconfirmed);
       if (typeof built === 'string') {
         if (RANK.indexOf(built) < RANK.indexOf(refusal)) refusal = built;
         continue;
@@ -99,6 +111,11 @@ export async function planProof(wallet: ProofWallet, npub: string, open: OpenCha
         });
       }
       return { ...built, ...a, sources };
+    }
+    const checked = scan.scanned.receive + scan.scanned.change;
+    if (refusal === 'no_coins') {
+      const { gapLimit, maxAddresses } = config.wizardConnect.scan;
+      throw new TextError(scan.capped ? 'wizard.noCoinsCapped' : 'wizard.noCoins', { count: checked, gap: gapLimit, max: maxAddresses });
     }
     throw new TextError(REFUSAL[refusal], { max: config.anchor.maxFeeSats });
   } finally {

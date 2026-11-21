@@ -111,6 +111,7 @@ export function WizardConnectOption({ npub, onClaim }: { npub: string; onClaim: 
           <p className="option__help option__help--wrap">
             {t('wizard.preview', { address: step.plan.address, change: step.plan.changeSats, fee: step.plan.feeSats })}
           </p>
+          {step.plan.unconfirmed ? <p className="option__help option__help--wrap" data-unconfirmed="yes">{t('wizard.previewUnconfirmed')}</p> : null}
           <button type="button" className="btn btn--primary" onClick={() => void sign(step.name, step.wallet, step.plan)}>{t('wizard.sign')}</button>
         </>
       ) : null}

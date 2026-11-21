@@ -19,7 +19,14 @@ export interface WizardSession {
 /** Child numbers of the well-known paths (hdwalletv1: receive 0, change 1). */
 const CHILD: Record<WalletPath, number> = { receive: 0, change: 1 };
 
+/**
+ * End-to-end tests replace the session at this library boundary with a fake wallet (`window.__tambatWizardSession`),
+ * as walletconnect.ts does, because no wallet answers on a test relay; everything after it is the code a real wallet
+ * talks to: the address scan, the plan, the checks of the signed transaction.
+ */
 export async function openWizardSession(dappName: string): Promise<WizardSession> {
+  const replacement = (window as { __tambatWizardSession?: typeof openWizardSession }).__tambatWizardSession;
+  if (replacement) return replacement(dappName);
   const [core, dapp] = await Promise.all([import('@wizardconnect/core'), import('@wizardconnect/dapp')]);
   const manager = new dapp.DappConnectionManager(dappName, undefined, { session: false });
   const relay = core.initiateDappRelay((p) => manager.updateConnection(p.client, p.status), {
