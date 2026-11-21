@@ -400,12 +400,17 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 - **The badge** is served by this site and checks in the visitor's browser, so a host page trusts this site for the badge
   code (not for the result, which comes from relays). Sites that want no such dependency can run the CLI or the one-file
   verifier themselves.
-- **Optional BCH anchor**: one anchor exists, for the Paytaca binding, made by its owner. The demo address holds no coins, so the
-  demo key has no anchor and no on-chain proof. The wallet request (`bch_signTransaction`) is tested against a fake wallet only;
+- **Optional BCH anchor**: one anchor exists, for the Paytaca binding, made by its owner. The demo key has no anchor; its one
+  on-chain item is the WizardConnect proof transaction below, paid from a small test amount sent to the demo address. The wallet request (`bch_signTransaction`) is tested against a fake wallet only;
   revoke by transaction is tested against a simulated chain only, and no revocation has been sent on mainnet.
 - **WizardConnect** wallets sign a proof transaction ([ADR 0023](docs/decisions/0023-wizardconnect-transaction-proof.md)): the page walks the wallet's addresses up to a gap of 20 unused and accepts unconfirmed coins (`tests/wallet-scan.test.ts`, `e2e/wizard-scan.spec.ts`); a wallet that disconnects after it connected, over WizardConnect or WalletConnect, sends the page back to Connect with the reason ([ADR 0025](docs/decisions/0025-wallet-disconnect.md), `e2e/wizard-disconnect.spec.ts`). Tested with Cashonize v0.15.2 over WizardConnect on mainnet: one proof transaction, a binding on the relays that Look up verifies, and the page noticing the wallet disconnect ([MEASURED](docs/MEASURED.md#third-party-wallet-over-wizardconnect)).
-- **Other NIP-39 verifiers**: three of the four measured take only an on-chain proof, so they do not read the demo binding yet,
-  and none reads the Paytaca binding, which is in the earlier prefixed form ([measured](docs/MEASURED.md#interoperability)).
+- **Unconfirmed proofs and coins**: a `tx:<txid>` proof passes while its transaction is still in the mempool, so until it is in a
+  block the sender could replace it with a double spend, and the proof would then fail as `tx_not_found`. The WizardConnect
+  option picks coins from the chain servers' unspent list without reading CashToken data, so on an address that holds tokens
+  check the transaction in the wallet before signing, or bind an address without tokens.
+- **Other NIP-39 verifiers**: two of the four measured read the demo binding's on-chain proof; one reports it as "proof unconfirmed"
+  a block after it was mined, one finds no BCH address. None reads the Paytaca binding, which is in the earlier prefixed form
+  ([measured](docs/MEASURED.md#interoperability)).
 - **On-chain proofs** (`tx:<txid>`), from other clients or the WizardConnect option, need the chain: the one-file verifier
   and the server's sign-in do not read it, so there such a claim shows as not checked and does not pass. The released
   library `core-v0.2.0` predates them and checks signed-message proofs only; it also writes the prefixed form and does not read `bitcoincash:` tags.

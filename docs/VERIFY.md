@@ -124,8 +124,9 @@ address over the text for this author.
 
 ## An on-chain proof
 
-Some NIP-39 clients, and the WizardConnect option on Link, write `bitcoincash:tx:<txid>` in place of a signature: a
-transaction spent from the claimed address with one output `OP_RETURN <verification text>` ([SPEC](SPEC.md)). The CLI reads
+Some NIP-39 clients, and the WizardConnect option on Link, write `tx:<txid>` in place of a signature (`["i",
+"bch:q…", "tx:<txid>"]`): a transaction spent from the claimed address with one output `OP_RETURN <verification text>`
+([SPEC](SPEC.md)). The CLI reads
 the transaction from the chain servers in `anchor.electrum` and counts it only when at least `anchor.quorum` of them agree.
 A real one, written by another client and kept as test data:
 
@@ -135,6 +136,16 @@ jq .event tests/fixtures/tx-proof-mainnet.json | npx tsx bin/tambat.ts verify -
 
 It exits 0 and prints `tx_found`, `address_match`, `tx_text`, `network` and `key_separation` as passed for the claim marked
 `on-chain proof`. With no chain server answering, the claim is skipped and does not pass: there is no proof without the chain.
+
+The demo key's binding is one, written by a real wallet over WizardConnect on mainnet (transaction
+`c5e9726c95bc325867fe88f9a0a1577fdd645545160d42b59309f63a2dc23c01`, block 978362; [MEASURED](MEASURED.md#third-party-wallet-over-wizardconnect)):
+
+```sh
+npx tsx bin/tambat.ts lookup npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt
+```
+
+A proof whose transaction is still in the mempool passes too; check that the explorer shows it in a block if you need it
+final.
 
 By hand, with any block explorer:
 

@@ -105,6 +105,28 @@ A `tx:<txid>` claim runs these steps in place of `bch_sig`:
 | `network` | As for a signed message. |
 | `key_separation` | As for a signed message, with the public key from the spending input. |
 
+A transaction still in the mempool passes these steps: none of them reads the block height. Until it is in a block the
+sender could replace it with a double spend, after which the claim fails as `tx_not_found`; a verifier that wants
+finality can ask the chain servers for the height itself.
+
+#### Writing one from a wallet over WizardConnect
+
+The Link page can ask a WizardConnect wallet to sign such a transaction ([ADR 0023](decisions/0023-wizardconnect-transaction-proof.md)):
+
+1. **Address discovery.** The wallet shares an extended public key. The page derives receive addresses, then change
+   addresses, in batches of `wizardConnect.scan.gapLimit` (20, the BIP44 gap limit), asking the chain servers for history
+   and unspent coins once per batch. A path stops after `gapLimit` unused addresses in a row (no history and no coin) or at
+   `wizardConnect.scan.maxAddresses` (200). Reference: `web/keys/wallet-scan.ts`.
+2. **Coin choice.** The funded address with the largest balance that can pay the fee is the one bound; the proof spends from
+   that address only. With `wizardConnect.acceptUnconfirmed` on, coins still in the mempool count. Nothing found means the
+   page reports how many addresses it checked; it never shows an address of its own.
+3. **Preview and signing.** The page shows the address, the data output, the change and the fee. The wallet signs, the page
+   checks the signed transaction as a verifier would and sends it, and the kind 10011 event is published with `tx:<txid>`.
+4. **Disconnect.** If the wallet ends the session at any step after pairing, the page closes it, rejects a pending signature
+   request and goes back to Connect with the reason. A wallet that sends Disconnect is noticed after the library's 8 second
+   grace; a silent wallet after the library marks the relay as reconnecting and `wizardConnect.livenessSeconds` (30) pass
+   ([ADR 0025](decisions/0025-wallet-disconnect.md)).
+
 Unlike the other steps, a skipped step makes a `tx:<txid>` claim fail to verify: without the chain there is no proof. The
 offline verifier (`verifier/`) never reads the chain, so it shows such a claim as not checked. Reference:
 `verifyBindingOnChain` in `src/core/verify-chain.ts`; test data from a real mainnet proof in
