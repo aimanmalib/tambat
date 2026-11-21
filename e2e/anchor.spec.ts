@@ -75,6 +75,7 @@ async function fakeWallet(page: Page, refuse?: { code: number; message: string }
     w.__requests = requests;
     w.__tambatSignClient = {
       init: async () => ({
+        on: () => undefined,
         connect: async (opts: { requiredNamespaces: { bch: { methods: string[] } } }) => ({
           uri: 'wc:0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0@2?relay-protocol=irn&symKey=00',
           approval: () =>

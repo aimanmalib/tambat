@@ -103,6 +103,7 @@
     },
     "wcSign": "Minta dompet menandatangan",
     "wcSigning": "Sahkan tandatangan dalam dompet anda.",
+    "wcEnded": "Dompet menamatkan sambungan. Sambung semula untuk meneruskan.",
     "wcUnavailable": "WalletConnect belum disediakan di laman ini. Tampal tandatangan sebagai ganti.",
     "paste": "Tampal tandatangan",
     "pasteHelp": "Guna Sign message dalam mana-mana dompet BCH, contohnya Electron Cash, dengan mesej di atas.",
@@ -482,7 +483,7 @@
     "unreachable": "Pelayan rantaian tidak dapat dicapai, jadi syiling tidak dapat dibaca. Cuba lagi nanti.",
     "badReply": "Jawapan dompet bukan transaksi yang diminta halaman ini, atau ia tidak membuktikan pautan ini. Tiada apa yang dihantar.",
     "sendFailed": "Pelayan rantaian menolak transaksi: {detail}",
-    "disconnected": "Dompet menamatkan sambungan."
+    "disconnected": "Dompet menamatkan sambungan. Sambung semula untuk meneruskan."
   },
   "anchor": {
     "title": "Sauh BCH (pilihan)",

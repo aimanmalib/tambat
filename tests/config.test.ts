@@ -101,6 +101,11 @@ describe('config/tambat.json', () => {
       ['scan.maxAddresses', (w) => (scan(w).maxAddresses = 200.5)],
       ['acceptUnconfirmed', (w) => (w.acceptUnconfirmed = 'true')],
       ['acceptUnconfirmed', (w) => delete w.acceptUnconfirmed],
+      ['livenessSeconds', (w) => delete w.livenessSeconds],
+      ['livenessSeconds', (w) => (w.livenessSeconds = 4)],
+      ['livenessSeconds', (w) => (w.livenessSeconds = 601)],
+      ['livenessSeconds', (w) => (w.livenessSeconds = 30.5)],
+      ['livenessSeconds', (w) => (w.livenessSeconds = '30')],
       ['sourceUrl', (w) => (w.sourceUrl = 'http://example.org')],
       ['licenseUrl', (w) => (w.licenseUrl = undefined)],
     ];

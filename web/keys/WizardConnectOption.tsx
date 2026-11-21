@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { config } from '../../src/config';
 import type { BchClaim } from '../../src/core/binding';
 import type { TxLookup } from '../../src/core/tx-proof';
-import { errorText } from '../../src/errors';
+import { errorText, TextError } from '../../src/errors';
 import { useText } from '../i18n';
 import { CopyValue, useCopy } from '../ui/Copy';
 import { Notice } from '../ui/Notice';
@@ -68,28 +68,42 @@ export function WizardConnectOption({ npub, onClaim }: { npub: string; onClaim: 
   const start = async () => {
     setError('');
     setStep({ kind: 'opening' });
+    let s: WizardSession | undefined;
+    /** False once the wallet left or the page closed this session: later results of it are dropped. */
+    const live = () => s !== undefined && session.current === s;
     try {
       const { openWizardSession } = await import('./anchor-wizard-session');
-      const s = await openWizardSession(t('app.name'));
-      session.current = s;
-      setStep({ kind: 'pairing', uri: s.uri });
-      const { wallet, name } = await s.ready;
+      const opened = await openWizardSession(t('app.name'));
+      s = opened;
+      session.current = opened;
+      // The wallet can end the session at any step (pairing, planning, preview, signing): back to the start, saying so.
+      opened.onClose(() => {
+        if (session.current === opened) fail(new TextError('wizard.disconnected'));
+      });
+      setStep({ kind: 'pairing', uri: opened.uri });
+      const { wallet, name } = await opened.ready;
+      if (!live()) return;
       setStep({ kind: 'planning', name });
-      setStep({ kind: 'preview', name, wallet, plan: await planProof(wallet, npub) });
+      const plan = await planProof(wallet, npub);
+      if (live()) setStep({ kind: 'preview', name, wallet, plan });
     } catch (e) {
-      fail(e);
+      if (s === undefined || live()) fail(e);
     }
   };
 
   const sign = async (name: string, wallet: ProofWallet, plan: ProofPlan) => {
+    const s = session.current;
     setError('');
     setStep({ kind: 'signing', name });
     try {
       const { claim, txLookups } = await signProof(wallet, plan, npub, t('wizard.prompt'));
+      if (session.current !== s) return;
       session.current?.close();
       session.current = null;
       onClaim(claim, txLookups);
     } catch (e) {
+      // The wallet left while it was asked to sign: onClose already went back to the start.
+      if (session.current !== s) return;
       setError(errorText(e, t));
       setStep({ kind: 'preview', name, wallet, plan });
     }

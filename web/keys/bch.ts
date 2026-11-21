@@ -1,8 +1,8 @@
 /** BCH signers: a throwaway demo key in memory, or a wallet over WalletConnect (see walletconnect.ts). */
 import { secp256k1 } from '@bitauth/libauth';
-import { config } from '../../src/config';
-import { signMessage } from '../../src/core/bchmsg';
-import { addressFromPublicKey } from '../../src/core/cashaddr';
+import { config } from '../../src/config.js';
+import { signMessage } from '../../src/core/bchmsg.js';
+import { addressFromPublicKey } from '../../src/core/cashaddr.js';
 
 export type BchSignerKind = 'walletconnect' | 'demo';
 
@@ -12,6 +12,11 @@ export interface BchSigner {
   signMessage(text: string): Promise<string>;
   /** WalletConnect only: send any request of the session's methods to the wallet (see anchor.ts). */
   request?(method: string, params: unknown): Promise<unknown>;
+  /**
+   * WalletConnect only: called once when the wallet ends the session (`session_delete`) or it expires
+   * (`session_expire`). Requests still waiting are rejected at that moment (docs/decisions/0025-wallet-disconnect.md).
+   */
+  onEnd?(listener: () => void): void;
 }
 
 export function demoBchSigner(): BchSigner {

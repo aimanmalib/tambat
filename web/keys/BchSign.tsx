@@ -13,7 +13,7 @@ import { demoBchSigner, type BchSigner } from './bch';
 import { useKeys } from './KeysContext';
 import { WalletConnectOption } from './WalletConnectOption';
 import { WizardConnectOption } from './WizardConnectOption';
-import { walletConnectAvailable } from './walletconnect';
+import { isSessionEnd, walletConnectAvailable } from './walletconnect';
 
 interface Props {
   pubkey: string;
@@ -31,7 +31,7 @@ function failedSteps(result: ClaimResult, t: Translate): string {
 /** Gets a BCH signature over the NIP-39 text for this npub, from a wallet, a pasted signature or a demo key. */
 export function BchSign({ pubkey, onClaim }: Props) {
   const { t } = useText();
-  const { bch, setBch } = useKeys();
+  const { bch, setBch, bchEnded } = useKeys();
   const npub = toNpub(pubkey);
   const text = verificationText(npub);
   const [address, setAddress] = useState('');
@@ -51,7 +51,7 @@ export function BchSign({ pubkey, onClaim }: Props) {
     try {
       accept({ address: signer.address, signature: await signer.signMessage(text) });
     } catch (e) {
-      setError(errorText(e, t));
+      if (!isSessionEnd(e)) setError(errorText(e, t));
     } finally {
       setBusy(false);
     }
@@ -79,6 +79,7 @@ export function BchSign({ pubkey, onClaim }: Props) {
         <>
           <div className="option">
             <h4 className="option__title">{t('bch.wc')}</h4>
+            {bchEnded ? <Notice tone="error">{t('bch.wcEnded')}</Notice> : null}
             <WalletConnectOption onConnected={setBch} />
           </div>
           {config.wizardConnect.enabled ? (

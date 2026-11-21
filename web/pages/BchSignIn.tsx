@@ -6,6 +6,7 @@ import { useText } from '../i18n';
 import type { BchSigner } from '../keys/bch';
 import { useKeys } from '../keys/KeysContext';
 import { WalletConnectOption } from '../keys/WalletConnectOption';
+import { isSessionEnd } from '../keys/walletconnect';
 import { CopyValue } from '../ui/Copy';
 import { KeyBadge } from '../ui/KeyBadge';
 import { Notice } from '../ui/Notice';
@@ -16,7 +17,7 @@ import { Notice } from '../ui/Notice';
  */
 export function BchSignIn({ onSession }: { onSession: (session: SessionView) => void }) {
   const { t } = useText();
-  const { bch, setBch } = useKeys();
+  const { bch, setBch, bchEnded } = useKeys();
   const [pasted, setPasted] = useState<Challenge | null>(null);
   const [address, setAddress] = useState('');
   const [signature, setSignature] = useState('');
@@ -29,7 +30,7 @@ export function BchSignIn({ onSession }: { onSession: (session: SessionView) => 
     try {
       await work();
     } catch (e) {
-      setError(`${t('demo.failed')}: ${errorText(e, t)}`);
+      if (!isSessionEnd(e)) setError(`${t('demo.failed')}: ${errorText(e, t)}`);
     } finally {
       setBusy(false);
     }
@@ -66,6 +67,7 @@ export function BchSignIn({ onSession }: { onSession: (session: SessionView) => 
       ) : (
         <div className="option">
           <h3 className="option__title">{t('bch.wc')}</h3>
+          {bchEnded ? <Notice tone="error">{t('bch.wcEnded')}</Notice> : null}
           <WalletConnectOption onConnected={setBch} />
         </div>
       )}

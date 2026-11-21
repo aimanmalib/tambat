@@ -7,12 +7,18 @@
 import { config } from '../../src/config';
 import { TextError } from '../../src/errors';
 import { wireSignRequest, type ProofWallet, type WalletPath } from './anchor-wizard';
+import { watchSession, type SessionEvents } from './wizard-liveness';
 
 export interface WizardSession {
   /** The `wiz://` link for the QR code and for copying into a wallet on the same phone. */
   uri: string;
   /** Resolves when the wallet has connected and shared its public keys. */
   ready: Promise<{ wallet: ProofWallet; name: string }>;
+  /**
+   * Called once when the wallet ends the session, at any step after pairing, or stays silent past
+   * `config.wizardConnect.livenessSeconds` (wizard-liveness.ts). Not called when the page closes the session itself.
+   */
+  onClose(listener: () => void): void;
   close(): void;
 }
 
@@ -33,20 +39,24 @@ export async function openWizardSession(dappName: string): Promise<WizardSession
     explicitRelayUrls: [config.wizardConnect.relay],
   });
   manager.attachRelay(relay);
+  const watch = watchSession(manager as unknown as SessionEvents, { graceMs: config.wizardConnect.livenessSeconds * 1000 });
 
   const wallet: ProofWallet = {
     publicKey: (path, index) => manager.getPubkey(CHILD[path], BigInt(index)),
     sign: async (request, inputPaths) => {
       // The relay JSON-encodes the request: bigint and bytes go as libauth extended JSON (anchor-wizard.ts).
       const transaction = wireSignRequest({ ...request, broadcast: false }) as Parameters<typeof manager.signTransaction>[0]['transaction'];
-      const reply = await manager.signTransaction({ transaction, inputPaths });
+      // A wallet that leaves while the request waits rejects it at once instead of leaving the page waiting.
+      const reply = await watch.guard(manager.signTransaction({ transaction, inputPaths }));
+      // Signed: the page needs nothing more from the wallet, so a wallet that leaves now does not undo the proof.
+      watch.stop();
       return reply.signedTransaction;
     },
   };
 
   const ready = new Promise<{ wallet: ProofWallet; name: string }>((resolve, reject) => {
     manager.on('walletready', () => resolve({ wallet, name: manager.walletName ?? '' }));
-    manager.on('disconnect', () => reject(new TextError('wizard.disconnected')));
+    watch.onClose(() => reject(new TextError('wizard.disconnected')));
   });
   // A rejection nobody waits for (the page closed the session first) is not an error.
   ready.catch(() => undefined);
@@ -54,7 +64,9 @@ export async function openWizardSession(dappName: string): Promise<WizardSession
   return {
     uri: relay.uri,
     ready,
+    onClose: (listener) => watch.onClose(listener),
     close: () => {
+      watch.stop();
       void manager.destroy().finally(() => relay.cleanup());
     },
   };

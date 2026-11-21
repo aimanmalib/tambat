@@ -236,13 +236,17 @@ export interface TambatConfig {
    * transaction whose OP_RETURN is the NIP-39 text. `relay` carries the encrypted session messages. `scan` walks each key
    * path of the wallet until `gapLimit` unused addresses in a row (BIP44 practice), looking at no more than
    * `maxAddresses` on one path (web/keys/wallet-scan.ts). `acceptUnconfirmed` lets the proof spend coins not yet in a
-   * block (the demo key's own anchor keeps anchor.confirmedCoinsOnly). The library's source and licence are linked.
+   * block (the demo key's own anchor keeps anchor.confirmedCoinsOnly). `livenessSeconds` is how long the page waits for
+   * the wallet once the library reports its relay link as reconnecting (the library says "disconnect" only when the
+   * wallet sends one; a wallet that goes silent is reported as reconnecting) before it ends the session
+   * (web/keys/wizard-liveness.ts). The library's source and licence are linked.
    */
   wizardConnect: {
     enabled: boolean;
     relay: string;
     scan: { gapLimit: number; maxAddresses: number };
     acceptUnconfirmed: boolean;
+    livenessSeconds: number;
     sourceUrl: string;
     licenseUrl: string;
   };
@@ -459,6 +463,8 @@ function parseWizardConnect(w: TambatConfig['wizardConnect']): void {
     fail('wizardConnect.scan.maxAddresses', 'must be an integer from gapLimit to 1000');
   }
   if (typeof w.acceptUnconfirmed !== 'boolean') fail('wizardConnect.acceptUnconfirmed', 'must be true or false');
+  const live = w.livenessSeconds;
+  if (!Number.isInteger(live) || live < 5 || live > 600) fail('wizardConnect.livenessSeconds', 'must be an integer from 5 to 600');
   for (const k of ['sourceUrl', 'licenseUrl'] as const) {
     if (typeof w[k] !== 'string' || !w[k].startsWith('https://')) fail(`wizardConnect.${k}`, 'must be an https:// URL');
   }

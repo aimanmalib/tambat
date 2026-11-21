@@ -329,7 +329,7 @@ site. Open it at https://tambat.sasateguh.com/verify/ or download it from there.
 SHA-256 of `tambat-verify.html` built from this commit:
 
 ```
-2c1244dbdde679026938369f07f6c077dc378dc6981ccfe7a0e7a5e59cb7fb6f  tambat-verify.html
+7c375972873146299f4b15c4ebc6efd20544edfd71b8b574b974396dcf8f8b45  tambat-verify.html
 ```
 
 To check a copy, rebuild it and compare: `npm ci && npm run build:verifier` prints the hash of `dist-verifier/tambat-verify.html`;
@@ -403,7 +403,7 @@ the server answers) and `e2e/embed.spec.ts` (a page on another origin embeds bot
 - **Optional BCH anchor**: one anchor exists, for the Paytaca binding, made by its owner. The demo address holds no coins, so the
   demo key has no anchor and no on-chain proof. The wallet request (`bch_signTransaction`) is tested against a fake wallet only;
   revoke by transaction is tested against a simulated chain only, and no revocation has been sent on mainnet.
-- **WizardConnect** wallets sign a proof transaction ([ADR 0023](docs/decisions/0023-wizardconnect-transaction-proof.md)): the page walks the wallet's addresses up to a gap of 20 unused and accepts unconfirmed coins (`tests/wallet-scan.test.ts`, `e2e/wizard-scan.spec.ts`); not yet tested with a wallet, as the test needs a funded address.
+- **WizardConnect** wallets sign a proof transaction ([ADR 0023](docs/decisions/0023-wizardconnect-transaction-proof.md)): the page walks the wallet's addresses up to a gap of 20 unused and accepts unconfirmed coins (`tests/wallet-scan.test.ts`, `e2e/wizard-scan.spec.ts`); a wallet that disconnects after it connected, over WizardConnect or WalletConnect, sends the page back to Connect with the reason ([ADR 0025](docs/decisions/0025-wallet-disconnect.md), `e2e/wizard-disconnect.spec.ts`); not yet tested with a wallet, as the test needs a funded address.
 - **Other NIP-39 verifiers**: three of the four measured take only an on-chain proof, so they do not read the demo binding yet,
   and none reads the Paytaca binding, which is in the earlier prefixed form ([measured](docs/MEASURED.md#interoperability)).
 - **On-chain proofs** (`tx:<txid>`), from other clients or the WizardConnect option, need the chain: the one-file verifier

@@ -103,6 +103,7 @@
     },
     "wcSign": "Ask the wallet to sign",
     "wcSigning": "Confirm the signature in your wallet.",
+    "wcEnded": "The wallet ended the connection. Connect again to continue.",
     "wcUnavailable": "WalletConnect is not set up on this site. Paste a signature instead.",
     "paste": "Paste a signature",
     "pasteHelp": "Use Sign message in any BCH wallet, for example Electron Cash, with the message above.",
@@ -482,7 +483,7 @@
     "unreachable": "Chain servers unreachable, so the coins could not be read. Try again later.",
     "badReply": "The wallet's answer is not the transaction this page asked for, or it does not prove this link. Nothing was sent.",
     "sendFailed": "The chain servers refused the transaction: {detail}",
-    "disconnected": "The wallet ended the connection."
+    "disconnected": "The wallet ended the connection. Connect again to continue."
   },
   "anchor": {
     "title": "BCH anchor (optional)",

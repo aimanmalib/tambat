@@ -41,8 +41,12 @@ async function fakeWallet(page: Page, bound: boolean) {
     const w = window as unknown as Record<string, unknown> & { __walletSign: (m: string) => Promise<string> };
     const requests: unknown[] = [];
     w.__requests = requests;
+    // The wallet's session events: `__walletDisconnect()` deletes the session as Disconnect in Paytaca does.
+    const listeners: Record<string, (e: { topic: string }) => void> = {};
+    w.__walletDisconnect = () => listeners.session_delete?.({ topic: 'fake-topic' });
     w.__tambatSignClient = {
       init: async () => ({
+        on: (event: string, listener: (e: { topic: string }) => void) => void (listeners[event] = listener),
         connect: async (opts: { requiredNamespaces: { bch: { chains: string[]; methods: string[] } } }) => {
           w.__namespaces = opts.requiredNamespaces;
           return {
@@ -116,6 +120,19 @@ test('a signature pasted from any wallet signs in, and a reused challenge is ref
     { type: 'bch', address, signature, nonce },
   );
   expect(replay).toMatchObject({ error: 'challenge_unknown' });
+});
+
+test('a wallet that disconnects after it connected is forgotten: Connect again, with the reason, within two seconds', async ({ page }) => {
+  await fakeWallet(page, true);
+  await page.goto('/demo');
+  await pairAndApprove(page, en);
+  await page.evaluate(() => (window as unknown as { __walletDisconnect: () => void }).__walletDisconnect());
+  await expect(page.getByRole('button', exact(en.bch.wcStart))).toBeVisible({ timeout: 2_000 });
+  await expect(page.getByText(en.bch.wcEnded, { exact: true })).toBeVisible({ timeout: 2_000 });
+  await expect(page.locator('.keybadge__value')).toHaveCount(0);
+  await expect(page.getByRole('button', exact(en.demo.bchSignIn))).toHaveCount(0);
+  await expectNoOverflow(page);
+  await expectAccessible(page);
 });
 
 test('a wallet whose address has no linked Nostr key is refused with a clear reason', async ({ page }) => {
