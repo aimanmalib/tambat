@@ -1,4 +1,12 @@
-# Tambat
+<p align="center"><img src="brand/logo.svg" width="72" height="72" alt="Tambat logo: the green square of the site icon"></p>
+
+<h1 align="center">Tambat</h1>
+
+<p align="center"><a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-0e6b5c" alt="Licence: MIT"></a> <a href="https://tambat.sasateguh.com"><img src="https://img.shields.io/badge/demo-live-0e6b5c" alt="Live demo"></a> <a href="https://tambat.sasateguh.com/judges"><img src="https://img.shields.io/badge/judges-one%20screen-0e6b5c" alt="For judges: one screen"></a> <a href="docs/NIP-39-bch.md"><img src="https://img.shields.io/badge/Nostr-NIP--39-0e6b5c" alt="Nostr NIP-39"></a></p>
+
+<p align="center"><b>One person, two keys: bind a Bitcoin Cash address to a Nostr key, and let anyone check it without trusting a server.</b> · <i>Satu orang, dua kunci: ikat alamat Bitcoin Cash kepada kunci Nostr, dan biar sesiapa pun menyemaknya tanpa mempercayai pelayan.</i><br>
+<a href="https://tambat.sasateguh.com"><b>live demo</b></a> · <a href="https://tambat.sasateguh.com/judges"><b>Judging? Start here</b></a> · <a href="#try-it-in-60-seconds">Try it</a> · <a href="#run-it-locally">Run it</a> · <a href="#tests">Tests</a> · <a href="#known-limits-and-next-steps">Limits</a> · <a href="README.ms.md">Bahasa Melayu</a><br>
+Built in Malaysia by <a href="https://aimanmalib.com">Aiman Malib</a> · <a href="https://sasateguh.com">Sasa Teguh</a></p>
 
 Bind a Bitcoin Cash address to a Nostr public key, publish the binding to Nostr relays, and let anyone verify it without
 trusting a server.
@@ -15,6 +23,8 @@ https://github.com/aimanmalib/tambat/commit/988ff7db24092061477503a63fe28fcbb866
 - [Demo video](https://tambat.sasateguh.com/video) ([`public/media/tambat-demo.mp4`](public/media/tambat-demo.mp4), 56 s, no sound,
   captions in the picture) and [event deck](https://tambat.sasateguh.com/deck.pdf) (`npx tsx tools/deck/build.ts`): the banner
   of every page links both, this repository and the team's BCH address (`config/tambat.json` `banner`, `video`).
+
+![The Tambat home page: a live check of a real binding, found on the relays, both signatures and the address checked in the browser](docs/img/home.png)
 
 ## What it is
 
@@ -49,6 +59,8 @@ VC 2.0, the reputation file, the selective disclosure example, the phone pairing
 `core-v0.2.0` release. `tests/judges-links.test.ts` fails when a linked file or heading is missing from the tree or the
 release link is not the one this README installs from; `e2e/judges.spec.ts` holds the page to one screen at 1440 x 900
 and on an iPhone 13 and checks that every internal link answers 200.
+
+![The judges page: the live check of the demo identity, the recorded proof, the five requirements and the judging criteria on one screen](docs/img/judges.png)
 
 | Requirement | Code | Try it or read it |
 | --- | --- | --- |
@@ -120,7 +132,7 @@ Beyond the required parts, each live and tested:
 - A NIP-05 name for the demo identity, an [embeddable badge](#embeddable-badge), a [one-file verifier](#one-file-verifier)
   and a "Try tampering" demo on every verified look-up.
 
-## Demo in 60 seconds
+## Try it in 60 seconds
 
 1. Open https://tambat.sasateguh.com. The first card is a real binding: the first of `hero.candidates` (`config/tambat.json`)
    whose newest binding passes and is written `bch:q…` (the owner's Paytaca binding, else this project's demo key; the card says
@@ -224,50 +236,19 @@ npx tsx bin/tambat.ts vc export <attestation id|file> [--binding <file>]  # atte
 npx tsx bin/tambat.ts vc verify examples/attestation-vc.json         # check a credential offline
 ```
 
-`verify` works offline. `lookup` asks the relays in `config/tambat.json` and verifies every event they return. Exit code 0 means
-verified, 1 not verified, 2 a usage error. Test vectors from the public BIP39 phrase `abandon ... about` are in
-[examples/vectors.json](examples/vectors.json). The core code also passes vectors from outside this project, pinned to a
-commit with their license in [examples/third-party-vectors.json](examples/third-party-vectors.json): BIP-340, the CashAddr
-specification and Electron Cash signed messages. [examples/paytaca-binding.ts](examples/paytaca-binding.ts) writes a binding
-from a phrase with only `@bitauth/libauth` and `nostr-tools`.
+`verify` works offline. `lookup` asks the relays in `config/tambat.json` and verifies every event they return. Exit code 0 means verified, 1 not verified, 2 a usage error. Test vectors from the public BIP39 phrase `abandon ... about` are in [examples/vectors.json](examples/vectors.json). The core code also passes vectors from outside this project, pinned to a commit with their license in [examples/third-party-vectors.json](examples/third-party-vectors.json): BIP-340, the CashAddr specification and Electron Cash signed messages. [examples/paytaca-binding.ts](examples/paytaca-binding.ts) writes a binding from a phrase with only `@bitauth/libauth` and `nostr-tools`.
 
-`revoke` and `rotate` sign with keys derived from a BIP39 phrase file (`{ "phrase": "..." }`, default `cli.keysFile` in the
-config, never tracked), on the paths a phrase wallet uses. `rotate` looks for the new address among the first
-`cli.addressSearchLimit` receiving addresses of that wallet and signs it fresh. Both publish one event that replaces the current
-binding, keep other identity tags, and print each relay's answer; nothing secret is printed. `recover` is for a lost Nostr key:
-the wallet that holds the bound address signs `replaces <old npub>`, and the new key (from `--keys`) publishes a binding for that
-address with the signature in a `replaces` tag ([SPEC](docs/SPEC.md#recovery-from-a-lost-nostr-key),
-[ADR 0009](docs/decisions/0009-recovery-tag.md)). Look-ups then show "Recovered from <old npub>" on the new key, and an address
-look-up marks the old key as moved. A recovery of the demo identity on the public relays is in [the measurements](docs/MEASURED.md#recovery).
+`revoke` and `rotate` sign with keys derived from a BIP39 phrase file (`{ "phrase": "..." }`, default `cli.keysFile` in the config, never tracked), on the paths a phrase wallet uses. `rotate` looks for the new address among the first `cli.addressSearchLimit` receiving addresses of that wallet and signs it fresh. Both publish one event that replaces the current binding, keep other identity tags, and print each relay's answer; nothing secret is printed. `recover` is for a lost Nostr key: the wallet that holds the bound address signs `replaces <old npub>`, and the new key (from `--keys`) publishes a binding for that address with the signature in a `replaces` tag ([SPEC](docs/SPEC.md#recovery-from-a-lost-nostr-key), [ADR 0009](docs/decisions/0009-recovery-tag.md)). Look-ups then show "Recovered from <old npub>" on the new key, and an address look-up marks the old key as moved. A recovery of the demo identity on the public relays is in [the measurements](docs/MEASURED.md#recovery).
 
-After paying an identity, the payer can publish a receipt: a NIP-32 label (kind 1985) naming the paid key and the
-transaction as a NIP-73 id `bitcoincash:tx:<txid>` ([SPEC](docs/SPEC.md#payment-receipts),
-[ADR 0010](docs/decisions/0010-payment-receipts.md)). The **Pay** page and `tambat receipt` read the transaction from a chain
-server and say "from a bound address" only when every input spends from an address bound to the receipt's author; otherwise
-"payer not proven". A receipt published on the public relays is in [the measurements](docs/MEASURED.md#receipt).
+After paying an identity, the payer can publish a receipt: a NIP-32 label (kind 1985) naming the paid key and the transaction as a NIP-73 id `bitcoincash:tx:<txid>` ([SPEC](docs/SPEC.md#payment-receipts), [ADR 0010](docs/decisions/0010-payment-receipts.md)). The **Pay** page and `tambat receipt` read the transaction from a chain server and say "from a bound address" only when every input spends from an address bound to the receipt's author; otherwise "payer not proven". A receipt published on the public relays is in [the measurements](docs/MEASURED.md#receipt).
 
-Another key can attest a binding: `tambat attest <npub>` publishes a NIP-32 label (kind 1985) that names the subject key and
-pins the id of its current binding event ([SPEC](docs/SPEC.md#attestations),
-[ADR 0011](docs/decisions/0011-attestations.md)). The look-up page and `tambat attestations` list only attestations of the
-current binding: once the subject rotates, recovers, revokes or publishes any newer binding, older attestations no longer
-count. An attestation is the attester's word, not a proof. One published on the public relays is in
-[the measurements](docs/MEASURED.md#attestation).
+Another key can attest a binding: `tambat attest <npub>` publishes a NIP-32 label (kind 1985) that names the subject key and pins the id of its current binding event ([SPEC](docs/SPEC.md#attestations), [ADR 0011](docs/decisions/0011-attestations.md)). The look-up page and `tambat attestations` list only attestations of the current binding: once the subject rotates, recovers, revokes or publishes any newer binding, older attestations no longer count. An attestation is the attester's word, not a proof. One published on the public relays is in [the measurements](docs/MEASURED.md#attestation).
 
-An attestation also exports as a W3C Verifiable Credential 2.0 ([ADR 0017](docs/decisions/0017-attestation-verifiable-credential.md)):
-issuer `did:nostr:<attester>`, subject `did:nostr:<subject>` with its BCH addresses, and a proof that carries the signed
-attestation and binding events. `tambat vc verify` and the one-file verifier check both events and that every field is what
-they say, compared as RFC 8785 canonical JSON, with no JSON-LD processing and nothing fetched. Offline it shows who attested
-which binding and when, not whether that binding is still current.
+An attestation also exports as a W3C Verifiable Credential 2.0 ([ADR 0017](docs/decisions/0017-attestation-verifiable-credential.md)): issuer `did:nostr:<attester>`, subject `did:nostr:<subject>` with its BCH addresses, and a proof that carries the signed attestation and binding events. `tambat vc verify` and the one-file verifier check both events and that every field is what they say, compared as RFC 8785 canonical JSON, with no JSON-LD processing and nothing fetched. Offline it shows who attested which binding and when, not whether that binding is still current.
 
-`tambat rep export <npub|nprofile> --out file.json` bundles those credentials into one portable reputation file
-([SPEC](docs/SPEC.md#portable-reputation)). `tambat rep verify file.json` checks every credential again and recounts: one
-per issuer, only attestations of the named binding, never the holder's own; a file that claims more than that is rejected.
-`--chain` also reads the chain to check the claimed "anchored since" block.
+`tambat rep export <npub|nprofile> --out file.json` bundles those credentials into one portable reputation file ([SPEC](docs/SPEC.md#portable-reputation)). `tambat rep verify file.json` checks every credential again and recounts: one per issuer, only attestations of the named binding, never the holder's own; a file that claims more than that is rejected. `--chain` also reads the chain to check the claimed "anchored since" block.
 
-`tambat sd issue --keys <file> --out mine.json` makes a selective disclosure credential from the holder's binding with
-every field disclosed; it stays with the holder. `tambat sd present mine.json --reveal bchAddress --out share.json` keeps
-only the address, and `tambat sd verify share.json` checks it offline and counts the hidden fields
-([SPEC](docs/SPEC.md#selective-disclosure)).
+`tambat sd issue --keys <file> --out mine.json` makes a selective disclosure credential from the holder's binding with every field disclosed; it stays with the holder. `tambat sd present mine.json --reveal bchAddress --out share.json` keeps only the address, and `tambat sd verify share.json` checks it offline and counts the hidden fields ([SPEC](docs/SPEC.md#selective-disclosure)).
 
 ## Use the library
 
@@ -457,12 +438,18 @@ English by default with a Malay toggle; all text is in `lang/en.json` and `lang/
   that key's binding on the relays and says which npub the name led to.
 - **Verify** (`/verify/`) is the [one-file verifier](#one-file-verifier), linked from Look up with a download link.
 
-## Development
+## Run it locally
 
 Node 22, npm.
 
 ```
 npm ci
+npm run build && npm start     # the web app and the sign-in server (see Server above)
+```
+
+### Tests
+
+```
 npm test
 npm run build && npm run e2e   # Chromium desktop and WebKit iPhone 13
 npm run gate                   # lint, types, unit tests, build, end-to-end tests
@@ -498,3 +485,9 @@ reviews the work.
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+## Work with Sasa Teguh
+
+I built this project. I run [Sasa Teguh](https://sasateguh.com), a studio in Malaysia that builds websites found on Google and in AI answers, and sets up systems like this one for businesses.
+
+[Book a call](https://sasateguh.com/book) · hello@sasateguh.com · [More from Sasa Teguh](https://github.com/sasateguh)
