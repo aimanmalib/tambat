@@ -11,6 +11,7 @@ trusting a server.
 
 Built for BCH BLAZE 2026, bounty "Decentralized Identity". New project, first commit after the 14 November start:
 https://github.com/aimanmalib/tambat/commit/988ff7db24092061477503a63fe28fcbb866b92c. Live demo: https://tambat.sasateguh.com
+
 Prize and EMBER2026 vote address of this entry: `bitcoincash:zpw5zvrmw73eyakw92z98gccxnrhvrhuvypka96fwg`.
 
 - [Protocol specification](docs/SPEC.md): the protocol, the verification algorithm, sign-in and test vectors.
