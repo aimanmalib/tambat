@@ -29,7 +29,7 @@ async function openPairing(page: Page, t: typeof en, path: string) {
   await page.getByRole('button', exact(t.nostr.demo)).click();
   const option = page.locator('[data-option="wizardconnect"]');
   await expect(option.getByRole('heading', exact(t.wizard.title))).toBeVisible();
-  await expect(option.getByText(t.wizard.untested, { exact: false })).toBeVisible();
+  await expect(option.getByText(t.wizard.tested, { exact: false })).toBeVisible();
   await option.getByRole('button', exact(t.wizard.start)).click();
   const pairing = option.locator('[data-pairing="wizard"]');
   await expect(pairing).toBeVisible({ timeout: 15_000 });

@@ -64,9 +64,11 @@ anchor with the demo key keeps `config.anchor.confirmedCoinsOnly`.
 
 - People whose wallet speaks WizardConnect but not WalletConnect can bind without pasting a signature. The binding
   costs a small fee and is public on chain; message bindings stay free.
-- Not yet tested with a wallet. Tests use a fake wallet that signs with keys from the public BIP39 test phrase and a
-  fake chain (`tests/anchor-wizard.test.ts`, `tests/wallet-scan.test.ts`); the browser tests check the pairing code
-  and link, and a fake wallet whose only coin is unconfirmed at receive index 23 (`e2e/wizard-scan.spec.ts`).
+- Tested with Cashonize v0.15.2 over WizardConnect on mainnet on 2026-11-21 (one proof transaction; see
+  MEASURED.md, "Third-party wallet over WizardConnect"). No other WizardConnect wallet has been tried. Tests use a
+  fake wallet that signs with keys from the public BIP39 test phrase and a fake chain (`tests/anchor-wizard.test.ts`,
+  `tests/wallet-scan.test.ts`); the browser tests check the pairing code and link, and a fake wallet whose only coin
+  is unconfirmed at receive index 23 (`e2e/wizard-scan.spec.ts`).
 - Bindings made this way are verified by everything that reads `tx:` proofs. The single-file verifier and server
   sign-in do not read the chain (ADR 0021), so they report such a binding as not checked.
 - The libraries add about 420 kB to the files a browser downloads after pressing the button, and nothing before.

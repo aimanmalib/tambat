@@ -104,6 +104,27 @@ demo binding is therefore not anchored; the owner's Paytaca binding above is the
 
 ## Interoperability
 
+### 2026-11-21: after a proof transaction from a real wallet
+
+The demo binding's newest event is now the one written through a real wallet over WizardConnect (see
+[Third-party wallet over WizardConnect](#third-party-wallet-over-wizardconnect)): event
+`c1679cf68bb5ca336b5ddef4c66fd002f3847d92697652b897bcd105ee5be9f5`, `["i", "bch:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77",
+"tx:c5e9726c95bc325867fe88f9a0a1577fdd645545160d42b59309f63a2dc23c01"]`. The four verifiers were asked again the same way
+as on 2026-11-20 (lookup field, at most 45 s, nothing else pressed), from 19:05 to 19:06 UTC, one block after the
+transaction was mined.
+
+Verified by 2 of 4 independent NIP-39 verifiers. Tambat verifies 12 of 13 of theirs (measured on 2026-11-20, below, not
+repeated).
+
+| binding | verifier A | verifier B | verifier C | verifier D |
+| --- | --- | --- | --- | --- |
+| demo key `npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt`, `bch:q…` with `tx:<txid>` | ✓ verified | ✓ verified | ✗ "proof unconfirmed": the spend and text checks not passed | ✗ "the newest claim names no BCH address" |
+| Paytaca `npub16lxyujttr050u2a884r0xszc7wjjfzqkyy0u7qlh9ghmswcdkf3sascsuz` (unchanged since 17 Nov) | ✗ | ✗ | ✗ | ✗ |
+
+Because the newest demo binding is now proved by a transaction, the parts of Tambat that read no chain report it as not
+checked: the one-file verifier and server sign-in (ADR 0021). The badge reads the chain servers for such proofs, as Look up
+does. The home page card shows the first candidate whose binding passes without the chain, now the Paytaca binding.
+
 ### 2026-11-20: Tambat bindings read by four independent verifiers
 
 Four NIP-39 verifiers built by other teams (verifier A to D here) were opened in Chromium at their public pages at
@@ -181,11 +202,34 @@ The proof transaction `1f765b72…895f` is kept as test data in `tests/fixtures/
 spends, as returned by the chain server named there.
 
 2026-11-20: Tambat can now write this proof form too, through the WizardConnect option on Link
-([ADR 0023](decisions/0023-wizardconnect-transaction-proof.md)). Not yet tested with a wallet: no proof transaction has been
-made through it. What is measured is the code against a fake wallet that signs with keys from the public BIP39 test phrase
+([ADR 0023](decisions/0023-wizardconnect-transaction-proof.md)). A real wallet was used on 2026-11-21, see
+[Third-party wallet over WizardConnect](#third-party-wallet-over-wizardconnect). Also measured is the code against a fake wallet that signs with keys from the public BIP39 test phrase
 and a fake chain (`tests/anchor-wizard.test.ts`: the signed proof passes `verifyClaim`; a transaction signed by another key,
 one with an extra output, and a reply that is not a transaction are refused before anything is sent), and the pairing code
 and link in Chromium and WebKit on an iPhone 13 (`e2e/wizard.spec.ts`).
+
+## Third-party wallet over WizardConnect
+
+2026-11-21: Tested with Cashonize v0.15.2 over WizardConnect on mainnet. Cashonize is the release build at commit
+`4542351748dc`, served unmodified from a local folder and driven by Playwright in Chromium; the demo phrase was imported
+as an HD wallet and its first address was the demo address `bitcoincash:qr2fkhyknwxwxurvmnkyexhlhm5mpd5fmykwdplz77`. The
+Nostr side was the demo key through a NIP-07 stand-in. Tambat was the live site, https://tambat.sasateguh.com/link.
+
+Funding: 0.00005 BCH received from a shared test wallet, txid
+485c9e766934d504b4ccad8a4073a9434c29414f7e9d083c455ce3eecf7f22d6, for the fee of one WizardConnect proof transaction.
+
+| step | result |
+| --- | --- |
+| pairing and address scan | the wallet paired from the `wiz://` link; the scan found the 5000 sat coin, unconfirmed, in 5.7 s (6.2 s in a dry run before) |
+| preview | "one data output with the NIP-39 text (0 sat) and 4683 sat back to the same address. Fee: 317 sat." |
+| wallet prompt | Cashonize showed "Sign transaction", origin Tambat, balance change -317 sat; Sign was pressed |
+| transaction | `c5e9726c95bc325867fe88f9a0a1577fdd645545160d42b59309f63a2dc23c01`, sent by the page at 18:45:44 UTC, fee 317 sat; in the mempool of 3 of 3 chain servers at 18:49 UTC and in block 978362 on all 3 at 19:05 UTC |
+| binding | event `c1679cf68bb5ca336b5ddef4c66fd002f3847d92697652b897bcd105ee5be9f5`, accepted by 4 of 5 relays; `tambat lookup` on the npub and on the address: VERIFIED (`tx_found`, `address_match`, `tx_text`, `network`, `key_separation` pass) |
+| disconnect | a second pairing reached the preview (4366 sat change coin found, unconfirmed); removing that session in Cashonize made the page show "The wallet ended the connection. Connect again to continue." after 9.1 s |
+
+The first disconnect attempt removed the earlier session (Cashonize still listed it after the page had closed it), so
+the page, correctly, kept its own session; the measurement above removed the session the page was using. This is one
+wallet; no other WizardConnect wallet has been tried.
 
 ## Video
 

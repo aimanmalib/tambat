@@ -80,7 +80,7 @@ mesej bertandatangan Electron Cash) turut lulus.
 - **Privasi**: ikatan sengaja awam dan memautkan alamat pembayaran kepada identiti sosial. Gunakan alamat berasingan jika
   mahu pembayaran yang tidak boleh dipautkan.
 - **Sauh BCH pilihan**: hanya satu sauh wujud, untuk ikatan Paytaca, dibuat oleh pemiliknya; kunci demo tiada sauh.
-- **Dompet WizardConnect** belum diuji dengan dompet sebenar, kerana ujian itu memerlukan alamat yang berdana.
+- **Dompet WizardConnect** diuji dengan Cashonize v0.15.2 sahaja (mainnet, satu transaksi bukti); dompet WizardConnect lain belum diuji.
 - Senarai penuh: [README.md](README.md#known-limits-and-next-steps).
 
 ## Pendedahan AI

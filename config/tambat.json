@@ -192,7 +192,7 @@
       "npub": "npub1mu7f0uqpq86xx7xlzacw8hhqdxspmzwqucfcya2rzucnnvvvg6asnqhqql"
     },
     "openFromWidth": "60rem",
-    "interop": { "verifiedBy": 1, "verifiers": 4, "verifiesTheirs": 12, "theirs": 13, "measuredAt": "2026-11-20T15:03:34Z" }
+    "interop": { "verifiedBy": 2, "verifiers": 4, "verifiesTheirs": 12, "theirs": 13, "measuredAt": "2026-11-21T19:06:51Z" }
   },
   "receipt": {
     "kind": 1985,

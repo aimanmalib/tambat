@@ -132,7 +132,7 @@ export function WizardConnectOption({ npub, onClaim }: { npub: string; onClaim: 
       {step.kind === 'signing' ? <Notice>{t('wizard.signing')}</Notice> : null}
       {error ? <Notice tone="error">{error}</Notice> : null}
       <p className="wizard__note">
-        {t('wizard.untested')}{' '}
+        {t('wizard.tested')}{' '}
         {t('wizard.license')} <a href={config.wizardConnect.sourceUrl} rel="noreferrer">{t('wizard.source')}</a>,{' '}
         <a href={config.wizardConnect.licenseUrl} rel="noreferrer">{t('wizard.licenseLink')}</a>.
       </p>
