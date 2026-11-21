@@ -6,6 +6,12 @@ import { join } from 'node:path';
 import config from '../config/tambat.json' with { type: 'json' };
 import { en, expect, expectAccessible, expectNoOverflow, ms, test } from './fixtures.js';
 
+/** The rule the banner's `shortAddress` (web/ui/Banner.tsx) follows, restated here: Node cannot load the web modules. */
+function shortAddress(address: string): string {
+  const body = address.slice(address.indexOf(':') + 1);
+  return body.length > 14 ? `${body.slice(0, 6)}…${body.slice(-6)}` : body;
+}
+
 const commitUrl = `${config.banner.repoUrl}/commit/${config.banner.firstCommit}`;
 
 test('the banner links the deck, the repository and the address', async ({ page, consoleErrors }, info) => {
@@ -24,8 +30,7 @@ test('the banner links the deck, the repository and the address', async ({ page,
   await expect(address.locator('code')).toHaveAttribute('title', config.banner.contactAddress);
   await expect(address.locator('.sr-only')).toHaveText(config.banner.contactAddress);
   // What people see and compare on a phone: the start and the end of the same address, without the prefix.
-  const body = config.banner.contactAddress.slice(config.banner.contactAddress.indexOf(':') + 1);
-  await expect(address.locator('code span[aria-hidden="true"]')).toHaveText(`${body.slice(0, 6)}…${body.slice(-6)}`);
+  await expect(address.locator('code span[aria-hidden="true"]')).toHaveText(shortAddress(config.banner.contactAddress));
   await expect(address.getByRole('button', { name: `${en.banner.copy}: ${en.banner.address}` })).toBeVisible();
   await expectAccessible(page);
 
