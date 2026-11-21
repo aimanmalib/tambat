@@ -202,3 +202,20 @@ describe('WizardConnect proof: signing and sending', () => {
     expect(typeof decodeTransaction(hexToBin(lookup.evidence.raw))).not.toBe('string');
   });
 });
+
+describe('wireSignRequest', () => {
+  it('turns a sign request with bigint values and bytes into plain JSON a relay can send', async () => {
+    const { wireSignRequest } = await import('../web/keys/anchor-wizard.js');
+    const request = {
+      transaction: { version: 2, locktime: 0, inputs: [], outputs: [{ lockingBytecode: hexToBin('6a'), valueSatoshis: 0n }] },
+      sourceOutputs: [{ lockingBytecode: hexToBin('76a9'), valueSatoshis: 49732n }],
+      userPrompt: 'p',
+      broadcast: false,
+    };
+    expect(() => JSON.stringify(request)).toThrow(/BigInt/);
+    const wire = wireSignRequest(request);
+    const text = JSON.stringify(wire);
+    expect(text).toContain('<bigint: 49732n>');
+    expect(text).toContain('<Uint8Array: 0x76a9>');
+  });
+});

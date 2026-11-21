@@ -5,7 +5,7 @@
  * wallet's addresses, builds the transaction without signatures, the wallet signs it, the page checks the signed
  * transaction with the same code every verifier runs, and only then sends it. No key is held here.
  */
-import { binToHex, decodeTransaction, hexToBin, type Input, type Output, type TransactionCommon } from '@bitauth/libauth';
+import { binToHex, decodeTransaction, hexToBin, stringify, type Input, type Output, type TransactionCommon } from '@bitauth/libauth';
 import { config } from '../../src/config.js';
 import { opReturnFromCoins, txidOf, type AnchorRefusal, type PreparedAnchor, type Utxo } from '../../src/core/anchor.js';
 import { electrumChain, scripthashOf, type ChainSource, type OpenChain } from '../../src/core/anchor-chain.js';
@@ -15,6 +15,13 @@ import { checkTxProof, proofOutput, TX_PROOF_PREFIX, type TxEvidence, type TxLoo
 import { TextError } from '../../src/errors.js';
 
 export type WalletPath = 'receive' | 'change';
+
+/**
+ * The sign request in the form the WizardConnect relay can send. The relay calls JSON.stringify, which throws on the
+ * bigint values (`valueSatoshis`) and garbles the byte arrays of a libauth transaction. BCH wallet requests carry those
+ * in libauth's extended JSON (`<bigint: 1n>`, `<Uint8Array: 0x..>`), which wallets read back (the same form tuai sends).
+ */
+export const wireSignRequest = (request: unknown): unknown => JSON.parse(stringify(request)) as unknown;
 
 /** What the page needs from a WizardConnect session (wizardconnect.ts adapts the library to this). */
 export interface ProofWallet {

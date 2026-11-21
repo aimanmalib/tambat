@@ -6,7 +6,7 @@
  */
 import { config } from '../../src/config';
 import { TextError } from '../../src/errors';
-import type { ProofWallet, WalletPath } from './anchor-wizard';
+import { wireSignRequest, type ProofWallet, type WalletPath } from './anchor-wizard';
 
 export interface WizardSession {
   /** The `wiz://` link for the QR code and for copying into a wallet on the same phone. */
@@ -30,8 +30,8 @@ export async function openWizardSession(dappName: string): Promise<WizardSession
   const wallet: ProofWallet = {
     publicKey: (path, index) => manager.getPubkey(CHILD[path], BigInt(index)),
     sign: async (request, inputPaths) => {
-      // The library's types come from a newer libauth; the values are the same plain objects.
-      const transaction = { ...request, broadcast: false } as unknown as Parameters<typeof manager.signTransaction>[0]['transaction'];
+      // The relay JSON-encodes the request: bigint and bytes go as libauth extended JSON (anchor-wizard.ts).
+      const transaction = wireSignRequest({ ...request, broadcast: false }) as Parameters<typeof manager.signTransaction>[0]['transaction'];
       const reply = await manager.signTransaction({ transaction, inputPaths });
       return reply.signedTransaction;
     },
