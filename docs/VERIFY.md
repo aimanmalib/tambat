@@ -138,7 +138,7 @@ It exits 0 and prints `tx_found`, `address_match`, `tx_text`, `network` and `key
 `on-chain proof`. With no chain server answering, the claim is skipped and does not pass: there is no proof without the chain.
 
 The demo key's binding is one, written by a real wallet over WizardConnect on mainnet (transaction
-`c5e9726c95bc325867fe88f9a0a1577fdd645545160d42b59309f63a2dc23c01`, block 978362; [MEASURED](MEASURED.md#third-party-wallet-over-wizardconnect)):
+`c5e9726c95bc325867fe88f9a0a1577fdd645545160d42b59309f63a2dc23c01`, block 978362; [measured](MEASURED.md#third-party-wallet-over-wizardconnect)):
 
 ```sh
 npx tsx bin/tambat.ts lookup npub18yklrtcpe34drm9t4pu8nfytlwqy30clje05ue8j0298v3quqn6qh8pfwt
