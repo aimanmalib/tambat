@@ -1,6 +1,4 @@
-<p align="center"><img src="brand/logo.svg" width="72" height="72" alt="Tambat logo: the green square of the site icon"></p>
-
-<h1 align="center">Tambat</h1>
+<h1 align="center"><img src="brand/logo.png" width="300" alt="Tambat"></h1>
 
 <p align="center"><a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-0e6b5c" alt="Licence: MIT"></a> <a href="https://tambat.sasateguh.com"><img src="https://img.shields.io/badge/demo-live-0e6b5c" alt="Live demo"></a> <a href="https://tambat.sasateguh.com/judges"><img src="https://img.shields.io/badge/judges-one%20screen-0e6b5c" alt="For judges: one screen"></a> <a href="docs/NIP-39-bch.md"><img src="https://img.shields.io/badge/Nostr-NIP--39-0e6b5c" alt="Nostr NIP-39"></a></p>
 
@@ -13,6 +11,7 @@ trusting a server.
 
 Built for BCH BLAZE 2026, bounty "Decentralized Identity". New project, first commit after the 14 November start:
 https://github.com/aimanmalib/tambat/commit/988ff7db24092061477503a63fe28fcbb866b92c. Live demo: https://tambat.sasateguh.com
+Prize and EMBER2026 vote address of this entry: `bitcoincash:zpw5zvrmw73eyakw92z98gccxnrhvrhuvypka96fwg`.
 
 - [Protocol specification](docs/SPEC.md): the protocol, the verification algorithm, sign-in and test vectors.
 - [Verify it yourself](docs/VERIFY.md): check a binding with the command line or by hand.

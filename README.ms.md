@@ -1,6 +1,4 @@
-<p align="center"><img src="brand/logo.svg" width="72" height="72" alt="Logo Tambat: segi empat hijau ikon laman"></p>
-
-<h1 align="center">Tambat</h1>
+<h1 align="center"><img src="brand/logo.png" width="300" alt="Tambat"></h1>
 
 <p align="center"><a href="LICENSE"><img src="https://img.shields.io/badge/lesen-MIT-0e6b5c" alt="Lesen: MIT"></a> <a href="https://tambat.sasateguh.com"><img src="https://img.shields.io/badge/demo-hidup-0e6b5c" alt="Demo hidup"></a> <a href="https://tambat.sasateguh.com/judges"><img src="https://img.shields.io/badge/juri-satu%20skrin-0e6b5c" alt="Untuk juri: satu skrin"></a> <a href="docs/NIP-39-bch.md"><img src="https://img.shields.io/badge/Nostr-NIP--39-0e6b5c" alt="Nostr NIP-39"></a></p>
 
@@ -14,6 +12,7 @@ Inggeris dan `docs/`; jika kedua-duanya berbeza, versi Inggeris yang terpakai.
 Dibina untuk BCH BLAZE 2026, ganjaran "Decentralized Identity". Projek baharu: komit pertama selepas acara bermula pada
 14 November ([komit pertama](https://github.com/aimanmalib/tambat/commit/988ff7db24092061477503a63fe28fcbb866b92c)).
 Laman ini dalam bahasa Inggeris dan Melayu: https://tambat.sasateguh.com
+Alamat hadiah dan undian EMBER2026 entri ini: `bitcoincash:zpw5zvrmw73eyakw92z98gccxnrhvrhuvypka96fwg`.
 
 ![Halaman utama Tambat: semakan hidup satu ikatan sebenar, ditemui di relay, kedua-dua tandatangan dan alamat disemak dalam pelayar](docs/img/home.png)
 
