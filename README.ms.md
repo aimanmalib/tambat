@@ -79,8 +79,17 @@ mesej bertandatangan Electron Cash) turut lulus.
 - **Identiti**: ikatan menyatakan dua kunci milik bersama, bukan siapa orangnya.
 - **Privasi**: ikatan sengaja awam dan memautkan alamat pembayaran kepada identiti sosial. Gunakan alamat berasingan jika
   mahu pembayaran yang tidak boleh dipautkan.
-- **Sauh BCH pilihan**: hanya satu sauh wujud, untuk ikatan Paytaca, dibuat oleh pemiliknya; kunci demo tiada sauh.
-- **Dompet WizardConnect** belum diuji dengan dompet sebenar, kerana ujian itu memerlukan alamat yang berdana.
+- **Sauh BCH pilihan**: hanya satu sauh wujud, untuk ikatan Paytaca, dibuat oleh pemiliknya. Kunci demo tiada sauh; satu-satunya
+  rekodnya di rantaian ialah transaksi bukti WizardConnect di bawah, dibayar dengan amaun ujian kecil yang dihantar ke alamat demo.
+- **Dompet WizardConnect** menandatangani transaksi bukti. Diuji dengan Cashonize v0.15.2 melalui WizardConnect di mainnet
+  (blok 978362): satu transaksi bukti, ikatan di relay yang disahkan oleh Look up, dan halaman mengesan bila dompet memutuskan
+  sambungan ([ukuran](docs/MEASURED.md#third-party-wallet-over-wizardconnect)). Ini satu dompet; dompet WizardConnect lain
+  belum dicuba.
+- **Bukti di rantaian** (`tx:<txid>`) lulus semasa transaksinya masih dalam mempool, jadi sebelum ia masuk blok penghantar
+  boleh menggantikannya dengan belanja berganda. Pengesah satu fail dan log masuk pelayan tidak membaca rantaian, jadi di
+  situ bukti begini dipapar sebagai tidak disemak.
+- **Pengesah NIP-39 lain**: dua daripada empat yang diukur membaca bukti di rantaian ikatan demo; tiada yang membaca ikatan
+  Paytaca, yang ditulis dalam bentuk lama ([ukuran](docs/MEASURED.md#interoperability)).
 - Senarai penuh: [README.md](README.md#known-limits-and-next-steps).
 
 ## Pendedahan AI
