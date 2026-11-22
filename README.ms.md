@@ -1,9 +1,11 @@
-<h1 align="center"><img src="brand/logo.png" width="300" alt="Tambat"></h1>
+<p align="center"><img src="brand/logo-512.png" width="112" height="112" alt="Tambat logo: two linked rings, one address and one key"></p>
+
+<h1 align="center">Tambat</h1>
 
 <p align="center"><a href="LICENSE"><img src="https://img.shields.io/badge/lesen-MIT-0e6b5c" alt="Lesen: MIT"></a> <a href="https://tambat.sasateguh.com"><img src="https://img.shields.io/badge/demo-hidup-0e6b5c" alt="Demo hidup"></a> <a href="https://tambat.sasateguh.com/judges"><img src="https://img.shields.io/badge/juri-satu%20skrin-0e6b5c" alt="Untuk juri: satu skrin"></a> <a href="docs/NIP-39-bch.md"><img src="https://img.shields.io/badge/Nostr-NIP--39-0e6b5c" alt="Nostr NIP-39"></a></p>
 
 <p align="center"><b>Satu orang, dua kunci: ikat alamat Bitcoin Cash kepada kunci Nostr, dan biar sesiapa pun menyemaknya tanpa mempercayai pelayan.</b> · <i>One person, two keys: bind a Bitcoin Cash address to a Nostr key, and let anyone check it without trusting a server.</i><br>
-<a href="https://youtu.be/S1PH3tSgvi0"><b>&#9654;&#xFE0E; video demo, 56 s</b></a> · <a href="https://tambat.sasateguh.com"><b>demo hidup</b></a> · <a href="https://tambat.sasateguh.com/judges"><b>Menilai? Mula di sini</b></a> · <a href="#cuba-dalam-60-saat">Cuba</a> · <a href="#jalankan-sendiri">Jalankan</a> · <a href="#ujian">Ujian</a> · <a href="#had">Had</a> · <a href="README.md">English</a><br>
+<a href="https://youtu.be/S1PH3tSgvi0"><b>&#9654;&#xFE0E; video demo, 56 s</b></a> · <a href="https://tambat.sasateguh.com"><b>demo hidup</b></a> · <a href="https://tambat.sasateguh.com/deck.pdf">slaid</a> · <a href="https://tambat.sasateguh.com/judges"><b>Menilai? Mula di sini</b></a> · <a href="#cuba-dalam-60-saat">Cuba</a> · <a href="#jalankan-sendiri">Jalankan</a> · <a href="#ujian">Ujian</a> · <a href="#had">Had</a> · <a href="README.md">English</a><br>
 Dibina di Malaysia oleh <a href="https://aimanmalib.com">Aiman Malib</a> · <a href="https://sasateguh.com">Sasa Teguh</a></p>
 
 Ini ringkasan Bahasa Melayu bagi [README.md](README.md). Spesifikasi, model ancaman dan setiap ukuran ada dalam versi
