@@ -3,7 +3,7 @@
 <p align="center"><a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-0e6b5c" alt="Licence: MIT"></a> <a href="https://tambat.sasateguh.com"><img src="https://img.shields.io/badge/demo-live-0e6b5c" alt="Live demo"></a> <a href="https://tambat.sasateguh.com/judges"><img src="https://img.shields.io/badge/judges-one%20screen-0e6b5c" alt="For judges: one screen"></a> <a href="docs/NIP-39-bch.md"><img src="https://img.shields.io/badge/Nostr-NIP--39-0e6b5c" alt="Nostr NIP-39"></a></p>
 
 <p align="center"><b>One person, two keys: bind a Bitcoin Cash address to a Nostr key, and let anyone check it without trusting a server.</b> · <i>Satu orang, dua kunci: ikat alamat Bitcoin Cash kepada kunci Nostr, dan biar sesiapa pun menyemaknya tanpa mempercayai pelayan.</i><br>
-<a href="https://tambat.sasateguh.com"><b>live demo</b></a> · <a href="https://tambat.sasateguh.com/judges"><b>Judging? Start here</b></a> · <a href="#try-it-in-60-seconds">Try it</a> · <a href="#run-it-locally">Run it</a> · <a href="#tests">Tests</a> · <a href="#known-limits-and-next-steps">Limits</a> · <a href="README.ms.md">Bahasa Melayu</a><br>
+<a href="https://youtu.be/S1PH3tSgvi0"><b>&#9654;&#xFE0E; demo video, 56 s</b></a> · <a href="https://tambat.sasateguh.com"><b>live demo</b></a> · <a href="https://tambat.sasateguh.com/judges"><b>Judging? Start here</b></a> · <a href="#try-it-in-60-seconds">Try it</a> · <a href="#run-it-locally">Run it</a> · <a href="#tests">Tests</a> · <a href="#known-limits-and-next-steps">Limits</a> · <a href="README.ms.md">Bahasa Melayu</a><br>
 Built in Malaysia by <a href="https://aimanmalib.com">Aiman Malib</a> · <a href="https://sasateguh.com">Sasa Teguh</a></p>
 
 Bind a Bitcoin Cash address to a Nostr public key, publish the binding to Nostr relays, and let anyone verify it without
@@ -20,6 +20,7 @@ Prize and EMBER2026 vote address of this entry: `bitcoincash:zpw5zvrmw73eyakw92z
 - [Wallet guide for Paytaca](docs/PAYTACA.md): how a wallet that holds a BIP39 phrase publishes a binding.
 - [Measurements](docs/MEASURED.md): what was measured on real relays and the live site, failures included.
 - [docs/decisions/](docs/decisions/): why each choice was made.
+- Narrated demo on YouTube: https://youtu.be/S1PH3tSgvi0
 - [Demo video](https://tambat.sasateguh.com/video) ([`public/media/tambat-demo.mp4`](public/media/tambat-demo.mp4), 56 s, no sound,
   captions in the picture) and [event deck](https://tambat.sasateguh.com/deck.pdf) (`npx tsx tools/deck/build.ts`): the banner
   of every page links both, this repository and the team's BCH address (`config/tambat.json` `banner`, `video`).
